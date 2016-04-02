@@ -136,3 +136,11 @@ class ProgramEntranceExamTaskSolution(EntranceExamTaskSolution):
     language = models.ForeignKey(modules.ejudge.models.ProgrammingLanguage)
 
     ejudge_queue_element = models.ForeignKey(modules.ejudge.models.QueueElement)
+
+
+class EntranceUserUpgrade(models.Model):
+    user = models.ForeignKey(user.models.User)
+
+    for_school = models.ForeignKey(school.models.School, related_name='%(class)s')
+
+    advanced_by = models.IntegerField(default=1)

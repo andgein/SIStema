@@ -28,6 +28,10 @@
         </p>
     </div>
 
+    {% if can_upgrade %}
+        {% include 'entrance/_exam_upgrade.html' %}
+    {% endif %}
+
     {% if test_tasks %}
         <div class="fs18">Тестовые задания</div>
         <div class="help-block mb20">
@@ -84,6 +88,8 @@
             {% include 'entrance/_exam_task_program.html' with index=forloop.counter task=program_task %}
         {% endfor %}
     {% endif %}
+
+    {% include 'entrance/_exam_upgrade.html' %}
 
 {% endblock %}
 

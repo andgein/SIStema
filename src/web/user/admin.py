@@ -10,9 +10,12 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
     list_display = (
         'id',
         'username',
+        'first_name',
+        'last_name',
         'email',
         'is_superuser',
         'is_staff',
+        'is_email_confirmed',
         'hijack_field',
     )
 
