@@ -26,11 +26,56 @@ def _get_entrance_level(school, user):
     return current_limit.min_level
 
 
+def _is_user_upgraded(user, school):
+    return models.EntranceUserUpgrade.objects.filter(user=user,
+                                                     for_school=school).exists()
+
+
+def _can_user_upgrade(user, school):
+    # Allow upgrade only once
+    if _is_user_upgraded(user, school):
+        return False
+
+    entrance_level = _get_entrance_level(school, user)
+    tasks = _get_entrance_tasks(entrance_level, user)
+    # TODO(artemtab): refactor this
+    program_tasks = list(filter(lambda t: hasattr(t, 'programentranceexamtask'), tasks))
+
+    every_task_has_ok = True
+    for task in program_tasks:
+        task_has_ok = False
+        user_solutions = [s.programentranceexamtasksolution for s in
+                          task.entranceexamtasksolution_set.filter(user=user)]
+        for solution in user_solutions:
+            if solution.ejudge_queue_element.get_result().is_success:
+                task_has_ok = True
+        every_task_has_ok = every_task_has_ok and task_has_ok
+
+    return every_task_has_ok
+
+
+def _get_entrance_tasks(entrance_level, user):
+    issued_tasks = list(entrance_level.tasks.all())
+
+    if _is_user_upgraded(user, entrance_level.for_school):
+        next_level = None
+        for level in models.EntranceLevel.objects.all():
+            if level.order > entrance_level.order:
+                if next_level is None or level.order < next_level.order:
+                    next_level = level
+        if next_level is not None:
+            for task in next_level.tasks.all():
+                if task not in issued_tasks:
+                    issued_tasks.append(task)
+
+    return issued_tasks
+
+
 @login_required
 @school.decorators.school_view
 def exam(request):
     entrance_level = _get_entrance_level(request.school, request.user)
-    tasks = entrance_level.tasks.all()
+    tasks = _get_entrance_tasks(entrance_level, request.user)
 
     for task in tasks:
         qs = task.entranceexamtasksolution_set.filter(user=request.user).order_by('-created_at')
@@ -63,6 +108,8 @@ def exam(request):
         'test_tasks': test_tasks,
         'file_tasks': file_tasks,
         'program_tasks': program_tasks,
+        'is_upgraded': _is_user_upgraded(request.user, request.school),
+        'can_upgrade': _can_user_upgrade(request.user, request.school),
     })
 
 
@@ -140,3 +187,18 @@ def solution(request, solution_id):
 
     return sistema.helpers.respond_as_attachment(request, solution.solution,
                                                  solution.fileentranceexamtasksolution.original_filename)
+
+
+@login_required
+@school.decorators.school_view
+def upgrade(request):
+    if not _can_user_upgrade(request.user, request.school):
+        return redirect('school:entrance:exam', school_name=request.school.short_name)
+
+    if request.method != 'GET':
+        return redirect('school:entrance:exam', school_name=request.school.short_name)
+
+    upgrade_entry = models.EntranceUserUpgrade(user=request.user, for_school=request.school)
+    upgrade_entry.save()
+
+    return redirect('school:entrance:exam', school_name=request.school.short_name)
