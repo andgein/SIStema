@@ -26,18 +26,25 @@ def _get_entrance_level(school, user):
     return current_limit.min_level
 
 
-def _is_user_upgraded(user, school):
-    return models.EntranceUserUpgrade.objects.filter(user=user,
-                                                     for_school=school).exists()
+def _is_user_at_maximum_level(user, base_level):
+    advanced_by = 0
+
+    upgrades = models.EntranceUserUpgrade.objects.filter(user=user,
+                                                         for_school=base_level.for_school)
+    if upgrades.exists():
+        advanced_by = upgrades[:1].get().advanced_by
+
+    next_level_order = base_level.order + advanced_by + 1
+    return not models.EntranceLevel.objects.filter(order=next_level_order).exists()
 
 
 def _can_user_upgrade(user, school):
-    # Allow upgrade only once
-    if _is_user_upgraded(user, school):
+    base_level = _get_entrance_level(school, user)
+
+    if _is_user_at_maximum_level(user, base_level):
         return False
 
-    entrance_level = _get_entrance_level(school, user)
-    tasks = _get_entrance_tasks(entrance_level, user)
+    tasks = _get_entrance_tasks(base_level, user)
     # TODO(artemtab): refactor this
     program_tasks = list(filter(lambda t: hasattr(t, 'programentranceexamtask'), tasks))
 
@@ -57,14 +64,18 @@ def _can_user_upgrade(user, school):
 def _get_entrance_tasks(entrance_level, user):
     issued_tasks = list(entrance_level.tasks.all())
 
-    if _is_user_upgraded(user, entrance_level.for_school):
-        next_level = None
+    upgrades = models.EntranceUserUpgrade.objects.filter(user=user,
+                                                         for_school=entrance_level.for_school)
+    if upgrades.exists():
+        upgrade = upgrades[:1].get()
+
+        add_levels = []
         for level in models.EntranceLevel.objects.all():
-            if level.order > entrance_level.order:
-                if next_level is None or level.order < next_level.order:
-                    next_level = level
-        if next_level is not None:
-            for task in next_level.tasks.all():
+            if entrance_level.order < level.order <= entrance_level.order + upgrade.advanced_by:
+                add_levels.append(level)
+
+        for level in add_levels:
+            for task in level.tasks.all():
                 if task not in issued_tasks:
                     issued_tasks.append(task)
 
@@ -108,7 +119,7 @@ def exam(request):
         'test_tasks': test_tasks,
         'file_tasks': file_tasks,
         'program_tasks': program_tasks,
-        'is_upgraded': _is_user_upgraded(request.user, request.school),
+        'is_user_at_maximum_level': _is_user_at_maximum_level(request.user, entrance_level),
         'can_upgrade': _can_user_upgrade(request.user, request.school),
     })
 
@@ -198,7 +209,14 @@ def upgrade(request):
     if request.method != 'GET':
         return redirect('school:entrance:exam', school_name=request.school.short_name)
 
-    upgrade_entry = models.EntranceUserUpgrade(user=request.user, for_school=request.school)
-    upgrade_entry.save()
+    upgrades = models.EntranceUserUpgrade.objects.filter(user=request.user,
+                                                         for_school=request.school)
+    if upgrades.exists():
+        upgrade_entry = upgrades[:1].get()
+        upgrade_entry.advanced_by += 1
+        upgrade_entry.save()
+    else:
+        upgrade_entry = models.EntranceUserUpgrade(user=request.user, for_school=request.school)
+        upgrade_entry.save()
 
     return redirect('school:entrance:exam', school_name=request.school.short_name)

@@ -142,3 +142,5 @@ class EntranceUserUpgrade(models.Model):
     user = models.ForeignKey(user.models.User)
 
     for_school = models.ForeignKey(school.models.School, related_name='%(class)s')
+
+    advanced_by = models.IntegerField(default=1)
