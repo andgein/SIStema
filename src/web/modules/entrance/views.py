@@ -203,20 +203,20 @@ def solution(request, solution_id):
 @login_required
 @school.decorators.school_view
 def upgrade(request):
-    if not _can_user_upgrade(request.user, request.school):
-        return redirect('school:entrance:exam', school_name=request.school.short_name)
-
     if request.method != 'GET':
         return redirect('school:entrance:exam', school_name=request.school.short_name)
 
-    upgrades = models.EntranceUserUpgrade.objects.filter(user=request.user,
-                                                         for_school=request.school)
-    if upgrades.exists():
-        upgrade_entry = upgrades[:1].get()
-        upgrade_entry.advanced_by += 1
-        upgrade_entry.save()
-    else:
-        upgrade_entry = models.EntranceUserUpgrade(user=request.user, for_school=request.school)
-        upgrade_entry.save()
+    # We may need to upgrade several times because there are levels with
+    # the same sets of tasks
+    while _can_user_upgrade(request.user, request.school):
+        upgrades = models.EntranceUserUpgrade.objects.filter(user=request.user,
+                                                             for_school=request.school)
+        if upgrades.exists():
+            upgrade_entry = upgrades[:1].get()
+            upgrade_entry.advanced_by += 1
+            upgrade_entry.save()
+        else:
+            upgrade_entry = models.EntranceUserUpgrade(user=request.user, for_school=request.school)
+            upgrade_entry.save()
 
     return redirect('school:entrance:exam', school_name=request.school.short_name)
