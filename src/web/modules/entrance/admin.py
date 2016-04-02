@@ -8,6 +8,7 @@ class EntranceUserUpgradeAdmin(admin.ModelAdmin):
         'id',
         'user',
         'for_school',
+        'advanced_by',
     )
 
 admin.site.register(models.TestEntranceExamTask)
