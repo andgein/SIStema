@@ -1,7 +1,5 @@
-import django.core.mail
-
 from django.contrib.auth import models as auth_models
-from django.core import validators
+from django.core import mail, validators
 from django.db import models
 from django.utils import crypto
 from django.utils.translation import ugettext_lazy as _
@@ -54,8 +52,8 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
 
     # Sistema custom fields
-    email_confirmation_token = models.CharField(
-            default=generate_random_secret_string, max_length=32)
+    mail_confirmation_token = models.CharField(
+        default=generate_random_secret_string, max_length=32)
 
     is_email_confirmed = models.BooleanField(default=True)
     # End of Sistema custom fields
@@ -81,8 +79,7 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Sends an email to this User."""
-        django.core.mail.send_mail(subject, message, from_email, [self.email],
-                                   **kwargs)
+        mail.send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def __str__(self):
         return '%s %s (%s)' % (self.last_name, self.first_name, self.email)
