@@ -52,7 +52,7 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
 
     # Sistema custom fields
-    mail_confirmation_token = models.CharField(
+    email_confirmation_token = models.CharField(
         default=generate_random_secret_string, max_length=32)
 
     is_email_confirmed = models.BooleanField(default=True)
