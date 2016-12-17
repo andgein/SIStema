@@ -72,5 +72,5 @@ class UserTestCase(TestCase):
         """String representation should be 'first_name last_name (email)'."""
         user = User.objects.get(username='test_user_1')
         self.assertEqual(
-            str(user), 'Семён Печкин-Лавочкин (semen@pechkin-lavochkin.org)')
+            str(user), 'Печкин-Лавочкин Семён (semen@pechkin-lavochkin.org)')
 
