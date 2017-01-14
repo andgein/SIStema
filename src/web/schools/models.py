@@ -43,12 +43,18 @@ class School(models.Model):
 class Session(models.Model):
     school = models.ForeignKey(School)
 
-    name = models.CharField(max_length=50, help_text='Например, Август')
+    name = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text='Например, Август. Можно оставить пустым, если это '
+                  'единственная смена.')
 
     short_name = models.CharField(
         max_length=20,
+        blank=True,
         help_text='Используется в урлах. Лучше обойтись латинскими буквами, '
-                  'цифрами и подчёркиванием. Например, august.')
+                  'цифрами и подчёркиванием. Можно оставить пустым, если это '
+                  'единственная смена. Например, august.')
 
     start_date = models.DateField(help_text='Первый день смены')
 
@@ -58,6 +64,8 @@ class Session(models.Model):
         unique_together = ('school', 'short_name')
 
     def __str__(self):
+        if not self.name:
+            return self.school.name
         return '%s.%s' % (self.school.name, self.name)
 
     @property
