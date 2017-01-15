@@ -55,6 +55,8 @@ INSTALLED_APPS = (
     'compat',
     'ipware',
     'polymorphic',
+    'constance',
+    'constance.backends.database',
 
     'sistema',
 
@@ -194,7 +196,10 @@ SISTEMA_FINANCE_DOCUMENTS = os.path.join(SISTEMA_UPLOAD_FILES_DIR, 'finance-docu
 
 SISTEMA_SEND_CONFIRMATION_EMAILS = False
 
-SISTEMA_CURRENT_SCHOOL_SHORT_NAME = ''
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+CONSTANCE_CONFIG = {
+    'SISTEMA_CURRENT_SCHOOL_SHORT_NAME': ('2016', 'Короткое название текущей смены')
+}
 
 HIJACK_DISPLAY_ADMIN_BUTTON = False
 HIJACK_LOGIN_REDIRECT_URL = '/'

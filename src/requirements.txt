@@ -16,6 +16,7 @@ django-hijack-admin
 django-ipware
 django-polymorphic
 django-relativefilepathfield
+django-constance[database]
 
 boto
 requests >= 2.7.0
