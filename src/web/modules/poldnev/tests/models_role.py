@@ -21,6 +21,4 @@ class RoleTestCase(django.test.TestCase):
 
     def test_str(self):
         """Role's string representation should be correct."""
-        self.assertEqual(
-            str(self.role),
-            'Role(session_name=2008.Кострома, poldnev_role=C3.преп)')
+        self.assertEqual(str(self.role), '2008.Кострома: C3.преп')

@@ -31,11 +31,11 @@ class Session(models.Model):
         help_text='True, если корректность значения schools_session была '
                   'проверена человеком')
 
+    class Meta:
+        ordering = ('-poldnev_id',)
+
     def __str__(self):
-        return 'Session(poldnev_id={}, name={}, verified={})'.format(
-            self.poldnev_id,
-            self.name,
-            self.verified)
+        return self.name
 
 
 class Person(models.Model):
@@ -74,11 +74,19 @@ class Person(models.Model):
         help_text='True, если корректность значения user была проверена '
                   'человеком')
 
+    class Meta:
+        ordering = ('last_name', 'first_name', 'middle_name')
+
     def __str__(self):
-        return 'Person(poldnev_id={}, name={}, verified={})'.format(
-            self.poldnev_id,
-            ' '.join([self.first_name, self.middle_name, self.last_name]),
-            self.verified)
+        return self.full_name
+
+    @property
+    def full_name(self):
+        return ' '.join([self.first_name, self.middle_name, self.last_name])
+
+    @property
+    def url(self):
+        return 'https://poldnev.ru/lksh/id' + self.poldnev_id
 
 
 class Role(models.Model):
@@ -97,9 +105,11 @@ class Role(models.Model):
                   'информации с сайта.')
 
     def __str__(self):
-        return 'Role(session_name={}, poldnev_role={})'.format(
-            self.session.name,
-            self.poldnev_role)
+        return self.session.name + ': ' + self.poldnev_role
+
+    @property
+    def role_id(self):
+        return self.session.poldnev_id + ':' + self.poldnev_role
 
 
 class HistoryEntry(models.Model):
@@ -118,7 +128,13 @@ class HistoryEntry(models.Model):
         help_text='Роль. Также содержит информацию о смене.')
 
     def __str__(self):
-        return 'HistoryEntry(person_id={}, session_id={}, role={})'.format(
-            self.person.poldnev_id,
-            self.role.session.poldnev_id,
-            self.role.poldnev_role)
+        return '{} ({})'.format(self.person, self.role)
+
+    @property
+    def entry_id(self):
+        return str(self.person.poldnev_id) + ':' + self.role.role_id
+
+    @property
+    def url(self):
+        return 'https://poldnev.ru/lksh/id{}#{}'.format(
+            self.person.poldnev_id, self.role.session.poldnev_id)

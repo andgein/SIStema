@@ -18,6 +18,4 @@ class SessionTestCase(django.test.TestCase):
 
     def test_str(self):
         """Session's string representation should be correct."""
-        self.assertEqual(
-            str(self.session),
-            'Session(poldnev_id=0871, name=2008.Кострома, verified=False)')
+        self.assertEqual(str(self.session), '2008.Кострома')
