@@ -104,12 +104,16 @@ class Role(models.Model):
                   'автоматически командой manage.py update_poldnev по '
                   'информации с сайта.')
 
+    @classmethod
+    def make_id(cls, session_id, poldnev_role):
+        return session_id + ':' + poldnev_role
+
     def __str__(self):
         return self.session.name + ': ' + self.poldnev_role
 
     @property
     def role_id(self):
-        return self.session.poldnev_id + ':' + self.poldnev_role
+        return self.make_id(self.session.poldnev_id, self.poldnev_role)
 
 
 class HistoryEntry(models.Model):

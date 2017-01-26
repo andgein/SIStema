@@ -244,7 +244,7 @@ class PoldnevUpdate:
             for session_id, roles in history[person_id]:
                 for role_str in roles:
                 # TODO(Artem Tabolin): don't compute id here
-                    role_id = session_id + ':' + role_str
+                    role_id = models.Role.make_id(session_id, role_str)
                     role = role_by_id[role_id]
                     entry = models.HistoryEntry(person=person, role=role)
 
