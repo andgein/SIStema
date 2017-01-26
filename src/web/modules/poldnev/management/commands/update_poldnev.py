@@ -97,11 +97,13 @@ class Command(management_base.BaseCommand):
 
 
 class PoldnevUpdate:
+    POLDNEV_ROOT = 'https://poldnev.ru'
+
     @classmethod
     def from_poldnev_data(cls, data):
         update = cls()
-        session_by_id = cls._add_poldnev_sessions_to_update(update,
-                                                            data['glname'])
+        session_by_id = cls._add_poldnev_sessions_to_update(
+            update, data['glname'], data['gsmlink'])
         person_by_id = cls._add_poldnev_persons_to_update(
             update, data['gname'], data['gpatr'], data['gsur'])
         role_by_id = cls._add_poldnev_roles_to_update(
@@ -111,35 +113,42 @@ class PoldnevUpdate:
         return update
 
     @classmethod
-    def _add_poldnev_sessions_to_update(cls, update, session_names):
+    def _add_poldnev_sessions_to_update(cls, update, session_names,
+                                        session_links):
         session_by_id = {s.poldnev_id : s for s in models.Session.objects.all()}
         session_ids_to_delete = {s_id for s_id in session_by_id}
 
         for session_id, session_name in session_names.items():
+            if session_id in session_links:
+                session_url = cls.POLDNEV_ROOT + session_links[session_id]
+            else:
+                session_url = None
+
             if session_id not in session_by_id:
                 # Session is new
                 session = models.Session(poldnev_id=session_id,
-                                         name=session_name)
+                                         name=session_name,
+                                         url=session_url)
                 session_by_id[session_id] = session
                 update.objects_to_save.append(session)
                 update.add_change(session.__class__, Action.CREATE, str(session))
                 continue
 
             session = session_by_id[session_id]
-            if session_name == session.name:
+            session_ids_to_delete.remove(session_id)
+            if session_name == session.name and session_url == session.url:
                 # Session isn't changed
-                session_ids_to_delete.remove(session_id)
                 continue
 
             # Session is updated
-            session_ids_to_delete.remove(session_id)
-
-            old_str = str(session)
+            old_str = '{} ({})'.format(session, session.url)
             session.name = session_name
+            session.url = session_url
+            new_str = '{} ({})'.format(session, session.url)
             update.objects_to_save.append(session)
             update.add_change(session.__class__,
                               Action.UPDATE,
-                              '{} -> {}'.format(old_str, str(session)))
+                              '{} -> {}'.format(old_str, new_str))
 
         for session_id in session_ids_to_delete:
             session = session_by_id[session_id]

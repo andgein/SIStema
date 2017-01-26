@@ -31,6 +31,8 @@ class Session(models.Model):
         help_text='True, если корректность значения schools_session была '
                   'проверена человеком')
 
+    url = models.URLField(null=True)
+
     class Meta:
         ordering = ('-poldnev_id',)
 

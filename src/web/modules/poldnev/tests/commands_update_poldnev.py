@@ -12,9 +12,6 @@ from modules.poldnev.management.commands import update_poldnev
 
 
 class UpdatePoldnevTestCase(django.test.TestCase):
-    def setUp(self):
-        pass
-
     def test_update_sessions(self):
         """Sessions are correctly updated"""
 
@@ -29,21 +26,21 @@ class UpdatePoldnevTestCase(django.test.TestCase):
         }
 
         update = update_poldnev.PoldnevUpdate()
-        update._add_poldnev_sessions_to_update(update, new_session_names)
+        update._add_poldnev_sessions_to_update(update, new_session_names, {})
 
         self.assertEqual(
             update.get_changes(models.Session, update_poldnev.Action.CREATE),
             ['ЛКШ.2048.Июль'])
         self.assertEqual(
             update.get_changes(models.Session, update_poldnev.Action.UPDATE),
-            ['ЛКШ.2048.Мурс -> ЛКШ.2048.Марс'])
+            ['ЛКШ.2048.Мурс (None) -> ЛКШ.2048.Марс (None)'])
         self.assertEqual(
             update.get_changes(models.Session, update_poldnev.Action.DELETE),
             ['ЛКШ.2048.Венера'])
 
 
         update.apply()
-        
+
         self.assertQuerysetEqual(models.Session.objects.all(),
                                  new_session_names.values(),
                                  transform=str,

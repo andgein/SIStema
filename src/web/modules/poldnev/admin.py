@@ -7,10 +7,17 @@ class SessionAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'poldnev_id',
-        'name',
+        'name_as_url',
         'schools_session',
         'verified',
     )
+
+    def name_as_url(self, obj):
+        if obj.url:
+            return html.format_html('<a href="{}">{}</a>', obj.url, obj.name)
+        return None
+    name_as_url.short_description = 'Name'
+    name_as_url.admin_order_field = 'name'
 
     search_fields = ('=poldnev_id', '=name')
     ordering = ('-poldnev_id',)
@@ -30,7 +37,7 @@ class PersonAdmin(admin.ModelAdmin):
     )
 
     def show_url(self, obj):
-        return html.format_html("<a href='{url}'>{url}</a>", url=obj.url)
+        return html.format_html('<a href="{url}">{url}</a>', url=obj.url)
     show_url.short_description = "URL"
 
     search_fields = (
@@ -73,7 +80,7 @@ class HistoryEntryAdmin(admin.ModelAdmin):
     )
 
     def show_url(self, obj):
-        return html.format_html("<a href='{url}'>{url}</a>", url=obj.url)
+        return html.format_html('<a href="{url}">{url}</a>', url=obj.url)
     show_url.short_description = "URL"
 
     list_filter = (
