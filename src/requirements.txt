@@ -1,30 +1,51 @@
-### This file contains requiremenets for SIStema project. Install them with `pip install -r requirements.txt`
+### This file contains requiremenets for Sistema. Install them with `pip install -r requirements.txt`
+### Please specify concrete version number for each package
 
-### Django stuff
-Django >= 1.8.4
-Jinja2 >= 2.7.3
-django-jinja >= 1.4.1
-django-reversion
-reversion
-django-solo
-django-choices
-django-markdown-deux
-django-ses
-python-postmark
-django-hijack
-django-hijack-admin
-django-ipware
-django-polymorphic
-django-relativefilepathfield
-django-constance[database]
-
-boto
-requests >= 2.7.0
-bs4
-python-social-auth
-cached-property
-mysqlclient
-markdown
-sqlparse
-reportlab
-
+appdirs==1.4.0
+beautifulsoup4==4.5.3
+bleach==1.5.0
+boto==2.45.0
+bs4==0.0.1
+cached-property==1.3.0
+defusedxml==0.5.0
+Django==1.10.5
+django-anymail==0.8
+django-choices==1.4.4
+django-constance[database]==1.3.4
+django-compat==1.0.13
+django-hijack==2.1.2
+django-hijack-admin==2.1.2
+django-ipware==1.1.6
+django-jinja==2.2.2
+django-markdown-deux==1.0.5
+django-polymorphic==1.1
+django-relativefilepathfield==1.0.3
+django-reversion==2.0.8
+django-ses==0.8.1
+django-solo==1.1.2
+html5lib==0.9999999
+Jinja2==2.9.5
+Markdown==2.6.8
+markdown2==2.3.3
+MarkupSafe==0.23
+oauthlib==2.0.1
+olefile==0.44
+packaging==16.8
+Pillow==4.0.0
+PyJWT==1.4.2
+pyparsing==2.1.10
+python-postmark==0.4.12
+python-social-auth==0.3.6
+python3-openid==3.0.10
+reportlab==3.3.0
+requests==2.13.0
+requests-oauthlib==0.7.0
+reversion==0.2
+six==1.10.0
+social-auth-app-django==1.1.0
+social-auth-core==1.2.0
+sqlparse==0.2.2
+toml==0.9.2
+trans==2.1.0
+webencodings==0.5
+zipstream==1.1.4

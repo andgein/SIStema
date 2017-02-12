@@ -1,0 +1,5 @@
+### This file contains requiremenets for Sistema with MySQL backend. Install them with `pip install -r requirements.mysql.txt`
+
+-r requirements.txt
+
+mysqlclient

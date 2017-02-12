@@ -1,10 +1,10 @@
 import importlib
 
-from home.models import AbstractHomePageBlock
 from django.db import models
 
-from questionnaire.models import Questionnaire
-from .. import models as entrance_models
+from ..models import main as entrance_models
+import home.models as home_models
+import questionnaire.models as q_models
 
 __all__ = ['EntranceStepsHomePageBlock',
            'EnrolledStepsHomePageBlock',
@@ -46,7 +46,7 @@ def get_visible_entrance_status(school, user):
     return entrance_status
 
 
-class EntranceStepsHomePageBlock(AbstractHomePageBlock):
+class EntranceStepsHomePageBlock(home_models.AbstractHomePageBlock):
     is_past = models.BooleanField(default=False)
 
     def build(self, request):
@@ -54,14 +54,14 @@ class EntranceStepsHomePageBlock(AbstractHomePageBlock):
             (
                 'modules.entrance.steps.QuestionnaireEntranceStep', {
                     'school': request.school,
-                    'questionnaire': Questionnaire.objects.filter(short_name='about').first()
+                    'questionnaire': q_models.Questionnaire.objects.filter(short_name='about').first()
                 }
             ),
             (
                 'modules.entrance.steps.QuestionnaireEntranceStep', {
                     'school': request.school,
-                    'questionnaire': Questionnaire.objects.filter(school=request.school).first(),
-                    'previous_questionnaire': Questionnaire.objects.filter(short_name='about').first(),
+                    'questionnaire': q_models.Questionnaire.objects.filter(school=request.school).first(),
+                    'previous_questionnaire': q_models.Questionnaire.objects.filter(short_name='about').first(),
                     'message': 'Заполните анкету поступающего для {{ school.name }}',
                     'button_text': 'Поехали',
                 }
@@ -70,7 +70,7 @@ class EntranceStepsHomePageBlock(AbstractHomePageBlock):
                 'modules.topics.entrance.steps.TopicQuestionnaireEntranceStep', {
                     'school': request.school,
                     'questionnaire': request.school.topicquestionnaire,
-                    'previous_questionnaire': Questionnaire.objects.filter(school=request.school).first(),
+                    'previous_questionnaire': q_models.Questionnaire.objects.filter(school=request.school).first(),
                 }
             ),
             (
@@ -92,7 +92,7 @@ class EntranceStepsHomePageBlock(AbstractHomePageBlock):
         return 3 if self.is_past else 6
 
 
-class EnrolledStepsHomePageBlock(AbstractHomePageBlock):
+class EnrolledStepsHomePageBlock(home_models.AbstractHomePageBlock):
     def build(self, request):
         self.steps = None
         self.entrance_status = get_visible_entrance_status(request.school, request.user)
@@ -101,13 +101,13 @@ class EnrolledStepsHomePageBlock(AbstractHomePageBlock):
         if self.entrance_status is not None and self.entrance_status.is_enrolled:
             user_session = self.entrance_status.session
 
-            enrolled_questionnaire = Questionnaire.objects.filter(school=request.school, short_name='enrolled').first()
-            arrival_questionnaire = Questionnaire.objects.filter(
+            enrolled_questionnaire = q_models.Questionnaire.objects.filter(school=request.school, short_name='enrolled').first()
+            arrival_questionnaire = q_models.Questionnaire.objects.filter(
                 school=request.school,
                 short_name__startswith='arrival',
                 session=user_session
             ).first()
-            payment_questionnaire = Questionnaire.objects.filter(school=request.school, short_name='payment').first()
+            payment_questionnaire = q_models.Questionnaire.objects.filter(school=request.school, short_name='payment').first()
             enrolled_steps = [
                 (
                     'modules.entrance.steps.QuestionnaireEntranceStep', {
@@ -151,7 +151,7 @@ class EnrolledStepsHomePageBlock(AbstractHomePageBlock):
             self.steps = build_user_steps(enrolled_steps, request.user)
 
 
-class EntranceStatusHomePageBlock(AbstractHomePageBlock):
+class EntranceStatusHomePageBlock(home_models.AbstractHomePageBlock):
     def build(self, request):
         entrance_status = get_visible_entrance_status(request.school, request.user)
         if entrance_status is not None:
@@ -167,6 +167,6 @@ class EntranceStatusHomePageBlock(AbstractHomePageBlock):
         self.entrance_status = entrance_status
 
 
-class AbsenceReasonHomePageBlock(AbstractHomePageBlock):
+class AbsenceReasonHomePageBlock(home_models.AbstractHomePageBlock):
     def build(self, request):
         self.reason = entrance_models.AbstractAbsenceReason.for_user_in_school(request.user, request.school)

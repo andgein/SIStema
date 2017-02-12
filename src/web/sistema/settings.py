@@ -48,7 +48,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'reversion',
-    'social.apps.django_app.default',
+    'social_django',
     'markdown_deux',
     'hijack',
     'hijack_admin',
@@ -111,8 +111,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sistema.wsgi.application'
 
 AUTHENTICATION_BACKENDS = (
-    'social.backends.vk.VKOAuth2',
-    'social.backends.twitter.TwitterOAuth',
+    'social_core.backends.vk.VKOAuth2',
+    'social_core.backends.twitter.TwitterOAuth',
     'django.contrib.auth.backends.ModelBackend',
 )
 
