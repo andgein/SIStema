@@ -43,8 +43,7 @@ class Session(models.Model):
 class Person(models.Model):
     """SIS person from poldnev.ru"""
 
-    poldnev_id = models.CharField(
-        max_length=30,
+    poldnev_id = models.IntegerField(
         unique=True,
         help_text='Id человека на poldnev.ru. Заполняется автоматически '
                   'командой manage.py update_poldnev по информации с сайта.')
@@ -88,7 +87,7 @@ class Person(models.Model):
 
     @property
     def url(self):
-        return 'https://poldnev.ru/lksh/id' + self.poldnev_id
+        return 'https://poldnev.ru/lksh/id' + str(self.poldnev_id)
 
 
 class Role(models.Model):

@@ -172,28 +172,28 @@ class PoldnevUpdate:
             if new_names == ('', '', ''):
                 continue
 
-            if str(person_id) not in person_by_id:
+            if person_id not in person_by_id:
                 # Person is new
                 person = models.Person(poldnev_id=person_id,
                                        first_name=first_names[person_id],
                                        middle_name=middle_names[person_id],
                                        last_name=last_names[person_id])
-                person_by_id[str(person_id)] = person
+                person_by_id[person_id] = person
                 update.objects_to_save.append(person)
                 update.add_change(person.__class__, Action.CREATE, str(person))
                 continue
 
-            person = person_by_id[str(person_id)]
+            person = person_by_id[person_id]
             old_names = (person.first_name,
                          person.middle_name,
                          person.last_name)
             if old_names == new_names:
                 # Person isn't changed
-                person_ids_to_delete.remove(str(person_id))
+                person_ids_to_delete.remove(person_id)
                 continue
 
             # Person is updated
-            person_ids_to_delete.remove(str(person_id))
+            person_ids_to_delete.remove(person_id)
 
             old_str = str(person)
             person.first_name = first_names[person_id]
@@ -205,7 +205,7 @@ class PoldnevUpdate:
                               '{} -> {}'.format(old_str, str(person)))
 
         for person_id in person_ids_to_delete:
-            person = person_by_id[str(person_id)]
+            person = person_by_id[person_id]
             update.objects_to_delete.append(person)
             update.add_change(person.__class__, Action.DELETE, str(person))
 
@@ -249,7 +249,7 @@ class PoldnevUpdate:
             if not history[person_id]:
                 continue
 
-            person = person_by_id[str(person_id)]
+            person = person_by_id[person_id]
             for session_id, roles in history[person_id]:
                 for role_str in roles:
                 # TODO(Artem Tabolin): don't compute id here
