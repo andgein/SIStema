@@ -3,6 +3,7 @@ import json
 
 from django.db.models.query_utils import Q
 from django.template import engines, Context
+from django.utils.safestring import mark_safe
 
 
 class ColumnDataType(abc.ABC):
@@ -20,6 +21,9 @@ class NumberDataType(ColumnDataType):
     def render(self, obj, cell):
         return str(int(cell))
 
+class RawHtmlDataType(ColumnDataType):
+    def render(self, obj, cell):
+        return mark_safe(str(cell))
 
 class LinkDataType(ColumnDataType):
     """

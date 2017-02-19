@@ -1,0 +1,15 @@
+{% extends 'staff_layout.html' %}
+
+{% load staticfiles %}
+
+{% block title %}Результаты обучения{% endblock %}
+
+{% block topbar %}{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'frontend/js/table-filter.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    {% include 'frontend/table.html' with table=study_results_table %}
+{% endblock %}

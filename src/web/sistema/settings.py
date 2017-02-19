@@ -73,6 +73,7 @@ INSTALLED_APPS = (
     'modules.exam_scorer_2016',
     'modules.finance',
     'modules.poldnev',
+    'modules.study_results',
     'modules.topics',
 )
 

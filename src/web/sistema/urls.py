@@ -10,4 +10,6 @@ urlpatterns = [
     url(r'^frontend/', include('frontend.urls', namespace='frontend')),
     url(r'^(?P<school_name>[^/]+)/', include('schools.urls', namespace='school')),
     url(r'^hijack/', include('hijack.urls')),
+    url(r'^study_results/', include('modules.study_results.urls',
+                                    namespace='study_results')),
 ]
