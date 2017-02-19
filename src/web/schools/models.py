@@ -25,6 +25,9 @@ class School(models.Model):
         help_text='Используется в урлах. Например, 2048',
         unique=True)
 
+    is_public = models.BooleanField(
+        help_text='Открыт ли доступ к школе юзерам без админских прав')
+
     def __str__(self):
         return self.name
 
