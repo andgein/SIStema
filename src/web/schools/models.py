@@ -26,6 +26,7 @@ class School(models.Model):
         unique=True)
 
     is_public = models.BooleanField(
+        default=False,
         help_text='Открыт ли доступ к школе юзерам без админских прав')
 
     def __str__(self):
