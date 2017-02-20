@@ -23,48 +23,65 @@ class ViewsTestCase(django.test.TestCase):
             email='teacher@lksh.ru',
             password='teacher_secret',
             is_staff=True)
-        self.school = models.School.objects.create(name='ЛКШ 100500',
-                                                   year='100500',
-                                                   short_name='sis-100500')
+        self.schools = [models.School.objects.create(name='ЛКШ 100500',
+                                                     year='100500',
+                                                     short_name='sis-100500',
+                                                     is_public=True),
+                        models.School.objects.create(name='ЛКШ 100501',
+                                                     year='100501',
+                                                     short_name='sis-100501',
+                                                     is_public=False)]
 
     @unittest.mock.patch('schools.views.user')
     def test_index_for_student(self, user_view_mock):
         """Index returns correct page for student"""
-        request = self.request_factory.get('/sis-100500/')
-        request.user = self.student
-        views.index(request, self.school.short_name)
-        user_view_mock.assert_called_once_with(request)
-        self.assertEqual(request.school, self.school)
+        for school in self.schools:
+            request = self.request_factory.get('/%s/' % school.short_name)
+            request.user = self.student
+            views.index(request, school.short_name)
+            if school.is_public:
+                user_view_mock.assert_called_once_with(request)
+            else:
+                user_view_mock.assert_not_called()
+            self.assertEqual(request.school, school)
+            user_view_mock.reset_mock()
+
 
     @unittest.mock.patch('schools.views.staff')
     def test_index_for_teacher(self, staff_view_mock):
-        """Index returns correct page for student"""
-        request = self.request_factory.get('/sis-100500/')
-        request.user = self.teacher
-        views.index(request, self.school.short_name)
-        staff_view_mock.assert_called_once_with(request)
-        self.assertEqual(request.school, self.school)
+        """Index returns correct page for teacher"""
+        for school in self.schools:
+            request = self.request_factory.get('/%s/' % school.short_name)
+            request.user = self.teacher
+            views.index(request, school.short_name)
+            staff_view_mock.assert_called_with(request)
+            self.assertEqual(request.school, school)
+            staff_view_mock.reset_mock()
 
     @unittest.mock.patch('django.shortcuts.redirect')
     def test_staff(self, redirect_mock):
         """Staff view makes correct redirect"""
-        request = self.request_factory.get('/sis-100500/')
-        request.user = self.teacher
-        request.school = self.school
-        views.staff(request)
-        redirect_mock.assert_called_once_with('school:entrance:enrolling',
-                                              school_name='sis-100500')
+        for school in self.schools:
+            request = self.request_factory.get('/%s/' % school.short_name)
+            request.user = self.teacher
+            request.school = school
+            views.staff(request)
+            redirect_mock.assert_called_once_with('school:entrance:enrolling',
+                                                  school_name=school.short_name)
+            redirect_mock.reset_mock()
 
     # TODO(Artem Tabolin): test the case with some blocks
     @unittest.mock.patch('django.shortcuts.render')
     def test_user_no_blocks(self, render_mock):
         """User view renders correct template with correct arguments"""
-        request = self.request_factory.get('/sis-100500/')
+        school = self.schools[0]
+
+        request = self.request_factory.get('/%s/' % school.short_name)
         request.user = self.student
-        request.school = self.school
+        request.school = school
         views.user(request)
         render_mock.assert_called_once_with(
             request,
             'home/user.html',
-            {'school': self.school, 'blocks': []})
+            {'school': school, 'blocks': []})
 
