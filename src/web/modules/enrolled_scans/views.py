@@ -8,11 +8,9 @@ from modules.enrolled_scans import forms
 from sistema.helpers import group_by, respond_as_attachment
 import sistema.uploads
 from . import models
-from schools.decorators import school_view
 
 
 @login_required
-@school_view
 def scans(request):
     requirements = list(models.EnrolledScanRequirement.objects.filter(school=request.school))
     # Filter only needed for this user requirements
@@ -39,7 +37,6 @@ def scans(request):
 
 
 @login_required
-@school_view
 def scan(request, requirement_name):
     requirement = get_object_or_404(models.EnrolledScanRequirement, school=request.school, short_name=requirement_name)
 

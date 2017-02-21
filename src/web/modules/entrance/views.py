@@ -8,7 +8,6 @@ import ipware.ip
 import operator
 
 import questionnaire.models
-import schools.decorators
 import sistema.uploads
 import sistema.helpers
 import modules.topics.entrance.levels
@@ -107,7 +106,6 @@ class EntrancedUsersTable(staff_views.EnrollingUsersTable):
 
 
 @login_required
-@schools.decorators.school_view
 def exam(request):
     entrance_exam = get_object_or_404(models.EntranceExam, school=request.school)
     is_closed = entrance_exam.is_closed()
@@ -155,7 +153,6 @@ def exam(request):
 
 
 @login_required
-@schools.decorators.school_view
 @require_POST
 def submit(request, task_id):
     entrance_exam = get_object_or_404(models.EntranceExam, school=request.school)
@@ -228,7 +225,6 @@ def submit(request, task_id):
 
 
 @login_required
-@schools.decorators.school_view
 def solution(request, solution_id):
     solution = get_object_or_404(models.EntranceExamTaskSolution, id=solution_id)
 
@@ -243,7 +239,6 @@ def solution(request, solution_id):
 
 @require_POST
 @login_required
-@schools.decorators.school_view
 @transaction.atomic
 def upgrade(request):
     entrance_exam = get_object_or_404(models.EntranceExam, school=request.school)
@@ -266,7 +261,6 @@ def upgrade(request):
     return redirect('school:entrance:exam', school_name=request.school.short_name)
 
 
-@schools.decorators.school_view
 def results(request):
     table = EntrancedUsersTable.create(request.school)
 

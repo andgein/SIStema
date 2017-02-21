@@ -4,8 +4,6 @@ from django.db import transaction
 from django.http.response import HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 
-from schools.decorators import school_view
-
 from . import models
 from . import issuer
 from . import mark_guesser
@@ -116,7 +114,6 @@ def correcting(request):
 
 
 @login_required
-@school_view
 @topic_questionnaire_view
 @transaction.atomic
 def correcting_topic_marks(request, topic_name):
@@ -223,7 +220,6 @@ def _show_or_process_topic_form(request, topic_issue):
 
 
 @login_required
-@school_view
 @topic_questionnaire_view
 @transaction.atomic
 def index(request):
@@ -259,7 +255,6 @@ def index(request):
 
 
 @login_required
-@school_view
 @topic_questionnaire_view
 def reset(request):
     models.UserQuestionnaireStatus.objects.filter(user=request.user,
@@ -276,7 +271,6 @@ def reset(request):
 
 
 @login_required
-@school_view
 @topic_questionnaire_view
 def finish(request):
     _update_questionnaire_status(request.user, request.questionnaire, models.UserQuestionnaireStatus.Status.FINISHED)

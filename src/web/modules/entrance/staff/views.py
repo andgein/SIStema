@@ -14,7 +14,6 @@ import questionnaire.models
 import questionnaire.views
 import modules.topics.views as topics_views
 from modules.ejudge.models import SolutionCheckingResult, CheckingResult
-from schools.decorators import school_view
 import schools.models
 import sistema.staff
 import modules.topics.models
@@ -133,14 +132,12 @@ def get_enrolling_users_ids(school):
     return topic_questionnaire.get_filled_users_ids()
 
 
-@school_view
 @sistema.staff.only_staff
 def enrolling(request):
     users_table = EnrollingUsersTable.create(request.school)
     return render(request, 'entrance/staff/enrolling.html', {'users_table': users_table})
 
 
-@school_view
 @sistema.staff.only_staff
 def user_questionnaire(request, user_id, questionnaire_name):
     user = get_object_or_404(users.models.User, id=user_id)
@@ -148,7 +145,6 @@ def user_questionnaire(request, user_id, questionnaire_name):
     return questionnaire.views.questionnaire_for_user(request, user, questionnaire_name)
 
 
-@school_view
 @sistema.staff.only_staff
 @topics_views.topic_questionnaire_view
 def user_topics(request, user_id):
@@ -157,7 +153,6 @@ def user_topics(request, user_id):
     return topics_views.show_final_answers(request, user)
 
 
-@school_view
 @sistema.staff.only_staff
 @require_POST
 def change_group(request, user_id):
@@ -175,7 +170,6 @@ def _remove_old_checking_locks():
     models.CheckingLock.objects.filter(locked_until__lt=datetime.datetime.now()).delete()
 
 
-@school_view
 @sistema.staff.only_staff
 def check(request):
     _remove_old_checking_locks()
@@ -354,7 +348,6 @@ def check_user(request, user_for_checking, checking_group=None):
     })
 
 
-@school_view
 @sistema.staff.only_staff
 def check_group(request, group_name):
     checking_group = get_object_or_404(models.CheckingGroup, school=request.school, short_name=group_name)
@@ -381,7 +374,6 @@ def check_group(request, group_name):
     return check_user(request, user_for_checking, checking_group)
 
 
-@school_view
 @sistema.staff.only_staff
 def enrolling_user(request, user_id):
     user_for_checking = get_object_or_404(users.models.User, id=user_id)
@@ -391,7 +383,6 @@ def enrolling_user(request, user_id):
     return check_user(request, user_for_checking)
 
 
-@school_view
 @sistema.staff.only_staff
 def solution(request, solution_id):
     task_solution = get_object_or_404(models.EntranceExamTaskSolution, id=solution_id)
@@ -409,14 +400,12 @@ def solution(request, solution_id):
     return HttpResponseNotFound()
 
 
-@school_view
 @sistema.staff.only_staff
 def initial_reset(request):
     models.EntranceStatus.objects.all().delete()
     return JsonResponse({'status': 'ok'})
 
 
-@school_view
 @sistema.staff.only_staff
 def initial_auto_reject(request):
     users_ids = get_enrolling_users_ids(request.school)
@@ -464,7 +453,6 @@ def initial_auto_reject(request):
     })
 
 
-@school_view
 @sistema.staff.only_staff
 def initial_checking_groups(request):
     return None
