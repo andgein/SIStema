@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.core import urlresolvers
 from django.db import transaction
 from django.http.response import HttpResponseNotFound, HttpResponseForbidden
@@ -114,6 +115,7 @@ def correcting(request):
     })
 
 
+@login_required
 @school_view
 @topic_questionnaire_view
 @transaction.atomic
@@ -220,6 +222,7 @@ def _show_or_process_topic_form(request, topic_issue):
                                                     'is_correcting': is_correcting})
 
 
+@login_required
 @school_view
 @topic_questionnaire_view
 @transaction.atomic
@@ -255,6 +258,7 @@ def index(request):
     return _show_or_process_topic_form(request, topic_issue)
 
 
+@login_required
 @school_view
 @topic_questionnaire_view
 def reset(request):
@@ -271,6 +275,7 @@ def reset(request):
     return redirect('school:topics:index', school_name=request.school.short_name)
 
 
+@login_required
 @school_view
 @topic_questionnaire_view
 def finish(request):

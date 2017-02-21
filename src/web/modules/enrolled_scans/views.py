@@ -1,5 +1,6 @@
 import operator
 
+from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, get_object_or_404, redirect
 
@@ -10,6 +11,7 @@ from . import models
 from schools.decorators import school_view
 
 
+@login_required
 @school_view
 def scans(request):
     requirements = list(models.EnrolledScanRequirement.objects.filter(school=request.school))
@@ -36,6 +38,7 @@ def scans(request):
     })
 
 
+@login_required
 @school_view
 def scan(request, requirement_name):
     requirement = get_object_or_404(models.EnrolledScanRequirement, school=request.school, short_name=requirement_name)

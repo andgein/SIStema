@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http.response import HttpResponseNotFound, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
@@ -105,6 +106,7 @@ class EntrancedUsersTable(staff_views.EnrollingUsersTable):
         return str(self.absence_reason_by_user_id[user.id][0])
 
 
+@login_required
 @schools.decorators.school_view
 def exam(request):
     entrance_exam = get_object_or_404(models.EntranceExam, school=request.school)
@@ -152,6 +154,7 @@ def exam(request):
     })
 
 
+@login_required
 @schools.decorators.school_view
 @require_POST
 def submit(request, task_id):
@@ -224,6 +227,7 @@ def submit(request, task_id):
         return JsonResponse({'status': 'error', 'errors': form.errors})
 
 
+@login_required
 @schools.decorators.school_view
 def solution(request, solution_id):
     solution = get_object_or_404(models.EntranceExamTaskSolution, id=solution_id)
@@ -238,6 +242,7 @@ def solution(request, solution_id):
 
 
 @require_POST
+@login_required
 @schools.decorators.school_view
 @transaction.atomic
 def upgrade(request):

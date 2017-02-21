@@ -28,6 +28,7 @@ def staff(request):
                               school_name=request.school.short_name)
 
 
+@auth.decorators.login_required
 @decorators.school_view
 def index(request):
     """Returns default page for school for current user."""
@@ -37,6 +38,7 @@ def index(request):
         return user(request)
 
 
+@auth.decorators.login_required
 @decorators.school_view
 def questionnaire(request, questionnaire_name):
     # TODO(Artem Tabolin): shouldn't redirect be used here instead?
