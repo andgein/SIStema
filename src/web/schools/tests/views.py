@@ -32,18 +32,18 @@ class ViewsTestCase(django.test.TestCase):
         """Index returns correct page for student"""
         request = self.request_factory.get('/sis-100500/')
         request.user = self.student
-        views.index(request, self.school.short_name)
+        request.school = self.school
+        views.index(request)
         user_view_mock.assert_called_once_with(request)
-        self.assertEqual(request.school, self.school)
 
     @unittest.mock.patch('schools.views.staff')
     def test_index_for_teacher(self, staff_view_mock):
         """Index returns correct page for student"""
         request = self.request_factory.get('/sis-100500/')
         request.user = self.teacher
-        views.index(request, self.school.short_name)
+        request.school = self.school
+        views.index(request)
         staff_view_mock.assert_called_once_with(request)
-        self.assertEqual(request.school, self.school)
 
     @unittest.mock.patch('django.shortcuts.redirect')
     def test_staff(self, redirect_mock):
@@ -67,4 +67,3 @@ class ViewsTestCase(django.test.TestCase):
             request,
             'home/user.html',
             {'school': self.school, 'blocks': []})
-
