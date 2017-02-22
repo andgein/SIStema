@@ -401,12 +401,6 @@ def solution(request, solution_id):
 
 
 @sistema.staff.only_staff
-def initial_reset(request):
-    models.EntranceStatus.objects.all().delete()
-    return JsonResponse({'status': 'ok'})
-
-
-@sistema.staff.only_staff
 def initial_auto_reject(request):
     users_ids = get_enrolling_users_ids(request.school)
 
