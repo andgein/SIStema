@@ -3,6 +3,7 @@
 from django.core import urlresolvers
 from django.db import models
 import django.utils.dateformat
+import users.models
 
 
 class School(models.Model):
@@ -109,3 +110,24 @@ class Parallel(models.Model):
 
     def __str__(self):
         return '%s.%s' % (self.school.name, self.name)
+
+
+class SchoolParticipant(models.Model):
+    school = models.ForeignKey(School, related_name='school_participants')
+
+    user = models.ForeignKey(users.models.User,
+                             related_name='school_participants')
+
+    parallel = models.ForeignKey(Parallel, null=True,
+                                 related_name='school_participants')
+    # TODO: Add group
+
+    class Meta:
+        unique_together = ('school', 'user')
+
+    def __str__(self):
+        return self.user.get_full_name()
+
+    @classmethod
+    def for_user_in_school(cls, user, school):
+        return cls.objects.filter(user=user, school=school).first()

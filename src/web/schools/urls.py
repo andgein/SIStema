@@ -12,5 +12,7 @@ urlpatterns = [
         url(r'^entrance/', include('modules.entrance.urls', namespace='entrance')),
         url(r'^topics/', include('modules.topics.urls', namespace='topics')),
         url(r'^finance/', include('modules.finance.urls', namespace='finance')),
+        url(r'^study_results/', include('modules.study_results.school_urls',
+                                        namespace='study_results')),
     ])),
 ]

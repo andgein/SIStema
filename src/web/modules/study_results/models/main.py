@@ -20,15 +20,8 @@ class StudyResult(models.Model):
         FIVE = djchoices.ChoiceItem('5', '5')
         FIVE_PLUS = djchoices.ChoiceItem('5+', '5+')
 
-    school = models.ForeignKey(schools.models.School,
-                               related_name='study_results')
-
-    user = models.ForeignKey(users.models.User, related_name='study_results')
-
-    parallel = models.ForeignKey(schools.models.Parallel, null=True,
-                                 related_name='study_results')
-    # TODO: add group to school module
-    # group = models.CharField(max_length=3, help_text='Например, C1')
+    school_participant = models.OneToOneField(schools.models.SchoolParticipant,
+                                              related_name='study_result')
 
     theory = models.CharField(max_length=3, choices=Evaluation.choices,
                               null=True, validators=[Evaluation.validator])
@@ -36,12 +29,6 @@ class StudyResult(models.Model):
     practice = models.CharField(max_length=3, choices=Evaluation.choices,
                                 null=True, validators=[Evaluation.validator])
 
-    class Meta:
-        unique_together = ('school', 'user')
-
-    @classmethod
-    def for_user_in_school(cls, user, school):
-        return cls.objects.filter(user=user, school=school).first()
 
 class AbstractComment(polymorphic.models.PolymorphicModel):
     study_result = models.ForeignKey(StudyResult, related_name='comments')
