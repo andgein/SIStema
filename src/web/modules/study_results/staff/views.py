@@ -7,7 +7,6 @@ import frontend.table
 import frontend.icons
 import questionnaire.models
 import questionnaire.views
-from schools.decorators import school_view
 import schools.models
 import users.models
 import sistema.staff
@@ -45,8 +44,7 @@ class StudyResultsTable(frontend.table.Table):
             frontend.table.StringDataType(),
             lambda study_result:
                 reverse('study_results:study_result_user',
-                    kwargs={'school_name': self.school.short_name, 
-                            'user_id': study_result.school_participant.user.id})
+                    kwargs={'user_id': study_result.school_participant.user.id})
         )
 
         parallel_column = frontend.table.SimpleFuncColumn(
@@ -158,24 +156,14 @@ def get_study_result_ids(school):
         .values_list('id', flat=True))
     return study_result_ids
 
-@school_view
 @sistema.staff.only_staff
 def study_results(request):
     study_results_table = StudyResultsTable.create(request.school)
     return render(request, 'study_results/staff/study_results.html',
                   {'study_results_table': study_results_table})
 
-
-@sistema.staff.only_staff
-def study_results_school(request, school_name):
-    school = get_object_or_404(schools.models.School, short_name=school_name)
-    study_results_table = StudyResultsTable.create(school)
-    return render(request, 'study_results/staff/study_results.html',
-                  {'study_results_table': study_results_table})
-
 #@sistema.staff.only_staff
-def study_result_user(request, school_name, user_id): 
-    school = get_object_or_404(schools.models.School, short_name=school_name)
+def study_result_user(request, user_id):
     user = get_object_or_404(users.models.User, id=user_id)
     return render(request, 'study_results/staff/study_result_user.html',
                   {'user_name': user.get_full_name()})
