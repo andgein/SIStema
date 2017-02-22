@@ -7,7 +7,9 @@ import users.models
 
 
 class EntranceExamTaskAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'exam')
+    list_display = ('id', 'title', 'exam', 'order')
+    list_filter = ('exam',)
+    ordering = ('exam', 'order')
 
 
 class TestEntranceExamTaskAdmin(EntranceExamTaskAdmin):

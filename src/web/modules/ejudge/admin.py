@@ -55,7 +55,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'result',
     )
 
-    list_filter = ('result', 'ejudge_contest_id',)
+    list_filter = ('result__result', 'ejudge_contest_id',)
     search_fields = ('ejudge_submit_id',)
 
 admin.site.register(models.Submission, SubmissionAdmin)

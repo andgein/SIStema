@@ -56,7 +56,7 @@ def get_entrance_tasks(school, user, base_level):
 
     issued_tasks = set()
     for level in issued_levels:
-        for task in level.tasks.all():
+        for task in level.tasks.all().order_by('order'):
             issued_tasks.add(task)
 
     return list(issued_tasks)

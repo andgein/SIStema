@@ -25,6 +25,9 @@ class EntranceExamTask(models.Model):
                                  help_text='Дополнительная информация, например, сведения о формате ответа',
                                  blank=True)
 
+    order = models.IntegerField(help_text='Задачи выстраиваются по возрастанию порядка',
+                                default=0)
+
     max_score = models.PositiveIntegerField()
 
     def __str__(self):

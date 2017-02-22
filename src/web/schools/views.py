@@ -1,7 +1,6 @@
 from django import shortcuts
 from django.contrib import auth
 
-from . import decorators
 from questionnaire import views as questionnaire_views
 
 
@@ -29,7 +28,6 @@ def staff(request):
 
 
 @auth.decorators.login_required
-@decorators.school_view
 def index(request):
     """Returns default page for school for current user."""
     if request.user.is_staff:
@@ -39,7 +37,6 @@ def index(request):
 
 
 @auth.decorators.login_required
-@decorators.school_view
 def questionnaire(request, questionnaire_name):
     # TODO(Artem Tabolin): shouldn't redirect be used here instead?
     return questionnaire_views.questionnaire(request, questionnaire_name)

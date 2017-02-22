@@ -8,6 +8,7 @@ from . import models
 class SchoolAdmin(VersionAdmin):
     list_display = (
         'id',
+        'is_public',
         'short_name',
         'name',
         'full_name'

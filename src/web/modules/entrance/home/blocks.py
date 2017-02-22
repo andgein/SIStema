@@ -2,7 +2,7 @@ import importlib
 
 from django.db import models
 
-from ..models import main as entrance_models
+from modules.entrance.models import main as entrance_models
 import home.models as home_models
 import questionnaire.models as q_models
 
