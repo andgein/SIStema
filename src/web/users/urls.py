@@ -12,5 +12,5 @@ urlpatterns = [
     url(r'^forget/$', views.forget, name='forget'),
     url(r'^recover/(?P<token>[^/]+)$', views.recover, name='recover'),
 
-    url('', include('social_django.urls', namespace='social')),
+    url(r'', include('social_django.urls', namespace='social')),
 ]
