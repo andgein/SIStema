@@ -1,5 +1,4 @@
-from django import shortcuts
-from django.http import response
+from django import shortcuts, http
 from schools import models as school_models
 
 
@@ -11,5 +10,5 @@ class SchoolMiddleware(object):
             school = request.school
             user = request.user
             if not school.is_public and not (user.is_authenticated and user.is_staff):
-                raise response.Http404('School %s is not public' % school.short_name)
+                return http.HttpResponseNotFound()
         return None
