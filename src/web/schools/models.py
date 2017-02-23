@@ -113,13 +113,13 @@ class Parallel(models.Model):
 
 
 class SchoolParticipant(models.Model):
-    school = models.ForeignKey(School, related_name='school_participants')
+    school = models.ForeignKey(School, related_name='participants')
 
     user = models.ForeignKey(users.models.User,
-                             related_name='school_participants')
+                             related_name='school_participations')
 
     parallel = models.ForeignKey(Parallel, null=True,
-                                 related_name='school_participants')
+                                 related_name='participants')
     # TODO: Add group
 
     class Meta:

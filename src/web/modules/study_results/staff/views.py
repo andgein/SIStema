@@ -137,11 +137,9 @@ class StudyResultsTable(frontend.table.Table):
             return '%s класс' % user_class
         return '%s, %s класс' % (user_school, user_class)
 
-    @property
     def theory(self, study_result):
         return study_result.theory
 
-    @property
     def practice(self, study_result):
         return study_result.practice
 
