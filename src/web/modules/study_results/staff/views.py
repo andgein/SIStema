@@ -1,7 +1,7 @@
 import operator
 
-from django.core.urlresolvers import reverse
-from django.shortcuts import render, get_object_or_404
+from django.core import urlresolvers
+import django.shortcuts
 
 import frontend.table
 import frontend.icons
@@ -10,8 +10,9 @@ import questionnaire.views
 import schools.models
 import users.models
 import sistema.staff
-from sistema.helpers import group_by
+import sistema.helpers
 import modules.study_results.models as study_results_models
+
 
 class StudyResultsTable(frontend.table.Table):
     icon = frontend.icons.FaIcon('envelope-o')
@@ -42,13 +43,13 @@ class StudyResultsTable(frontend.table.Table):
                 .get_full_name(), 'Имя')
         name_column.data_type = frontend.table.LinkDataType(
             frontend.table.StringDataType(),
-            lambda study_result:
-                reverse('study_results:study_result_user',
-                    kwargs={'user_id': study_result.school_participant.user.id})
+            lambda study_result: urlresolvers.reverse(
+                'study_results:study_result_user',
+                kwargs={'user_id': study_result.school_participant.user.id})
         )
 
         parallel_column = frontend.table.SimpleFuncColumn(
-            lambda study_result: study_result.school_participant.parallel.name, 
+            lambda study_result: study_result.school_participant.parallel.name,
             'Параллель')
         theory_column = frontend.table.SimplePropertyColumn(
             'theory', 'Оценка теории', name='theory')
@@ -80,21 +81,20 @@ class StudyResultsTable(frontend.table.Table):
     def after_filter_applying(self):
         filtered_users = list(self.paged_queryset.values_list(
             'school_participant__user_id', flat=True))
-        self.about_questionnaire_answers = group_by(
+        self.about_questionnaire_answers = sistema.helpers.group_by(
             questionnaire.models.QuestionnaireAnswer.objects.filter(
                 questionnaire=self.about_questionnaire,
                 user__in=filtered_users
             ),
             operator.attrgetter('user_id')
         )
-        self.enrollee_questionnaire_answers = group_by(
+        self.enrollee_questionnaire_answers = sistema.helpers.group_by(
             questionnaire.models.QuestionnaireAnswer.objects.filter(
                 questionnaire=self.enrollee_questionnaire,
                 user__in=filtered_users
             ),
             operator.attrgetter('user_id')
         )
-
 
     def get_header(self):
         pass
@@ -156,14 +156,18 @@ def get_study_result_ids(school):
         .values_list('id', flat=True))
     return study_result_ids
 
+
 @sistema.staff.only_staff
 def study_results(request):
     study_results_table = StudyResultsTable.create(request.school)
-    return render(request, 'study_results/staff/study_results.html',
-                  {'study_results_table': study_results_table})
+    return django.shortcuts.render(
+        request, 'study_results/staff/study_results.html',
+        {'study_results_table': study_results_table})
 
-#@sistema.staff.only_staff
+
+@sistema.staff.only_staff
 def study_result_user(request, user_id):
-    user = get_object_or_404(users.models.User, id=user_id)
-    return render(request, 'study_results/staff/study_result_user.html',
-                  {'user_name': user.get_full_name()})
+    user = django.shortcuts.get_object_or_404(users.models.User, id=user_id)
+    return django.shortcuts.render(
+        request, 'study_results/staff/study_result_user.html',
+        {'user_name': user.get_full_name()})

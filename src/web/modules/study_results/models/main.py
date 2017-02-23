@@ -46,26 +46,32 @@ class AbstractComment(polymorphic.models.PolymorphicModel):
     def type(self):
         raise NotImplementedError()
 
+
 class StudyComment(AbstractComment):
     def type(self):
         return 'Комментарий по учёбе'
+
 
 class SocialComment(AbstractComment):
     def type(self):
         return 'Комментарий по внеучебной деятельности'
 
-class WinterParticipationComment(AbstractComment):
+
+class AsWinterParticipantComment(AbstractComment):
     def type(self):
         return 'Брать ли в зиму'
+
 
 class NextYearComment(AbstractComment):
     def type(self):
         return 'Куда брать в следующем году'
 
+
 class AsTeacherComment(AbstractComment):
     def type(self):
         return 'Брать ли препом'
 
-class WinterComment(AbstractComment):
+
+class AfterWinterComment(AbstractComment):
     def type(self):
         return 'Комментарий с зимы'

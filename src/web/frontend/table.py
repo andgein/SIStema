@@ -1,9 +1,9 @@
 import abc
 import json
 
-from django.db.models.query_utils import Q
-from django.template import engines, Context
-from django.utils.safestring import mark_safe
+import django.db.models.query_utils as query_utils
+import django.template
+from django.utils import safestring
 
 
 class ColumnDataType(abc.ABC):
@@ -21,9 +21,11 @@ class NumberDataType(ColumnDataType):
     def render(self, obj, cell):
         return str(int(cell))
 
+
 class RawHtmlDataType(ColumnDataType):
     def render(self, obj, cell):
-        return mark_safe(str(cell))
+        return safestring.mark_safe(str(cell))
+
 
 class LinkDataType(ColumnDataType):
     """
@@ -32,12 +34,13 @@ class LinkDataType(ColumnDataType):
     def __init__(self, parent_data_type, link_function):
         self.parent_data_type = parent_data_type
         self.link_function = link_function
-        self.link_template = engines['django'].from_string('<a href="{{ link }}">{{ data }}</a>')
+        self.link_template = (django.template.engines['django']
+            .from_string('<a href="{{ link }}">{{ data }}</a>'))
 
     def render(self, obj, cell):
         data = self.parent_data_type.render(obj, cell)
         link = self.link_function(obj)
-        return self.link_template.render(Context({
+        return self.link_template.render(django.template.Context({
             'link': link,
             'data': data,
         }))
@@ -100,10 +103,10 @@ class SimplePropertyColumn(Column):
 
     @staticmethod
     def build_q(search_attrs, filter):
-        result = Q()
+        result = query_utils.Q()
         for search_attr in search_attrs:
             kwargs = {search_attr + '__icontains': filter}
-            result = result | Q(**kwargs)
+            result = result | query_utils.Q(**kwargs)
         return result
 
     def get_cell_data(self, table, obj):
