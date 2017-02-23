@@ -25,7 +25,7 @@
 {% block panel_footer %}
     <div class="panel-footer clearfix p10 ph15">
         <button type="submit" class="button btn-primary mr10 pull-right">Войти</button>
-        <a href="{% url 'users:forget' %}" class="btn btn-link pull-right mr10">Забыли пароль?</a>
+        <a href="{% url 'users:forgot' %}" class="btn btn-link pull-right mr10">Забыли пароль?</a>
         <label class="switch ib switch-primary pull-left input-align mt10">
             {{ form.remember_me }}
             <label for="{{ form.remember_me.id_for_label }}" data-on="Да" data-off="Нет"></label>

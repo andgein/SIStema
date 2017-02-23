@@ -94,7 +94,7 @@ class RegistrationForm(CompleteUserCreationForm):
                                      widget=forms.CheckboxInput())
 
 
-class ForgetPasswordForm(CenteredForm):
+class ForgotPasswordForm(CenteredForm):
     email = forms.CharField(required=True,
                             label='Электронная почта',
                             widget=TextInputWithFaIcon(attrs={

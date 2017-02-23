@@ -65,7 +65,7 @@ def register(request, form):
     email = form.cleaned_data['email']
 
     if models.User.objects.filter(username=email).exists():
-        # TODO: make link to forget-password
+        # TODO: make link to forgot-password
         form.add_error('email', 'Вы уже зарегистрированы. Забыли пароль?')
         return None
 
@@ -104,7 +104,7 @@ def complete(request, form):
     email = form.cleaned_data['email']
 
     if models.User.objects.filter(username=email).exists():
-        # TODO: make link to forget-password
+        # TODO: make link to forgot-password
         form.add_error('email', 'Вы уже зарегистрированы. Забыли пароль?')
         return None
 
@@ -143,9 +143,9 @@ def confirm(request, token):
     return redirect('home')
 
 
-@decorators.form_handler('user/forget.html',
-                         forms.ForgetPasswordForm)
-def forget(request, form):
+@decorators.form_handler('user/forgot.html',
+                         forms.ForgotPasswordForm)
+def forgot(request, form):
     email = form.cleaned_data['email']
 
     if not models.User.objects.filter(username=email).exists():

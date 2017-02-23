@@ -9,7 +9,7 @@ urlpatterns = [
     url(r'^complete/$', views.complete, name='complete'),
     url(r'^confirm/(?P<token>[^/]+)$', views.confirm, name='confirm'),
 
-    url(r'^forget/$', views.forget, name='forget'),
+    url(r'^forgot/$', views.forgot, name='forgot'),
     url(r'^recover/(?P<token>[^/]+)$', views.recover, name='recover'),
 
     url(r'', include('social_django.urls', namespace='social')),
