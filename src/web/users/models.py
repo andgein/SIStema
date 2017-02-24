@@ -55,7 +55,7 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     email_confirmation_token = models.CharField(
         default=generate_random_secret_string, max_length=32)
 
-    is_email_confirmed = models.BooleanField(default=True)
+    is_email_confirmed = models.BooleanField(default=False)
     # End of Sistema custom fields
 
     objects = UserManager()

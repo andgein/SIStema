@@ -3,10 +3,18 @@ from django.contrib.auth.decorators import login_required
 from django.core import mail, urlresolvers
 from django.db import transaction
 from django.shortcuts import redirect, get_object_or_404
+from django import conf
 
-from sistema import settings, decorators
-from . import forms
-from . import models
+from sistema import decorators
+from users import forms, models
+
+
+def _force_user_login(request, user):
+    # Don't use authenticate(), for details see
+    # http://stackoverflow.com/questions/2787650/manually-logging-in-a-user-without-password
+    user.backend = 'django.contrib.auth.backends.ModelBackend'
+    auth.login(request, user)
+    return redirect('home')
 
 
 def get_email_confirmation_link(request, user):
@@ -14,17 +22,18 @@ def get_email_confirmation_link(request, user):
 
 
 def send_confirmation_email(request, user):
-    # TODO(Artem Tabolin): is it possible to use templates for that?
-    return 0 < mail.send_mail('Регистрация в ЛКШ',
-                              'Здравствуйте, ' + user.first_name + ' ' + user.last_name + '!\n\n'
-                              'Кто-то (возможно, и вы) указали этот адрес при регистрации в Летней компьютерной школе (http://sistema.lksh.ru). '
-                              'Для окончания регистрации просто пройдите по этой ссылке: ' +
-                              get_email_confirmation_link(request, user) + '\n\n' +
-                              'Если вы не регистрировались, игнорируйте это письмо.\n\n'
-                              'С уважением,\n'
-                              'Команда ЛКШ',
-                              settings.SERVER_EMAIL,
-                              [user.email])
+    if conf.settings.SISTEMA_SEND_CONFIRMATION_EMAILS:
+        # TODO(Artem Tabolin): is it possible to use templates for that?
+        link = get_email_confirmation_link(request, user)
+        title = 'Регистрация в ЛКШ'
+        text = (
+            'Здравствуйте, %s %s!\n\nКто-то (возможно, и вы) указали этот адрес '
+            'при регистрации в Летней компьютерной школе (https://sistema.lksh.ru). '
+            'Для окончания регистрации просто пройдите по этой ссылке: %s\n\nЕсли '
+            'вы не регистрировались, игнорируйте это письмо.\n\nС уважением,\n'
+            'Команда ЛКШ' % (user.first_name, user.last_name, link))
+        res = mail.send_mail(title, text, conf.settings.SERVER_EMAIL, [user.email])
+        return res > 0
 
 
 def get_password_recovery_link(request, recovery):
@@ -33,18 +42,23 @@ def get_password_recovery_link(request, recovery):
 
 def send_password_recovery_email(request, recovery):
     user = recovery.user
-    return 0 < mail.send_mail('Восстановление пароля в ЛКШ',
-                              'Здравствуйте, ' + user.first_name + ' ' + user.last_name + '!\n\n'
-                              'Для восстановления пароля просто пройдите по этой ссылке: ' +
-                              get_password_recovery_link(request, recovery) + '\n\n' +
-                              'С уважением,\n'
-                              'Команда ЛКШ',
-                              settings.SERVER_EMAIL,
-                              [user.email])
+    link = get_password_recovery_link(request, recovery)
+    title = 'Восстановление пароля в ЛКШ'
+    text = (
+        'Здравствуйте, %s %s!\n\nДля восстановления пароля просто пройдите по '
+        'этой ссылке: %s\n\nС уважением,\nКоманда ЛКШ' %
+        (user.first_name, user.last_name, link))
+    res = mail.send_mail(title, text, conf.settings.SERVER_EMAIL, [user.email])
+    return res > 0
 
+
+def fill_auth_form(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    return None
 
 @transaction.atomic
-@decorators.form_handler('user/login.html', forms.AuthForm)
+@decorators.form_handler('user/login.html', forms.AuthForm, fill_auth_form)
 def login(request, form):
     user = auth.authenticate(username=form.cleaned_data['email'], password=form.cleaned_data['password'])
     if user is not None:
@@ -78,21 +92,23 @@ def register(request, form):
                                            first_name=first_name,
                                            last_name=last_name,
                                            )
-    user.is_email_confirmed = not settings.SISTEMA_SEND_CONFIRMATION_EMAILS
+    user.is_email_confirmed = False
     user.save()
 
-    if settings.SISTEMA_SEND_CONFIRMATION_EMAILS:
-        send_confirmation_email(request, user)
+    send_confirmation_email(request, user)
 
-    return redirect('home')
+    return _force_user_login(request, user)
 
 
 def fill_complete_form(request):
-    if not request.user.is_authenticated():
+    user = request.user
+    if not user.is_authenticated:
         return redirect('users:login')
-    return {'first_name': request.user.first_name,
-            'last_name': request.user.last_name,
-            'email': request.user.email,
+    if user.is_email_confirmed or not conf.settings.SISTEMA_SEND_CONFIRMATION_EMAILS:
+        return redirect('home')
+    return {'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
             }
 
 
@@ -113,11 +129,10 @@ def complete(request, form):
     request.user.first_name = form.cleaned_data['first_name']
     request.user.last_name = form.cleaned_data['last_name']
     request.user.set_password(form.cleaned_data['password'])
-    request.user.is_email_confirmed = not settings.SISTEMA_SEND_CONFIRMATION_EMAILS
+    request.user.is_email_confirmed = False
     request.user.save()
 
-    if settings.SISTEMA_SEND_CONFIRMATION_EMAILS:
-        send_confirmation_email(request, request.user)
+    send_confirmation_email(request, request.user)
 
     return redirect('home')
 
@@ -136,11 +151,7 @@ def confirm(request, token):
     user.is_email_confirmed = True
     user.save()
 
-    # Don't use authenticate(), for details see
-    # http://stackoverflow.com/questions/2787650/manually-logging-in-a-user-without-password
-    user.backend = 'django.contrib.auth.backends.ModelBackend'
-    auth.login(request, user)
-    return redirect('home')
+    return _force_user_login(request, user)
 
 
 @decorators.form_handler('user/forgot.html',
@@ -174,11 +185,6 @@ def recover(request, form, token):
         user.set_password(form.cleaned_data['password'])
         user.save()
 
-        # Don't use authenticate(), for details see
-        # http://stackoverflow.com/questions/2787650/manually-logging-in-a-user-without-password
-        user.backend = 'django.contrib.auth.backends.ModelBackend'
-        auth.login(request, user)
-
-        return redirect('home')
+        return _force_user_login(request, user)
 
     return None
