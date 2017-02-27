@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from . import models
+from modules.study_results import models
 
 
 class StudyResultAdmin(admin.ModelAdmin):

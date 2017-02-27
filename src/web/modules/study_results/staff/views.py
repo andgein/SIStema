@@ -3,15 +3,15 @@ import operator
 from django.core import urlresolvers
 import django.shortcuts
 
-import frontend.table
 import frontend.icons
+import frontend.table
+import modules.study_results.models as study_results_models
 import questionnaire.models
 import questionnaire.views
 import schools.models
-import users.models
-import sistema.staff
 import sistema.helpers
-import modules.study_results.models as study_results_models
+import sistema.staff
+import users.models
 
 
 class StudyResultsTable(frontend.table.Table):

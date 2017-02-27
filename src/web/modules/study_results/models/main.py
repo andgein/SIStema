@@ -1,6 +1,6 @@
+from django.db import models
 import djchoices
 import polymorphic.models
-from django.db import models
 
 import schools.models
 import users.models

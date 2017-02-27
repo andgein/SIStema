@@ -1,9 +1,9 @@
 import abc
 import json
 
-import django.db.models.query_utils as query_utils
-import django.template
+from django.db.models import query_utils
 from django.utils import safestring
+import django.template
 
 
 class ColumnDataType(abc.ABC):
