@@ -41,37 +41,37 @@ class AbstractComment(polymorphic.models.PolymorphicModel):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.type() + ': ' + self.comment
+        return self.verbose_type() + ': ' + self.comment
 
-    def type(self):
+    def verbose_type(self):
         raise NotImplementedError()
 
 
 class StudyComment(AbstractComment):
-    def type(self):
+    def verbose_type(self):
         return 'Комментарий по учёбе'
 
 
 class SocialComment(AbstractComment):
-    def type(self):
+    def verbose_type(self):
         return 'Комментарий по внеучебной деятельности'
 
 
 class AsWinterParticipantComment(AbstractComment):
-    def type(self):
+    def verbose_type(self):
         return 'Брать ли в зиму'
 
 
 class NextYearComment(AbstractComment):
-    def type(self):
+    def verbose_type(self):
         return 'Куда брать в следующем году'
 
 
 class AsTeacherComment(AbstractComment):
-    def type(self):
+    def verbose_type(self):
         return 'Брать ли препом'
 
 
 class AfterWinterComment(AbstractComment):
-    def type(self):
+    def verbose_type(self):
         return 'Комментарий с зимы'
