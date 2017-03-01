@@ -1,5 +1,9 @@
 from django import forms
+from allauth.account import forms as account_forms
+from allauth.account import adapter as account_adapter
+from allauth.account import utils as account_utils
 
+from django.utils.translation import ugettext_lazy as _
 from frontend.forms import TextInputWithFaIcon, PasswordInputWithFaIcon
 
 
@@ -8,34 +12,7 @@ class CenteredForm(forms.Form):
         show_fields = ()
 
 
-class AuthForm(CenteredForm):
-    email = forms.EmailField(required=True,
-                             label='Электронная почта',
-                             widget=TextInputWithFaIcon(attrs={
-                                 'placeholder': 'Введите почту',
-                                 'class': 'gui-input',
-                                 'autofocus': 'autofocus',
-                                 'fa': 'user',
-                             }))
-
-    password = forms.CharField(required=True,
-                               label='Пароль',
-                               widget=PasswordInputWithFaIcon(attrs={
-                                   'placeholder': 'Введите пароль',
-                                   'class': 'gui-input',
-                                   'fa': 'lock',
-                               }))
-
-    remember_me = forms.BooleanField(required=False,
-                                     initial=True,
-                                     label='Запомнить меня',
-                                     widget=forms.CheckboxInput())
-
-    class Meta:
-        show_fields = ('email', 'password')
-
-
-class CompleteUserCreationForm(CenteredForm):
+class SignupForm(CenteredForm):
     first_name = forms.CharField(required=True,
                                  label='Имя',
                                  widget=TextInputWithFaIcon(attrs={
@@ -53,82 +30,31 @@ class CompleteUserCreationForm(CenteredForm):
                                     'fa': 'user',
                                 }))
 
-    email = forms.EmailField(required=True,
-                             label='Электронная почта',
-                             widget=TextInputWithFaIcon(attrs={
-                                 'placeholder': 'Введите почту',
-                                 'class': 'gui-input',
-                                 'fa': 'envelope',
-                             }))
+    def __init__(self, **kwargs):
+        super(SignupForm, self).__init__(**kwargs)
+        if hasattr(self, 'sociallogin'):
+            self.fields['password1'] = account_forms.PasswordField(label=_("Password"))
+            self.fields['password2'] = account_forms.PasswordField(label=_("Password (again)"))
 
-    password = forms.CharField(required=True,
-                               label='Пароль',
-                               widget=PasswordInputWithFaIcon(attrs={
-                                   'placeholder': 'Введите пароль',
-                                   'class': 'gui-input',
-                                   'fa': 'unlock-alt',
-                               }))
+    def clean(self):
+        super(SignupForm, self).clean()
+        if hasattr(self, 'sociallogin'):
+            password1 = self.cleaned_data.get('password1')
+            password2 = self.cleaned_data.get('password2')
+            if password1 and password2 and password1 != password2:
+                self.add_error('password2', self.error_class(["You must type the same password each time."]))
+            if password1:
+                dummy_user = account_utils.get_user_model()
+                try:
+                    account_adapter.get_adapter().clean_password(
+                        password1,
+                        user=dummy_user)
+                except forms.ValidationError as e:
+                    self.add_error('password1', e)
 
-    password_repeat = forms.CharField(required=True,
-                                      label='Ещё раз',
-                                      widget=PasswordInputWithFaIcon(attrs={
-                                          'placeholder': 'Повторите пароль',
-                                          'class': 'gui-input',
-                                          'fa': 'lock'
-                                      }))
-
-    def clean_password_repeat(self):
-        password = self.cleaned_data.get('password')
-        password_repeat = self.cleaned_data.get('password_repeat')
-        if password and password_repeat and password != password_repeat:
-            self._errors['password_repeat'] = self.error_class(['Пароли не совпадают'])
-
-    class Meta:
-        show_fields = ('first_name', 'last_name', 'email', 'password', 'password_repeat')
-
-
-class RegistrationForm(CompleteUserCreationForm):
-    remember_me = forms.BooleanField(required=False,
-                                     initial=True,
-                                     label='Запомнить меня',
-                                     widget=forms.CheckboxInput())
-
-
-class ForgotPasswordForm(CenteredForm):
-    email = forms.CharField(required=True,
-                            label='Электронная почта',
-                            widget=TextInputWithFaIcon(attrs={
-                                 'placeholder': 'Введите почту',
-                                 'class': 'gui-input',
-                                 'fa': 'envelope',
-                             }))
-
-    class Meta:
-        show_fields = ('email', )
-
-
-class PasswordRecoveryForm(CenteredForm):
-    password = forms.CharField(required=True,
-                               label='Новый пароль',
-                               widget=PasswordInputWithFaIcon(attrs={
-                                   'placeholder': 'Введите пароль',
-                                   'class': 'gui-input',
-                                   'fa': 'unlock-alt',
-                               }))
-
-    password_repeat = forms.CharField(required=True,
-                                      label='Ещё раз',
-                                      widget=PasswordInputWithFaIcon(attrs={
-                                          'placeholder': 'Повторите пароль',
-                                          'class': 'gui-input',
-                                          'fa': 'lock'
-                                      }))
-
-    def clean_password_repeat(self):
-        password = self.cleaned_data.get('password')
-        password_repeat = self.cleaned_data.get('password_repeat')
-        if password and password_repeat and password != password_repeat:
-            self._errors['password_repeat'] = self.error_class(['Пароли не совпадают'])
-
-    class Meta:
-        show_fields = ('password', 'password_repeat')
+    def signup(self, request, user):  # TODO check can delete 'request'
+        if hasattr(self, 'sociallogin'):
+            user.set_password(self.cleaned_data.get('password1'))
+        user.first_name = self.cleaned_data.get('first_name')
+        user.second_name = self.cleaned_data.get('second_name')
+        user.save()

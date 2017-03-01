@@ -35,7 +35,6 @@ ALLOWED_HOSTS = []
 ADMINS = [('Андрей Гейн', 'andgein@yandex.ru')]
 
 SERVER_EMAIL = 'admin@sistema.lksh.ru'
-EMAIL_SUBJECT_PREFIX = '[Sistema] '
 
 # Application definition
 
@@ -44,6 +43,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
@@ -75,7 +75,27 @@ INSTALLED_APPS = (
     'modules.poldnev',
     'modules.study_results',
     'modules.topics',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.twitter',
+    'allauth.socialaccount.providers.vk',
 )
+
+SITE_ID = 1
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # TODO change on https in prod
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_USER_DISPLAY = lambda user: user.get_full_name()
+ACCOUNT_SIGNUP_FORM_CLASS = 'users.forms.SignupForm'
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -115,27 +135,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sistema.wsgi.application'
 
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.vk.VKOAuth2',
-    'social_core.backends.twitter.TwitterOAuth',
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-LOGIN_URL = '/user/login/'
-LOGOUT_URL = '/user/logout/'
-
-SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
-SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
-SOCIAL_AUTH_NEW_USER_REDIRECT_URL = '/user/complete/'
-
-SOCIAL_AUTH_URL_NAMESPACE = 'users:social'
-
-SOCIAL_AUTH_VK_OAUTH2_KEY = '2888774'
-SOCIAL_AUTH_VK_OAUTH2_SECRET = 'xO6ka9PBnhNunuUyfx5f'
-
-SOCIAL_AUTH_TWITTER_KEY = 'a4XGu2XP4DZE7DAqphTZfdltj'
-SOCIAL_AUTH_TWITTER_SECRET = 'DRakQj6dslpLSG2ceoZRrkHF8uh4dGnlMia55cHt9fuuRrNiYs'
-
+LOGIN_URL = '/accounts/login/'
+LOGOUT_URL = '/accounts/logout/'
 
 
 
@@ -197,8 +202,6 @@ SISTEMA_GENERATOR_FONTS_DIR = os.path.join(SISTEMA_UPLOAD_FILES_DIR, 'generator-
 SISTEMA_GENERATOR_ASSETS_DIR = os.path.join(SISTEMA_UPLOAD_FILES_DIR, 'generator-assets')
 
 SISTEMA_FINANCE_DOCUMENTS = os.path.join(SISTEMA_UPLOAD_FILES_DIR, 'finance-documents')
-
-SISTEMA_SEND_CONFIRMATION_EMAILS = False
 
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_CONFIG = {

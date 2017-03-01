@@ -70,7 +70,7 @@ def staff_context_processor(request):
 def only_staff(func):
     def wrapped(request, *args, **kwargs):
         if not request.user.is_authenticated or not request.user.is_staff:
-            return redirect('users:login')
+            return redirect('account_login')
         return func(request, *args, **kwargs)
 
     wrapped.__name__ = func.__name__
