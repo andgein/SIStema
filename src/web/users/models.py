@@ -3,6 +3,10 @@ from django.core import mail, validators
 from django.db import models
 from django.utils import crypto
 from django.utils.translation import ugettext_lazy as _
+from djchoices import choices
+
+import datetime
+
 
 def generate_random_secret_string():
     return crypto.get_random_string(length=32)
@@ -96,3 +100,60 @@ class UserPasswordRecovery(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class UserProfile(models.Model):
+    class Sex(choices.DjangoChoices):
+        FEMALE = choices.ChoiceItem(1, 'женский')
+        MALE = choices.ChoiceItem(2, 'мужской')
+
+    class DocumentType(choices.DjangoChoices):
+        NONE = choices.ChoiceItem(0, '')
+        RUSSIAN_PASSPORT = choices.ChoiceItem(1, 'российский паспорт')
+        BIRTH_CERTIFICATE = choices.ChoiceItem(2, 'свидетельство о рождении')
+        ALIEN_PASSPORT = choices.ChoiceItem(3, 'заграничный паспорт')
+
+    user = models.OneToOneField(User)
+
+    first_name = models.CharField('Имя', max_length=100, blank=True)
+    middle_name = models.CharField('Отчество', max_length=100, blank=True)
+    last_name = models.CharField('Фамилия', max_length=100, blank=True)
+
+    sex = models.PositiveIntegerField('Пол', choices=Sex.choices, validators=[Sex.validator])
+    birth_date = models.DateField('Дата рождения')
+    zero_class_year = models.PositiveIntegerField('Год поступления в "нулевой" класс',
+                                                  null=True,
+                                                  help_text='используется для вычисления текущего класса')
+
+    region = models.CharField('Субъект РФ', max_length=100, blank=True, help_text='или страна, если не Россия')
+    city = models.CharField('Населённый пункт', max_length=100, blank=True)
+
+    school_name = models.CharField('Школа', max_length=100, blank=True)
+
+    phone = models.CharField('Телефон', max_length=20, blank=True)
+
+    nationality = models.CharField('Национальность', max_length=100, blank=True)
+
+    document_type = models.PositiveIntegerField('Тип документа',
+                                                choices=DocumentType.choices,
+                                                validators=[DocumentType.validator])
+    document_number = models.CharField('Номер документа', max_length=20)
+
+    insurance_number = models.CharField('Номер медицинского полиса', max_length=20)
+
+    @property
+    def current_class(self):
+        now = datetime.date.today()
+        result = now.year - self.zero_class_year
+        if now.month < 9:
+            result -= 1
+        return result
+
+    @current_class.setter
+    def current_class(self, value):
+        if isinstance(value, str):
+            value = int(value)
+        now = datetime.date.today()
+        self.zero_class_year = now.year - value
+        if now.month < 9:
+            self.zero_class_year -= 1

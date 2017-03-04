@@ -32,4 +32,13 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
         '=email',
     )
 
+class UserProfileAdmin(VersionAdmin):
+    list_display = (
+        'user_id',
+        'last_name',
+        'first_name',
+        'middle_name',
+    )
+
 admin.site.register(models.User, UserAdmin)
+admin.site.register(models.UserProfile, UserProfileAdmin)
