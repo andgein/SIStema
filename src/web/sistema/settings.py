@@ -89,7 +89,6 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'  # TODO change on https in prod
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
@@ -216,8 +215,6 @@ HIJACK_REGISTER_ADMIN = False
 HIJACK_ALLOW_GET_REQUESTS = True
 
 EMAIL_BACKEND = 'postmark.django_backend.EmailBackend'
-POSTMARK_API_KEY = 'Test_stub_key'  # change it in production
-POSTMARK_TEST_MODE = True           # change it in production
 DEFAULT_FROM_EMAIL = 'admin@sistema.lksh.ru'
 SISTEMA_CONTACT_US_EMAIL = 'lksh@lksh.ru'
 
