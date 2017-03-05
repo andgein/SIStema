@@ -1,0 +1,35 @@
+{% extends "user_layout.html" %}
+
+{% load dict_tags %}
+
+{% block content %}
+    <div class="admin-form theme-alert">
+        <div class="panel panel-alert heading-border">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    Профиль
+                </div>
+            </div>
+            <form method="POST" action="">
+                {% csrf_token %}
+                <div class="panel-body bg-light p30">
+                    {% for field_name in form.fields %}
+                        {% with field=form|get_item:field_name %}
+                            <div class="section">
+                                <label for="{{ field.id_for_label }}" class="field-label text-muted fs18 mb10">{{ field.label }}</label>
+                                <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
+                                    {{ field }}
+                                </label>
+                                {{ field.errors }}
+                            </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+                <div class="panel-footer p25 text-right">
+                    <button type="submit" class="button btn-success">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

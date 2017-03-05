@@ -1,36 +1,19 @@
-import enum
+import datetime
+
 from django import forms
-from allauth.socialaccount import forms as social_account_forms
 from allauth.account import forms as account_forms
+from allauth.socialaccount import forms as social_account_forms
 
 from django.utils.translation import ugettext_lazy as _
 from frontend.forms import TextInputWithFaIcon, PasswordInputWithFaIcon
 
 from users import models
-
-import datetime
+from users.forms import base as base_forms
 
 
 def _get_allowed_birth_years():
     year = datetime.date.today().year
     return range(year, year - 60, -1)
-
-
-class AccountBaseForm(forms.Form):
-    class Tab(enum.Enum):
-        NONE = 0,
-        LOGIN = 1,
-        SIGNUP = 2,
-
-    def __init__(self, *args, **kwargs):
-        self.__active_tab = kwargs.pop('active_tab')
-        super(AccountBaseForm, self).__init__(*args, **kwargs)
-
-    def login_is_active(self):
-        return self.__active_tab == AccountBaseForm.Tab.LOGIN
-
-    def signup_is_active(self):
-        return self.__active_tab == AccountBaseForm.Tab.SIGNUP
 
 
 def _customize_widgets(form):
@@ -55,9 +38,9 @@ def _customize_widgets(form):
             })
 
 
-class LoginForm(account_forms.LoginForm, AccountBaseForm):
+class LoginForm(account_forms.LoginForm, base_forms.AccountBaseForm):
     def __init__(self, *args, **kwargs):
-        kwargs['active_tab'] = AccountBaseForm.Tab.LOGIN
+        kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.LOGIN
         super(LoginForm, self).__init__(*args, **kwargs)
         _customize_widgets(self)
 
@@ -131,60 +114,31 @@ class UserProfileForm(forms.Form):
                                        required=False)
 
 
-def _signup(form, user):
-    user.first_name = form.cleaned_data.get('first_name')
-    user.second_name = form.cleaned_data.get('second_name')
-    user.save()
-    profile = models.UserProfile(user=user,
-                                 first_name=form.cleaned_data.get('first_name'),
-                                 middle_name=form.cleaned_data.get('middle_name'),
-                                 last_name=form.cleaned_data.get('last_name'),
-                                 sex=form.cleaned_data.get('sex'),
-                                 birth_date=form.cleaned_data.get('birth_date'),
-                                 region=form.cleaned_data.get('region'),
-                                 city=form.cleaned_data.get('city'),
-                                 school_name=form.cleaned_data.get('school_name'),
-                                 phone=form.cleaned_data.get('phone'),
-                                 nationality=form.cleaned_data.get('nationality'),
-                                 document_type=form.cleaned_data.get('document_type'),
-                                 document_number=form.cleaned_data.get('document_number'),
-                                 )
-    profile.current_class = form.cleaned_data.get('current_class')
-    profile.save()
-
-
-class SignupForm(account_forms.SignupForm, UserProfileForm, AccountBaseForm):
+class SignupForm(account_forms.SignupForm, UserProfileForm):
     def __init__(self, *args, **kwargs):
-        kwargs['active_tab'] = AccountBaseForm.Tab.SIGNUP
+        kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.SIGNUP
         super(SignupForm, self).__init__(*args, **kwargs)
         _customize_widgets(self)
 
-    def signup(self, request, user):  # TODO check can delete 'request'
-        _signup(self, user)
 
-
-class SocialSignupForm(social_account_forms.SignupForm, UserProfileForm, AccountBaseForm):
+class SocialSignupForm(social_account_forms.SignupForm, UserProfileForm):
     def __init__(self, *args, **kwargs):
-        kwargs['active_tab'] = AccountBaseForm.Tab.SIGNUP
+        kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.SIGNUP
         super(SocialSignupForm, self).__init__(*args, **kwargs)
         self.fields['password1'] = account_forms.PasswordField(label=_("Password"))
         self.fields['password2'] = account_forms.PasswordField(label=_("Password (again)"))
         _customize_widgets(self)
 
-    def signup(self, request, user):  # TODO check can delete 'request'
-        user.set_password(self.cleaned_data.get('password1'))
-        _signup(self, user)
 
-
-class ResetPasswordForm(account_forms.ResetPasswordForm, AccountBaseForm):
+class ResetPasswordForm(account_forms.ResetPasswordForm, base_forms.AccountBaseForm):
     def __init__(self, *args, **kwargs):
-        kwargs['active_tab'] = AccountBaseForm.Tab.NONE
+        kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.NONE
         super(ResetPasswordForm, self).__init__(*args, **kwargs)
         _customize_widgets(self)
 
 
-class ResetPasswordKeyForm(account_forms.ResetPasswordKeyForm, AccountBaseForm):
+class ResetPasswordKeyForm(account_forms.ResetPasswordKeyForm, base_forms.AccountBaseForm):
     def __init__(self, *args, **kwargs):
-        kwargs['active_tab'] = AccountBaseForm.Tab.NONE
+        kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.NONE
         super(ResetPasswordKeyForm, self).__init__(*args, **kwargs)
         _customize_widgets(self)

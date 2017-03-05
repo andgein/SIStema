@@ -113,7 +113,7 @@ class UserProfile(models.Model):
         BIRTH_CERTIFICATE = choices.ChoiceItem(2, 'свидетельство о рождении')
         ALIEN_PASSPORT = choices.ChoiceItem(3, 'заграничный паспорт')
 
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, related_name='user_profile')
 
     first_name = models.CharField('Имя', max_length=100, blank=True)
     middle_name = models.CharField('Отчество', max_length=100, blank=True)
@@ -121,9 +121,10 @@ class UserProfile(models.Model):
 
     sex = models.PositiveIntegerField('Пол', choices=Sex.choices, validators=[Sex.validator])
     birth_date = models.DateField('Дата рождения')
-    zero_class_year = models.PositiveIntegerField('Год поступления в "нулевой" класс',
-                                                  null=True,
-                                                  help_text='используется для вычисления текущего класса')
+    _zero_class_year = models.PositiveIntegerField('Год поступления в "нулевой" класс',
+                                                   null=True,
+                                                   help_text='используется для вычисления текущего класса',
+                                                   name='zero_class_year')
 
     region = models.CharField('Субъект РФ', max_length=100, blank=True, help_text='или страна, если не Россия')
     city = models.CharField('Населённый пункт', max_length=100, blank=True)
@@ -143,17 +144,41 @@ class UserProfile(models.Model):
 
     @property
     def current_class(self):
+        if not hasattr(self, '_zero_class_year'):
+            return None
         now = datetime.date.today()
-        result = now.year - self.zero_class_year
+        result = now.year - self._zero_class_year
         if now.month < 9:
             result -= 1
         return result
 
     @current_class.setter
     def current_class(self, value):
+        if value is None:
+            self._zero_class_year = None
+            return
         if isinstance(value, str):
             value = int(value)
         now = datetime.date.today()
-        self.zero_class_year = now.year - value
+        self._zero_class_year = now.year - value
         if now.month < 9:
-            self.zero_class_year -= 1
+            self._zero_class_year -= 1
+
+    @staticmethod
+    def get_field_names():
+        return [
+            'first_name',
+            'middle_name',
+            'last_name',
+            'sex',
+            'birth_date',
+            'current_class',
+            'region',
+            'city',
+            'school_name',
+            'phone',
+            'nationality',
+            'document_type',
+            'document_number',
+            'insurance_number',
+        ]

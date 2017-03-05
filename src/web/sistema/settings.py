@@ -105,7 +105,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 
-    'schools.middleware.SchoolMiddleware'
+    'schools.middleware.SchoolMiddleware',
+    'users.middleware.UserProfileMiddleware',
 )
 
 ROOT_URLCONF = 'sistema.urls'
@@ -219,6 +220,7 @@ DEFAULT_FROM_EMAIL = 'admin@sistema.lksh.ru'
 SISTEMA_CONTACT_US_EMAIL = 'lksh@lksh.ru'
 
 ACCOUNT_ADAPTER = 'users.adapter.AccountAdapter'
+ACCOUNT_SIGNUP_FORM_CLASS = 'users.forms.base.BaseSignupForm'
 ACCOUNT_FORMS = {
     'login': 'users.forms.LoginForm',
     'signup': 'users.forms.SignupForm',
