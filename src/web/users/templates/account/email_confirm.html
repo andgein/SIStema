@@ -1,0 +1,32 @@
+{% extends "account/centered_form.html" %}
+
+{% block title %}Подтвердите e-mail адрес{% endblock %}
+
+{% block panel_heading %}
+    <div class="panel-heading heading-border bg-white pl30 pt25">
+        <div class="panel-title">
+            <i class="fa {#fa-TODO#}"></i> Подтвердите e-mail адрес
+        </div>
+    </div>
+
+    {% if confirmation %}
+        {# NOTE This is unreachable place in current configuration #}
+        {# TODO #}
+    {% else %}
+
+        {% url 'account_email' as email_url %}
+        {% url 'account_login' as login_url %}
+
+        <div>
+            Ссылка некорректна или срок её действия истек.
+            {% if user.is_authenticated %}
+                Пожалуйста, <a href="{{ email_url }}">запросите подтверждение e-mail заново</a>.
+            {% else %}
+                Пожалуйста, <a href="{{ login_url }}">авторизуйтесь</a>, и мы отправим вам новое
+                письмо для подтверждения e-mail.
+            {% endif %}
+        </div>
+
+    {% endif %}
+
+{% endblock %}
