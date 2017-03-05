@@ -124,6 +124,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django_settings_export.settings_export',
 
                 'sistema.staff.staff_context_processor',
             ],
@@ -218,6 +219,7 @@ EMAIL_BACKEND = 'postmark.django_backend.EmailBackend'
 POSTMARK_API_KEY = 'Test_stub_key'  # change it in production
 POSTMARK_TEST_MODE = True           # change it in production
 DEFAULT_FROM_EMAIL = 'admin@sistema.lksh.ru'
+SISTEMA_CONTACT_US_EMAIL = 'lksh@lksh.ru'
 
 ACCOUNT_ADAPTER = 'users.adapter.AccountAdapter'
 ACCOUNT_FORMS = {
@@ -229,3 +231,8 @@ ACCOUNT_FORMS = {
 SOCIALACCOUNT_FORMS = {
     'signup': 'users.forms.SocialSignupForm',
 }
+
+SETTINGS_EXPORT = [
+    'DEBUG',
+    'SISTEMA_CONTACT_US_EMAIL',
+]

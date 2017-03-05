@@ -1,0 +1,20 @@
+{% extends "account/centered_form.html" %}
+
+{% load i18n %}
+
+{% block title %}{% trans "Verify Your E-mail Address" %}{% endblock %}
+
+{% block panel_heading %}
+    <div class="panel-heading heading-border bg-white pl30 pt25">
+        <div class="panel-title">
+            <i class="fa fa-lock"></i> {% trans "Verify Your E-mail Address" %}
+        </div>
+    </div>
+
+    <div>
+        Мы отправили вам письмо для подтверждения вашего e-mail.
+        Пройдите по ссылке в письме для окончания регистрации.
+        Пожалуйста, <a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=Не приходит письмо для подтверждения">свяжитесь с нами</a>,
+        если вы не получили письмо в течение нескольких минут.
+    </div>
+{% endblock %}
