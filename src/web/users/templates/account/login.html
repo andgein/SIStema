@@ -1,0 +1,15 @@
+{% extends "account/login_and_signup.html" %}
+
+{% block title %}Вход{% endblock %}
+
+{% block panel_footer %}
+    <div class="panel-footer clearfix p10 ph15">
+        <button type="submit" class="button btn-primary mr10 pull-right">Войти</button>
+        <a href="{% url 'account_reset_password' %}" class="btn btn-link pull-right mr10">Забыли пароль?</a>
+        <label class="switch ib switch-primary pull-left input-align mt10">
+            {{ form.remember }}
+            <label for="{{ form.remember.id_for_label }}" data-on="Да" data-off="Нет"></label>
+            <span>{{ form.remember.label }}</span>
+        </label>
+    </div>
+{% endblock %}

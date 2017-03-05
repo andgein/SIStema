@@ -1,0 +1,10 @@
+{% extends "account/login_and_signup.html" %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block panel_footer %}
+    <div class="panel-footer clearfix p10 ph15">
+        <button type="submit" class="button btn-primary mr10 pull-right">Зарегистрироваться</button>
+        <a href="{% url 'account_reset_password' %}" class="btn btn-link pull-right mr10">Забыли пароль?</a>
+    </div>
+{% endblock %}

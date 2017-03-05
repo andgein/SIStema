@@ -1,0 +1,25 @@
+{% extends "account/centered_form.html" %}
+
+{% load i18n %}
+
+{% block title %}{% trans "Sign Up" %}{% endblock %}
+
+{% block panel_heading %}
+    <div class="panel-heading heading-border bg-white pl30 pt25">
+        <div class="panel-title">
+            <i class="fa fa-user"></i> {% trans "Sign Up" %}
+        </div>
+    </div>
+    {% with provider_name=account.get_provider.name site_name=site.name %}
+    <div>
+        Вы собираетесь использовать свой аккаунт {{ provider_name }}, чтобы войти в {{ site_name }}.
+        Для окончания регистрации, пожалуйста, заполните информацию о себе:
+    </div>
+    {% endwith %}
+{% endblock %}
+
+{% block panel_footer %}
+    <div class="panel-footer clearfix p10 ph15">
+        <button type="submit" class="button btn-primary mr10 pull-right">Зарегистрироваться</button>
+    </div>
+{% endblock %}

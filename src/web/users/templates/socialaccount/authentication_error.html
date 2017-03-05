@@ -1,0 +1,19 @@
+{% extends "account/centered_form.html" %}
+
+{% load i18n %}
+
+{% block title %}Ошибка авторизации{% endblock %}
+
+{% block panel_heading %}
+
+    <div class="panel-heading heading-border bg-white pl30 pt25">
+        <div class="panel-title">
+            <i class="fa {# TODO icon #}"></i> Ошибка авторизации
+        </div>
+    </div>
+
+    <div>{% trans "An error occurred while attempting to login via your social network account." %}</div>
+
+{% endblock %}
+
+

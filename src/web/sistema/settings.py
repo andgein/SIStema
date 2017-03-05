@@ -79,8 +79,8 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.twitter',
     'allauth.socialaccount.providers.vk',
+    'allauth.socialaccount.providers.twitter',
 )
 
 SITE_ID = 1
@@ -95,7 +95,6 @@ ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_USER_DISPLAY = lambda user: user.get_full_name()
-ACCOUNT_SIGNUP_FORM_CLASS = 'users.forms.SignupForm'
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -214,3 +213,19 @@ HIJACK_LOGOUT_REDIRECT_URL = '/admin/users/user'
 HIJACK_USE_BOOTSTRAP = True
 HIJACK_REGISTER_ADMIN = False
 HIJACK_ALLOW_GET_REQUESTS = True
+
+EMAIL_BACKEND = 'postmark.django_backend.EmailBackend'
+POSTMARK_API_KEY = 'Test_stub_key'  # change it in production
+POSTMARK_TEST_MODE = True           # change it in production
+DEFAULT_FROM_EMAIL = 'admin@sistema.lksh.ru'
+
+ACCOUNT_ADAPTER = 'users.adapter.AccountAdapter'
+ACCOUNT_FORMS = {
+    'login': 'users.forms.LoginForm',
+    'signup': 'users.forms.SignupForm',
+    'reset_password': 'users.forms.ResetPasswordForm',
+    'reset_password_from_key': 'users.forms.ResetPasswordKeyForm',
+}
+SOCIALACCOUNT_FORMS = {
+    'signup': 'users.forms.SocialSignupForm',
+}

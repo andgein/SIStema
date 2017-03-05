@@ -1,0 +1,39 @@
+{% extends 'account/centered_form.html' %}
+
+{% load socialaccount %}
+
+
+{% block form_class %}login-and-register-form{% endblock %}
+
+{% block panel_heading %}
+    {% get_providers as socialaccount_providers %}
+<div class="panel-heading heading-border bg-white">
+    <div class="section row mn">
+
+    {% for provider in socialaccount_providers %}
+        {% if provider.id == "openid" %}
+            {% for brand in provider.get_brands %}
+            <div class="col-sm-6">
+                <a href="{% provider_login_url provider.id openid=brand.openid_url process=login %}"
+                   class="button btn-social {{provider.id}} {{brand.id}} span-left mr5 btn-block">
+                    <span>
+                        <i class="fa fa-{{ brand.id }}"></i>
+                    </span>{{ brand.name }}
+                </a>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="col-sm-6">
+            <a href="{% provider_login_url provider.id process=login scope=scope auth_params=auth_params %}"
+               class="button btn-social {{ provider.id }} span-left mr5 btn-block">
+                <span>
+                    <i class="fa fa-{{ provider.id }}"></i>
+                </span>{{ provider.name }}
+            </a>
+        </div>
+    {% endfor %}
+
+    </div>
+    </div>
+{% endblock %}

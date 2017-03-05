@@ -28,8 +28,13 @@
                             Летняя компьютерная школа
                         </div>
 
-                        {% block right_links %}
-                        {% endblock %}
+                        <div class="col-xs-6 text-right va-b pr5">
+                            <div class="login-links">
+                                <a href="{% url 'account_login' %}" class="{% if form.login_is_active %}active{% endif %}" title="Вход">Вход</a>
+                                <span class="text-white"> | </span>
+                                <a href="{% url 'account_signup' %}" class="{% if form.signup_is_active %}active{% endif %}" title="Регистрация">Регистрация</a>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="panel panel-info mt10 br-n">
@@ -40,16 +45,18 @@
                         <form method="POST" action="">
                             {% csrf_token %}
                             <div class="panel-body bg-light p30">
-                                {% for field_name in form.Meta.show_fields %}
-                                    {% with field=form|get_item:field_name %}
-                                        <div class="section">
-                                            <label for="{{ field.id_for_label }}" class="field-label text-muted fs18 mb10">{{ field.label }}</label>
-                                            <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
-                                                {{ field }}
-                                            </label>
-                                            {{ field.errors }}
-                                        </div>
-                                    {% endwith %}
+                                {% for field_name in form.fields %}
+                                    {% if field_name != 'remember' %} {# TODO hack #}
+                                        {% with field=form|get_item:field_name %}
+                                            <div class="section">
+                                                <label for="{{ field.id_for_label }}" class="field-label text-muted fs18 mb10">{{ field.label }}</label>
+                                                <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
+                                                    {{ field }}
+                                                </label>
+                                                {{ field.errors }}
+                                            </div>
+                                        {% endwith %}
+                                    {% endif %}
                                 {% endfor %}
                             </div>
 
