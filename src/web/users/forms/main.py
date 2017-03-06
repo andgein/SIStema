@@ -38,6 +38,20 @@ def _customize_widgets(form):
             })
 
 
+class EmptyChoiceField(forms.ChoiceField):
+    def __init__(self, choices=(), required=True, widget=None, label=None,
+                 initial=None, help_text=None, *args, **kwargs):
+        choices = tuple([(u'', u'')] + list(choices))
+
+        super().__init__(choices=choices, required=required, widget=widget, label=label,
+                         initial=initial, help_text=help_text, *args, **kwargs)
+
+    def to_python(self, value):
+        if value == '' or value is None:
+            return None
+        return super().to_python(value)
+
+
 class LoginForm(account_forms.LoginForm, base_forms.AccountBaseForm):
     def __init__(self, *args, **kwargs):
         kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.LOGIN
@@ -46,72 +60,127 @@ class LoginForm(account_forms.LoginForm, base_forms.AccountBaseForm):
 
 
 class UserProfileForm(forms.Form):
-    last_name = forms.CharField(required=True,
-                                label='Фамилия',
-                                widget=TextInputWithFaIcon(attrs={
-                                    'placeholder': 'Введите фамилию',
-                                    'class': 'gui-input',
-                                    'autofocus': 'autofocus',
-                                    'fa': 'user',
-                                }))
+    last_name = forms.CharField(
+        required=True,
+        label='Фамилия',
+        widget=TextInputWithFaIcon(attrs={
+            'placeholder': 'Введите фамилию',
+            'class': 'gui-input',
+            'autofocus': 'autofocus',
+            'fa': 'user',
+        })
+    )
 
-    first_name = forms.CharField(required=True,
-                                 label='Имя',
-                                 widget=TextInputWithFaIcon(attrs={
-                                     'placeholder': 'Введите имя',
-                                     'class': 'gui-input',
-                                     'fa': 'user',
-                                 }))
+    first_name = forms.CharField(
+        required=True,
+        label='Имя',
+        widget=TextInputWithFaIcon(attrs={
+            'placeholder': 'Введите имя',
+            'class': 'gui-input',
+            'fa': 'user',
+        })
+    )
 
-    middle_name = forms.CharField(required=True,
-                                  label='Имя',
-                                  widget=TextInputWithFaIcon(attrs={
-                                      'placeholder': 'Введите отчество (если есть)',
-                                      'class': 'gui-input',
-                                      'fa': 'user',
-                                  }))
+    middle_name = forms.CharField(
+        required=True,
+        label='Отчество',
+        widget=TextInputWithFaIcon(attrs={
+            'placeholder': 'Введите отчество (если есть)',
+            'class': 'gui-input',
+            'fa': 'user',
+        })
+    )
 
-    sex = forms.ChoiceField(models.UserProfile.Sex.choices,
-                            required=True,
-                            label='Пол',
-                            widget=forms.RadioSelect)
+    sex = forms.ChoiceField(
+        models.UserProfile.Sex.choices,
+        required=True,
+        label='Пол',
+        widget=forms.RadioSelect
+    )
 
-    birth_date = forms.DateField(required=True,
-                                 label='Дата рождения',
-                                 widget=forms.DateInput(format='%d.%m.%Y')
-                                 )  # TODO widget=forms.SelectDateWidget(years=_get_allowed_birth_years()))
+    birth_date = forms.DateField(
+        required=True,
+        label='Дата рождения',
+        widget=forms.DateInput(format='%d.%m.%Y')
+    )  # TODO widget=forms.SelectDateWidget(years=_get_allowed_birth_years()))
 
-    current_class = forms.IntegerField(label='Класс',
-                                       min_value=1,
-                                       required=False)
+    current_class = forms.IntegerField(
+        required=True,
+        label='Класс',
+        min_value=1,
+    )
 
-    region = forms.CharField(required=True,
-                             label='Субъект РФ',
-                             help_text='или страна, если не Россия')
-    city = forms.CharField(required=True,
-                           label='Населённый пункт')
-    school_name = forms.CharField(label='Школа',
-                                  required=False)
+    region = forms.CharField(
+        required=True,
+        label='Субъект РФ',
+        help_text='или страна, если не Россия',
+        widget=TextInputWithFaIcon(attrs={
+            'class': 'gui-input',
+            'fa': 'building-o',
+        })
+    )
+    city = forms.CharField(
+        required=True,
+        label='Населённый пункт',
+        help_text='в котором находится школа',
+        widget=TextInputWithFaIcon(attrs={
+            'placeholder': 'Город, деревня, село..',
+            'class': 'gui-input',
+            'fa': 'building-o',
+        })
+    )
+    school_name = forms.CharField(
+        required=True,
+        label='Школа',
+        help_text='Например, «Лицей №88»',
+        widget=TextInputWithFaIcon(attrs={
+            'class': 'gui-input',
+            'fa': 'graduation-cap',
+        })
+    )
 
-    phone = forms.CharField(required=True,
-                            label='Телефон',
-                            widget=TextInputWithFaIcon(attrs={
-                                'placeholder': '+7(901)234-56-78',
-                                'class': 'gui-input',
-                                'fa': 'phone',
-                            }))
+    phone = forms.CharField(
+        required=True,
+        label='Телефон',
+        help_text='С кодом города',
+        widget=TextInputWithFaIcon(attrs={
+            'placeholder': '+7(901)234-56-78',
+            'class': 'gui-input',
+            'fa': 'phone',
+        })
+    )
 
-    nationality = forms.CharField(label='Национальность',
-                                  required=False)
+    citizenship = EmptyChoiceField(
+        models.UserProfile.Сitizenship.choices,
+        label='Гражданство',
+        required=False
+    )
+    #TODO add citizenship_additional for specifying OTHER
 
-    document_type = forms.ChoiceField(models.UserProfile.DocumentType.choices,
-                                      label='Тип документа',
-                                      required=False)
-    document_number = forms.CharField(label='Номер документа',
-                                      required=False)
+    document_type = EmptyChoiceField(
+        models.UserProfile.DocumentType.choices,
+        label='Документ, удостоверяющий личность',
+        required=False
+    )
+    document_number = forms.CharField(
+        label='Номер документа',
+        help_text='Укажите и серию, и номер документа',
+        required=False,
+        widget=TextInputWithFaIcon(attrs={
+            'class': 'gui-input',
+            'fa': 'file-text-o',
+        })
+    )
 
-    insurance_number = forms.CharField(label='Номер медицинского полиса',
-                                       required=False)
+    insurance_number = forms.CharField(
+        label='Номер медицинского полиса',
+        help_text='Только для проживающих в России',
+        required=False,
+        widget=TextInputWithFaIcon(attrs={
+            'class': 'gui-input',
+            'fa': 'file-text-o',
+        })
+    )
 
 
 class SignupForm(account_forms.SignupForm, UserProfileForm):

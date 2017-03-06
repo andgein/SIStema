@@ -2,6 +2,8 @@
 
 {% load dict_tags %}
 
+{% block title %}Профиль{% endblock %}
+
 {% block content %}
     <div class="admin-form theme-alert">
         <div class="panel panel-alert heading-border">
@@ -16,10 +18,16 @@
                     {% for field_name in form.fields %}
                         {% with field=form|get_item:field_name %}
                             <div class="section">
-                                <label for="{{ field.id_for_label }}" class="field-label text-muted fs18 mb10">{{ field.label }}</label>
+                                <label for="{{ field.id_for_label }}" class="field-label text-muted fs18 mb10">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        *
+                                    {% endif %}
+                                </label>
                                 <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
                                     {{ field }}
                                 </label>
+                                <p class="help-block">{{ field.help_text }}</p>
                                 {{ field.errors }}
                             </div>
                         {% endwith %}

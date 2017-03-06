@@ -108,10 +108,18 @@ class UserProfile(models.Model):
         MALE = choices.ChoiceItem(2, 'мужской')
 
     class DocumentType(choices.DjangoChoices):
-        NONE = choices.ChoiceItem(0, '')
-        RUSSIAN_PASSPORT = choices.ChoiceItem(1, 'российский паспорт')
-        BIRTH_CERTIFICATE = choices.ChoiceItem(2, 'свидетельство о рождении')
-        ALIEN_PASSPORT = choices.ChoiceItem(3, 'заграничный паспорт')
+        RUSSIAN_PASSPORT = choices.ChoiceItem(1, 'Российский паспорт')
+        BIRTH_CERTIFICATE = choices.ChoiceItem(2, 'Свидетельство о рождении')
+        ALIEN_PASSPORT = choices.ChoiceItem(3, 'Заграничный паспорт')
+        ANOTHER_COUNTRY_PASSPORT = choices.ChoiceItem(4, 'Паспорт другого государства')
+        OTHER_DOCUMENT = choices.ChoiceItem(-1, 'Другой')
+
+    class Сitizenship(choices.DjangoChoices):
+        RUSSIA = choices.ChoiceItem(1, 'Россия')
+        KAZAKHSTAN = choices.ChoiceItem(2, 'Казахстан')
+        BELARUS = choices.ChoiceItem(3, 'Беларусь')
+        TAJIKISTAN = choices.ChoiceItem(4, 'Таджикистан')
+        OTHER = choices.ChoiceItem(-1, 'Другое')
 
     user = models.OneToOneField(User, related_name='user_profile')
 
@@ -127,17 +135,25 @@ class UserProfile(models.Model):
                                                    name='zero_class_year')
 
     region = models.CharField('Субъект РФ', max_length=100, blank=True, help_text='или страна, если не Россия')
-    city = models.CharField('Населённый пункт', max_length=100, blank=True)
+    city = models.CharField('Населённый пункт', max_length=100, blank=True, help_text='в котором находится школа')
 
     school_name = models.CharField('Школа', max_length=100, blank=True)
 
     phone = models.CharField('Телефон', max_length=20, blank=True)
 
-    nationality = models.CharField('Национальность', max_length=100, blank=True)
+    citizenship = models.IntegerField(
+        'Гражданство',
+        choices=Сitizenship.choices,
+        validators=[Сitizenship.validator],
+        null=True,
+    )
 
-    document_type = models.PositiveIntegerField('Тип документа',
-                                                choices=DocumentType.choices,
-                                                validators=[DocumentType.validator])
+    document_type = models.IntegerField(
+        'Тип документа',
+        choices=DocumentType.choices,
+        validators=[DocumentType.validator],
+        null=True,
+    )
     document_number = models.CharField('Номер документа', max_length=20)
 
     insurance_number = models.CharField('Номер медицинского полиса', max_length=20)
@@ -177,7 +193,7 @@ class UserProfile(models.Model):
             'city',
             'school_name',
             'phone',
-            'nationality',
+            'citizenship',
             'document_type',
             'document_number',
             'insurance_number',

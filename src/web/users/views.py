@@ -27,7 +27,7 @@ def profile(request, form):
     if request.user_profile:
         user_profile = request.user_profile
     else:
-        user_profile = models.UserProfile.objects.create(user=request.user)
+        user_profile = models.UserProfile(user=request.user)
     for field_name in user_profile.get_field_names():
         setattr(user_profile, field_name, form.cleaned_data.get(field_name))
     user_profile.save()

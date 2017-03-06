@@ -46,17 +46,18 @@
                             {% csrf_token %}
                             <div class="panel-body bg-light p30">
                                 {% for field_name in form.fields %}
-                                    {% if field_name != 'remember' %} {# TODO hack #}
-                                        {% with field=form|get_item:field_name %}
+                                    {% with field=form|get_item:field_name %}
+                                        {% if field.field.required %}
                                             <div class="section">
                                                 <label for="{{ field.id_for_label }}" class="field-label text-muted fs18 mb10">{{ field.label }}</label>
                                                 <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
                                                     {{ field }}
                                                 </label>
+                                                <p class="help-block">{{ field.help_text }}</p>
                                                 {{ field.errors }}
                                             </div>
-                                        {% endwith %}
-                                    {% endif %}
+                                        {% endif %}
+                                    {% endwith %}
                                 {% endfor %}
                             </div>
 
