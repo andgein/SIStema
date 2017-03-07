@@ -13,7 +13,7 @@ class AccountBaseForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.__active_tab = kwargs.pop('active_tab')
-        super(AccountBaseForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def login_is_active(self):
         return self.__active_tab == AccountBaseForm.Tab.LOGIN

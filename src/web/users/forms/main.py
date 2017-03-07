@@ -52,13 +52,6 @@ class EmptyChoiceField(forms.ChoiceField):
         return super().to_python(value)
 
 
-class LoginForm(account_forms.LoginForm, base_forms.AccountBaseForm):
-    def __init__(self, *args, **kwargs):
-        kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.LOGIN
-        super(LoginForm, self).__init__(*args, **kwargs)
-        _customize_widgets(self)
-
-
 class UserProfileForm(forms.Form):
     last_name = forms.CharField(
         required=True,
@@ -186,28 +179,35 @@ class UserProfileForm(forms.Form):
 class SignupForm(account_forms.SignupForm, UserProfileForm):
     def __init__(self, *args, **kwargs):
         kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.SIGNUP
-        super(SignupForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         _customize_widgets(self)
 
 
 class SocialSignupForm(social_account_forms.SignupForm, UserProfileForm):
     def __init__(self, *args, **kwargs):
         kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.SIGNUP
-        super(SocialSignupForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['password1'] = account_forms.PasswordField(label=_("Password"))
         self.fields['password2'] = account_forms.PasswordField(label=_("Password (again)"))
+        _customize_widgets(self)
+
+
+class LoginForm(account_forms.LoginForm, base_forms.AccountBaseForm):
+    def __init__(self, *args, **kwargs):
+        kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.LOGIN
+        super().__init__(*args, **kwargs)
         _customize_widgets(self)
 
 
 class ResetPasswordForm(account_forms.ResetPasswordForm, base_forms.AccountBaseForm):
     def __init__(self, *args, **kwargs):
         kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.NONE
-        super(ResetPasswordForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         _customize_widgets(self)
 
 
 class ResetPasswordKeyForm(account_forms.ResetPasswordKeyForm, base_forms.AccountBaseForm):
     def __init__(self, *args, **kwargs):
         kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.NONE
-        super(ResetPasswordKeyForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         _customize_widgets(self)
