@@ -6,15 +6,13 @@ from django.contrib.admin.utils import NestedObjects
 from users import models
 
 
-def analyze_all_related_objects(model, dumper=None):
+def find_all_related_objects(model):
     collector = NestedObjects(using="default")  # database name
     collector.collect([model])  # list of objects. single one won't do
-    res = 0
+    list = []
     for obj_set in collector.data.values():
-        res += len(obj_set)
-        if dumper:
-            dumper.write('\n'.join(map(str, obj_set)) + '\n')
-    return res
+        list += obj_set
+    return list
 
 
 class Command(management_base.BaseCommand):
@@ -32,7 +30,7 @@ class Command(management_base.BaseCommand):
         elif options['email']:
             users = models.User.objects.filter(email=options['email'])
         elif options['username']:
-            users = models.User.objects.filter(email=options['username'])
+            users = models.User.objects.filter(username=options['username'])
         else:
             raise Exception('It is required one of --user_id, --email or --username')
 
@@ -40,6 +38,9 @@ class Command(management_base.BaseCommand):
 
         self.stdout.write('Found %d users...\n' % len(users))
         for user in users:
-            objects_count = analyze_all_related_objects(user, dumper)
+            objects = find_all_related_objects(user)
             self.stdout.write("user_id %d username '%s' email '%s' objects %d\n"
-                              % (user.id, user.username, user.email, objects_count))
+                              % (user.id, user.username, user.email, len(objects)))
+            if dumper:
+                dumper.write('\n'.join(map(lambda x: x.__class__.__name__ + ": " + str(x), objects)) + '\n')
+
