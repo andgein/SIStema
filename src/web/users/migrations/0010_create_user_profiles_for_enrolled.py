@@ -55,6 +55,7 @@ class EnrolledUserProfileGenerator(object):
             sys.stderr.write("Questionnaire with short_name 'about' not found\n")
             return
 
+        absent_users_count = 0
         for entrance_status in self.EntranceStatus.objects.filter(status=self.EntranceStatus.Status.ENROLLED).all():
             user = entrance_status.user
             if not user.is_active:
@@ -69,6 +70,7 @@ class EnrolledUserProfileGenerator(object):
             questionnaire_enrollee = self._get_school_questionnaire(school, 'enrollee', user)
             questionnaire_enrolled = self._get_school_questionnaire(school, 'enrolled', user)
             if not questionnaire_enrollee or not questionnaire_enrolled:
+                absent_users_count += 1
                 continue
             answers_about = self._get_all_answers(questionnaire_about, user)
             answers_enrollee = self._get_all_answers(questionnaire_enrollee, user)
@@ -81,7 +83,7 @@ class EnrolledUserProfileGenerator(object):
             user_profile.last_name = self._get_answer(answers_enrolled, 'last_name')
             user_profile.sex = self._get_choice_answer(answers_about, 'sex', self.UserProfile.Sex)
             user_profile.birth_date = self._get_date_answer(answers_enrolled, 'birth_date')
-            user_profile.zero_class_year = self._get_zero_class_year(answers_enrollee)
+            user_profile.zero_class_year = self._get_zero_class_year(answers_enrollee, user)
             user_profile.region = self._get_answer(answers_about, 'region')
             user_profile.city = self._get_answer(answers_about, 'city')
             user_profile.school_name = self._get_answer(answers_about, 'school')
@@ -95,23 +97,24 @@ class EnrolledUserProfileGenerator(object):
             user_profile.insurance_number = self._get_answer(answers_enrolled, 'insurance_number')
 
             if user_profile.citizenship != self.UserProfile.Сitizenship.OTHER and user_profile.citizenship_other:
-                sys.stderr.write('drop citizenship_other %s for user(%d %s) with citizenship %d \n'
+                sys.stderr.write("drop citizenship_other '%s' for user(%d %s) with citizenship %d \n"
                                  % (user_profile.citizenship_other, user.id, str(user), user_profile.citizenship))
                 user_profile.citizenship_other = ''
 
             user_profile.save()
             self._created_profiles += 1
 
+        sys.stderr.write("%d users was enrolled, but they didn't approve participation\n" % absent_users_count)
         sys.stderr.write('%d new profiles have been generated\n' % self._created_profiles)
         sys.stderr.write('%d profiles have already been generated\n' % self._already_created_profiles)
 
     def _get_school_questionnaire(self, school, short_name, user):
         questionnaire = self.Questionnaire.objects.filter(short_name=short_name, school=school).first()
         if not questionnaire:
-            sys.stderr.write("Questionnaire with short_name '%s' for school %s not found\n" % (short_name, str(school)))
+            # sys.stderr.write("Questionnaire with short_name '%s' for school %s not found\n" % (short_name, str(school)))
             return None
         if not questionnaire.is_filled_by(user):
-            sys.stderr.write("User(%d %s) didn't fill %s questionnaire\n" % (user.id, str(user), short_name))
+            # sys.stderr.write("User(%d %s) didn't fill %s questionnaire\n" % (user.id, str(user), short_name))
             return None
         return questionnaire
 
@@ -132,17 +135,17 @@ class EnrolledUserProfileGenerator(object):
             return None
         return datetime.datetime.strptime(answer, '%d.%m.%Y').date()
 
-    def _get_zero_class_year(self, answers):
+    def _get_zero_class_year(self, answers, user):
         answer = EnrolledUserProfileGenerator._get_answer(answers, 'class')
         if answer is None:
             return None
         try:
-            answer = int(answer)
+            current_class = int(answer)
         except ValueError:
-            sys.stderr.write("Can not parse class '%s'\n" % answer)
+            sys.stderr.write("user(%d %s) Can not parse class '%s'\n" % (user.id, str(user), answer))
             return None
         temp_profile = self.UserProfile()
-        temp_profile.current_class = int(answer)
+        temp_profile.current_class = current_class
         return temp_profile.get_zero_class_year()
 
     def _get_choice_answer(self, answers, question_short_name, choice_class):
