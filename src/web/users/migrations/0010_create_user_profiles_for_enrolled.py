@@ -144,6 +144,7 @@ class EnrolledUserProfileGenerator(object):
         except ValueError:
             sys.stderr.write("user(%d %s) Can not parse class '%s'\n" % (user.id, str(user), answer))
             return None
+        current_class += 1  ## NOTE hack... probably, this answer was actual for previous year
         temp_profile = self.UserProfile()
         temp_profile.current_class = current_class
         return temp_profile.get_zero_class_year()
