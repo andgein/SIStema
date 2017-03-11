@@ -146,9 +146,19 @@ class UserProfileForm(forms.Form):
     citizenship = EmptyChoiceField(
         models.UserProfile.Сitizenship.choices,
         label='Гражданство',
+        help_text='Выберите «Другое», если имеете несколько гражданств',
         required=False
     )
-    #TODO add citizenship_additional for specifying OTHER
+    citizenship_other = forms.CharField(
+        label='Другое гражданство',
+        #TODO hide this field, if citizenship != Citizenship.OTHER
+        help_text='Если вы указали «Другое», укажите здесь своё гражданство (или несколько через запятую)',
+        required=False,
+        widget=TextInputWithFaIcon(attrs={
+            'class': 'gui-input',
+            'fa': 'file-text-o',
+        })
+    )
 
     document_type = EmptyChoiceField(
         models.UserProfile.DocumentType.choices,

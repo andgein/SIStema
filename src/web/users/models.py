@@ -199,6 +199,7 @@ class UserProfile(models.Model):
             'school_name',
             'phone',
             'citizenship',
+            'citizenship_other',
             'document_type',
             'document_number',
             'insurance_number',
