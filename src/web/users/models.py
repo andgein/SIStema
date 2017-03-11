@@ -59,7 +59,7 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     email_confirmation_token = models.CharField(
         default=generate_random_secret_string, max_length=32)
 
-    is_email_confirmed = models.BooleanField(default=False)
+    is_email_confirmed = models.BooleanField(default=True)
     # End of Sistema custom fields
 
     objects = UserManager()
@@ -148,15 +148,20 @@ class UserProfile(models.Model):
         null=True,
     )
 
+    citizenship_other = models.CharField('Другое гражданство', max_length=100, blank=True)
+
     document_type = models.IntegerField(
         'Тип документа',
         choices=DocumentType.choices,
         validators=[DocumentType.validator],
         null=True,
     )
-    document_number = models.CharField('Номер документа', max_length=20)
+    document_number = models.CharField('Номер документа', max_length=20, blank=True)
 
-    insurance_number = models.CharField('Номер медицинского полиса', max_length=20)
+    insurance_number = models.CharField('Номер медицинского полиса', max_length=20, blank=True)
+
+    def get_zero_class_year(self):
+        return self._zero_class_year
 
     @property
     def current_class(self):

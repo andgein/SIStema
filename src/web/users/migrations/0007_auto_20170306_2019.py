@@ -30,15 +30,11 @@ class Migration(migrations.Migration):
                 ('school_name', models.CharField(blank=True, max_length=100, verbose_name='Школа')),
                 ('phone', models.CharField(blank=True, max_length=20, verbose_name='Телефон')),
                 ('citizenship', models.IntegerField(choices=[(1, 'Россия'), (2, 'Казахстан'), (3, 'Беларусь'), (4, 'Таджикистан'), (-1, 'Другое')], null=True, validators=[djchoices.choices.ChoicesValidator({-1: 'Другое', 1: 'Россия', 2: 'Казахстан', 3: 'Беларусь', 4: 'Таджикистан'})], verbose_name='Гражданство')),
+                ('citizenship_other', models.CharField(blank=True, max_length=100, verbose_name='Другое гражданство')),
                 ('document_type', models.IntegerField(choices=[(1, 'Российский паспорт'), (2, 'Свидетельство о рождении'), (3, 'Заграничный паспорт'), (4, 'Паспорт другого государства'), (-1, 'Другой')], null=True, validators=[djchoices.choices.ChoicesValidator({-1: 'Другой', 1: 'Российский паспорт', 2: 'Свидетельство о рождении', 3: 'Заграничный паспорт', 4: 'Паспорт другого государства'})], verbose_name='Тип документа')),
-                ('document_number', models.CharField(max_length=20, verbose_name='Номер документа')),
-                ('insurance_number', models.CharField(max_length=20, verbose_name='Номер медицинского полиса')),
+                ('document_number', models.CharField(blank=True, max_length=20, verbose_name='Номер документа')),
+                ('insurance_number', models.CharField(blank=True, max_length=20, verbose_name='Номер медицинского полиса')),
             ],
-        ),
-        migrations.AlterField(
-            model_name='user',
-            name='is_email_confirmed',
-            field=models.BooleanField(default=False),
         ),
         migrations.AddField(
             model_name='userprofile',
