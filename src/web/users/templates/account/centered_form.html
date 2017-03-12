@@ -40,6 +40,14 @@
                     <div class="panel panel-info mt10 br-n">
 
                         {% block panel_heading %}
+                            <div class="panel-heading heading-border bg-white pl30 pt25">
+                                <div class="panel-title">
+                                    {% block panel_title %}
+                                    {% endblock %}
+                                </div>
+                            </div>
+                        {% endblock %}
+                        {% block panel_body %}
                         {% endblock %}
 
                         <form method="POST" action="">

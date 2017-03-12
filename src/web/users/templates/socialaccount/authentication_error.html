@@ -4,16 +4,12 @@
 
 {% block title %}Ошибка авторизации{% endblock %}
 
-{% block panel_heading %}
+{% block panel_title %}
+    <i class="fa fa-warning"></i> Ошибка авторизации
+{% endblock %}
 
-    <div class="panel-heading heading-border bg-white pl30 pt25">
-        <div class="panel-title">
-            <i class="fa {# TODO icon #}"></i> Ошибка авторизации
-        </div>
-    </div>
-
+{% block panel_body %}
     <div>{% trans "An error occurred while attempting to login via your social network account." %}</div>
-
 {% endblock %}
 
 

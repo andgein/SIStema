@@ -2,13 +2,11 @@
 
 {% block title %}Подтвердите e-mail адрес{% endblock %}
 
-{% block panel_heading %}
-    <div class="panel-heading heading-border bg-white pl30 pt25">
-        <div class="panel-title">
-            <i class="fa {#fa-TODO#}"></i> Подтвердите e-mail адрес
-        </div>
-    </div>
+{% block panel_title %}
+    <i class="fa fa-envelope"></i> Подтвердите e-mail адрес
+{% endblock %}
 
+{% block panel_body %}
     {% if confirmation %}
         {# NOTE This is unreachable place in current configuration #}
         {# TODO #}

@@ -4,12 +4,11 @@
 
 {% block title %}{% trans "Sign Up" %}{% endblock %}
 
-{% block panel_heading %}
-    <div class="panel-heading heading-border bg-white pl30 pt25">
-        <div class="panel-title">
-            <i class="fa fa-user"></i> {% trans "Sign Up" %}
-        </div>
-    </div>
+{% block panel_title %}
+    <i class="fa fa-user"></i> {% trans "Sign Up" %}
+{% endblock %}
+
+{% block panel_body %}
     {% with provider_name=account.get_provider.name site_name=site.name %}
     <div>
         Вы собираетесь использовать свой аккаунт {{ provider_name }}, чтобы войти в {{ site_name }}.
