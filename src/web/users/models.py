@@ -114,7 +114,7 @@ class UserProfile(models.Model):
         ANOTHER_COUNTRY_PASSPORT = choices.ChoiceItem(4, 'Паспорт другого государства')
         OTHER_DOCUMENT = choices.ChoiceItem(-1, 'Другой')
 
-    class Сitizenship(choices.DjangoChoices):
+    class Citizenship(choices.DjangoChoices):
         RUSSIA = choices.ChoiceItem(1, 'Россия')
         KAZAKHSTAN = choices.ChoiceItem(2, 'Казахстан')
         BELARUS = choices.ChoiceItem(3, 'Беларусь')
@@ -143,8 +143,8 @@ class UserProfile(models.Model):
 
     citizenship = models.IntegerField(
         'Гражданство',
-        choices=Сitizenship.choices,
-        validators=[Сitizenship.validator],
+        choices=Citizenship.choices,
+        validators=[Citizenship.validator],
         null=True,
     )
 

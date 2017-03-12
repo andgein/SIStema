@@ -144,7 +144,7 @@ class UserProfileForm(forms.Form):
     )
 
     citizenship = EmptyChoiceField(
-        models.UserProfile.Сitizenship.choices,
+        models.UserProfile.Citizenship.choices,
         label='Гражданство',
         help_text='Выберите «Другое», если имеете несколько гражданств',
         required=False

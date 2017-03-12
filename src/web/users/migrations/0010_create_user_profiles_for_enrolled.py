@@ -89,14 +89,14 @@ class EnrolledUserProfileGenerator(object):
             user_profile.school_name = self._get_answer(answers_about, 'school')
             user_profile.phone = self._get_answer(answers_about, 'phone')
             user_profile.citizenship = self._get_choice_answer(answers_enrolled, 'citizenship',
-                                                               self.UserProfile.Сitizenship)
+                                                               self.UserProfile.Citizenship)
             user_profile.citizenship_other = self._get_answer(answers_enrolled, 'citizenship_other')
             user_profile.document_type = self._get_choice_answer(answers_enrolled, 'document_type',
                                                                  self.UserProfile.DocumentType)
             user_profile.document_number = self._get_answer(answers_enrolled, 'document_number')
             user_profile.insurance_number = self._get_answer(answers_enrolled, 'insurance_number')
 
-            if user_profile.citizenship != self.UserProfile.Сitizenship.OTHER and user_profile.citizenship_other:
+            if user_profile.citizenship != self.UserProfile.Citizenship.OTHER and user_profile.citizenship_other:
                 sys.stderr.write("drop citizenship_other '%s' for user(%d %s) with citizenship %d \n"
                                  % (user_profile.citizenship_other, user.id, str(user), user_profile.citizenship))
                 user_profile.citizenship_other = ''
