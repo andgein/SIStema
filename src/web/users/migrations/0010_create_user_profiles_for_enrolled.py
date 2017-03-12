@@ -122,15 +122,15 @@ class EnrolledUserProfileGenerator(object):
         answers = self.QuestionnaireAnswer.objects.filter(user=user, questionnaire=questionnaire).all()
         return {x.question_short_name: x for x in answers}
 
-    @staticmethod
-    def _get_answer(answers, question_short_name):
+    @classmethod
+    def _get_answer(cls, answers, question_short_name):
         if question_short_name in answers:
             return answers[question_short_name].answer
         return None
 
-    @staticmethod
-    def _get_date_answer(answers, question_short_name):
-        answer = EnrolledUserProfileGenerator._get_answer(answers, question_short_name)
+    @classmethod
+    def _get_date_answer(cls, answers, question_short_name):
+        answer = cls._get_answer(answers, question_short_name)
         if answer is None:
             return None
         return datetime.datetime.strptime(answer, '%d.%m.%Y').date()

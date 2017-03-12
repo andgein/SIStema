@@ -185,8 +185,8 @@ class UserProfile(models.Model):
         if now.month < 9:
             self._zero_class_year -= 1
 
-    @staticmethod
-    def get_field_names():
+    @classmethod
+    def get_field_names(cls):
         return [
             'first_name',
             'middle_name',

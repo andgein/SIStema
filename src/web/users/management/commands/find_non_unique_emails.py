@@ -76,8 +76,8 @@ class AccountInfo(object):
     def __str__(self):
         return "%s obj_cnt %d user.id %d %s" % (str(self.status), self.related_objects_count, self.user.id, str(self.user))
 
-    @staticmethod
-    def build_for_user(user):
+    @classmethod
+    def build_for_user(cls, user):
         related_objects = analyze_user.find_all_related_objects(user)
         if _is_empty_account(related_objects):
             status = AccountInfo.Status.EMPTY
