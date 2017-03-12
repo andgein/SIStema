@@ -163,27 +163,27 @@ class UserProfile(models.Model):
     def get_zero_class_year(self):
         return self._zero_class_year
 
-    @property
-    def current_class(self):
+    def get_class(self, date=None):
         if not hasattr(self, '_zero_class_year'):
             return None
-        now = datetime.date.today()
-        result = now.year - self._zero_class_year
-        if now.month < 9:
+        if not date:
+            date = datetime.date.today()
+        result = date.year - self._zero_class_year
+        if date.month < 9:
             result -= 1
         return result
 
-    @current_class.setter
-    def current_class(self, value):
+    def set_class(self, value, date=None):
         if value is None:
             self._zero_class_year = None
             return
-        if isinstance(value, str):
-            value = int(value)
-        now = datetime.date.today()
-        self._zero_class_year = now.year - value
-        if now.month < 9:
+        if not date:
+            date = datetime.date.today()
+        self._zero_class_year = date.year - value
+        if date.month < 9:
             self._zero_class_year -= 1
+
+    current_class = property(get_class, set_class)
 
     @classmethod
     def get_field_names(cls):

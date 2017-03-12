@@ -83,7 +83,7 @@ class EnrolledUserProfileGenerator(object):
             user_profile.last_name = self._get_answer(answers_enrolled, 'last_name')
             user_profile.sex = self._get_choice_answer(answers_about, 'sex', self.UserProfile.Sex)
             user_profile.birth_date = self._get_date_answer(answers_enrolled, 'birth_date')
-            user_profile.zero_class_year = self._get_zero_class_year(answers_enrollee, user)
+            user_profile.zero_class_year = self._get_zero_class_year(school, answers_enrollee, user)
             user_profile.region = self._get_answer(answers_about, 'region')
             user_profile.city = self._get_answer(answers_about, 'city')
             user_profile.school_name = self._get_answer(answers_about, 'school')
@@ -135,7 +135,7 @@ class EnrolledUserProfileGenerator(object):
             return None
         return datetime.datetime.strptime(answer, '%d.%m.%Y').date()
 
-    def _get_zero_class_year(self, answers, user):
+    def _get_zero_class_year(self, school, answers, user):
         answer = EnrolledUserProfileGenerator._get_answer(answers, 'class')
         if answer is None:
             return None
@@ -144,9 +144,9 @@ class EnrolledUserProfileGenerator(object):
         except ValueError:
             sys.stderr.write("user(%d %s) Can not parse class '%s'\n" % (user.id, str(user), answer))
             return None
-        current_class += 1  ## NOTE hack... probably, this answer was actual for previous year
+        school_date = datetime.date(year=int(school.year), month=4, day=1)
         temp_profile = self.UserProfile()
-        temp_profile.current_class = current_class
+        temp_profile.set_class(current_class, school_date)
         return temp_profile.get_zero_class_year()
 
     def _get_choice_answer(self, answers, question_short_name, choice_class):
