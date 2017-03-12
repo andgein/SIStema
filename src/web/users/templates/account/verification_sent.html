@@ -1,4 +1,4 @@
-{% extends "account/centered_form.html" %}
+{% extends "account/centered_panel.html" %}
 
 {% load i18n %}
 
@@ -8,8 +8,7 @@
     <i class="fa fa-envelope"></i> {% trans "Verify Your E-mail Address" %}
 {% endblock %}
 
-
-{% block panel_body %}
+{% block text_before_form %}
     <div>
         Мы отправили вам письмо для подтверждения вашего e-mail.
         Пройдите по ссылке в письме для окончания регистрации.

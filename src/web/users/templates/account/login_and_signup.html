@@ -1,4 +1,4 @@
-{% extends 'account/centered_form.html' %}
+{% extends 'account/centered_panel.html' %}
 
 {% load socialaccount %}
 
@@ -36,4 +36,10 @@
 
         </div>
     </div>
+{% endblock %}
+
+{% block panel_body %}
+    {% with need_form=True %}
+        {{ block.super }}
+    {% endwith %}
 {% endblock %}

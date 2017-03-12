@@ -1,4 +1,7 @@
-{% extends "account/centered_form.html" %}
+{% extends "account/centered_panel.html" %}
+
+{% load account %}
+{% load i18n %}
 
 {% block title %}Подтвердите e-mail адрес{% endblock %}
 
@@ -7,11 +10,26 @@
 {% endblock %}
 
 {% block panel_body %}
-    {% if confirmation %}
-        {# NOTE This is unreachable place in current configuration #}
-        {# TODO #}
-    {% else %}
+    {% with need_form=confirmation %}
+    {{ block.super }}
+    {% endwith %}
+{% endblock %}
 
+{% block panel_footer %}
+    <div class="panel-footer clearfix p10 ph15">
+        <button type="submit" class="button btn-primary mr10 pull-right">Подтвердить</button>
+    </div>
+{% endblock %}
+
+{% block text_before_form %}
+    {% if confirmation %}
+        {% user_display confirmation.email_address.user as user_display %}
+        <div>
+            {% blocktrans with confirmation.email_address.email as email %}
+                Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail address for user {{ user_display }}.
+            {% endblocktrans %}
+        </div>
+    {% else %}
         {% url 'account_email' as email_url %}
         {% url 'account_login' as login_url %}
 
@@ -24,7 +42,5 @@
                 письмо для подтверждения e-mail.
             {% endif %}
         </div>
-
     {% endif %}
-
 {% endblock %}

@@ -47,31 +47,41 @@
                                 </div>
                             </div>
                         {% endblock %}
+
+                        {% with need_form=False %}
                         {% block panel_body %}
+                            {% if need_form %}
+                            <form method="POST" action="">
+                                {% csrf_token %}
+                            {% endif %}
+                                <div class="panel-body bg-light p30">
+                                {% block text_before_form %}{% endblock %}
+                                {% if need_form %}
+                                    {% for field_name in form.fields %}
+                                        {% with field=form|get_item:field_name %}
+                                            {% if field.field.required %}
+                                                <div class="section mbn">
+                                                    <label for="{{ field.id_for_label }}" class="field-label text-muted fs18 mb10">{{ field.label }}</label>
+                                                    <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
+                                                        {{ field }}
+                                                    </label>
+                                                    <p class="help-block">{{ field.help_text }}</p>
+                                                    {{ field.errors }}
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endfor %}
+                                {% endif %}
+                                {% block text_after_form %}{% endblock %}
+                                </div>
+
+                                {% block panel_footer %}
+                                {% endblock %}
+                            {% if need_form %}
+                            </form>
+                            {% endif %}
                         {% endblock %}
-
-                        <form method="POST" action="">
-                            {% csrf_token %}
-                            <div class="panel-body bg-light p30">
-                                {% for field_name in form.fields %}
-                                    {% with field=form|get_item:field_name %}
-                                        {% if field.field.required %}
-                                            <div class="section">
-                                                <label for="{{ field.id_for_label }}" class="field-label text-muted fs18 mb10">{{ field.label }}</label>
-                                                <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
-                                                    {{ field }}
-                                                </label>
-                                                <p class="help-block">{{ field.help_text }}</p>
-                                                {{ field.errors }}
-                                            </div>
-                                        {% endif %}
-                                    {% endwith %}
-                                {% endfor %}
-                            </div>
-
-                            {% block panel_footer %}
-                            {% endblock %}
-                        </form>
+                        {% endwith %}
                     </div>
                 </div>
 

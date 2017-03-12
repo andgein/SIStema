@@ -2,6 +2,12 @@
 
 {% block title %}Регистрация{% endblock %}
 
+{% block panel_body %}
+    {% with need_form=True %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
+
 {% block panel_footer %}
     <div class="panel-footer clearfix p10 ph15">
         <button type="submit" class="button btn-primary mr10 pull-right">Зарегистрироваться</button>

@@ -1,4 +1,4 @@
-{% extends "account/centered_form.html" %}
+{% extends "account/centered_panel.html" %}
 
 {% load i18n %}
 
@@ -8,7 +8,7 @@
     <i class="fa fa-user"></i> {% trans "Sign Up" %}
 {% endblock %}
 
-{% block panel_body %}
+{% block text_before_form %}
     {% with provider_name=account.get_provider.name site_name=site.name %}
     <div>
         Вы собираетесь использовать свой аккаунт {{ provider_name }}, чтобы войти в {{ site_name }}.
