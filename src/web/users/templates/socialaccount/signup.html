@@ -1,11 +1,15 @@
 {% extends "account/centered_panel.html" %}
 
-{% load i18n %}
-
-{% block title %}{% trans "Sign Up" %}{% endblock %}
+{% block title %}Регистрация{% endblock %}
 
 {% block panel_title %}
-    <i class="fa fa-user"></i> {% trans "Sign Up" %}
+    <i class="fa fa-user"></i> Регистрация
+{% endblock %}
+
+{% block panel_body %}
+    {% with need_form=True %}
+        {{ block.super }}
+    {% endwith %}
 {% endblock %}
 
 {% block text_before_form %}

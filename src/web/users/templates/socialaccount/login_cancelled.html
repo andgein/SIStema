@@ -1,16 +1,16 @@
 {% extends "account/centered_panel.html" %}
 
-{% load i18n %}
-
-{% block title %}{% trans "Login Cancelled" %}{% endblock %}
+{% block title %}Авторизация отменена {% endblock %}
 
 {% block panel_title %}
-    <i class="fa fa-remove"></i> {% trans "Login Cancelled" %}
+    <i class="fa fa-remove"></i> Авторизация отменена
 {% endblock %}
 
 {% block text_before_form %}
 
     {% url 'account_login' as login_url %}
-    <div>{% blocktrans %}You decided to cancel logging in to our site using one of your existing accounts. If this was a mistake, please proceed to <a href="{{login_url}}">sign in</a>.{% endblocktrans %}</div>
-
+    <div>
+        Вы прервали авторизацию, используя один из ваших аккаутов.
+        Если это было ошибкой, перейдите к <a href="{{login_url}}">авторизации</a>.
+    </div>
 {% endblock %}

@@ -1,7 +1,5 @@
 {% extends "account/centered_panel.html" %}
 
-{% load i18n %}
-
 {% block title %}Ошибка авторизации{% endblock %}
 
 {% block panel_title %}
@@ -9,7 +7,9 @@
 {% endblock %}
 
 {% block text_before_form %}
-    <div>{% trans "An error occurred while attempting to login via your social network account." %}</div>
+    <div>
+        Во время авторизации через аккаунт социальной сети, произошла ошибка.
+    </div>
 {% endblock %}
 
 

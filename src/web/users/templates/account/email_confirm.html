@@ -1,12 +1,15 @@
 {% extends "account/centered_panel.html" %}
 
 {% load account %}
-{% load i18n %}
 
 {% block title %}Подтвердите e-mail адрес{% endblock %}
 
 {% block panel_title %}
-    <i class="fa fa-envelope"></i> Подтвердите e-mail адрес
+    {% if confirmation %}
+        <i class="fa fa-envelope"></i> Подтвердите e-mail адрес
+    {% else %}
+        <i class="fa fa-warning"></i> Неправильная ссылка
+    {% endif %}
 {% endblock %}
 
 {% block panel_body %}
@@ -25,9 +28,10 @@
     {% if confirmation %}
         {% user_display confirmation.email_address.user as user_display %}
         <div>
-            {% blocktrans with confirmation.email_address.email as email %}
-                Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail address for user {{ user_display }}.
-            {% endblocktrans %}
+            {% with confirmation.email_address.email as email %}
+                Пожалуйста, подтвердите, что при регистрации под именем {{ user_display }}
+                вы указали e-mail адрес <a href="mailto:{{ email }}">{{ email }}</a>.
+            {% endwith %}
         </div>
     {% else %}
         {% url 'account_email' as email_url %}
