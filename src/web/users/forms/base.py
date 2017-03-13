@@ -23,9 +23,6 @@ class AccountBaseForm(forms.Form):
 
 
 def _signup(form, user):
-    user.first_name = form.cleaned_data.get('first_name')
-    user.second_name = form.cleaned_data.get('second_name')
-    user.save()
     profile = models.UserProfile(user=user)
     for field_name in profile.get_field_names():
         setattr(profile, field_name, form.cleaned_data.get(field_name))
