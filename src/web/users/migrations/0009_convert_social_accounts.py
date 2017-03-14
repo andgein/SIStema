@@ -60,7 +60,8 @@ class SocialAccountsConverter:
             uid=old_account.uid,
             extra_data={})
         try:
-            expires_at = int(old_account.extra_data['auth_time']) + int(old_account.extra_data['access_token']['x_auth_expires'])
+            expires_at = int(old_account.extra_data['auth_time']) + int(
+                old_account.extra_data['access_token']['x_auth_expires'])
         except KeyError:
             expires_at = 0
             sys.stderr.write("can not get expires_at for (acc.id %d uid %s provider %s)\n"
@@ -111,10 +112,9 @@ class SocialAccountsConverter:
         self.SocialAccountModel = apps.get_model('socialaccount', 'SocialAccount')
         self.SocialTokenModel = apps.get_model('socialaccount', 'SocialToken')
 
-        current_site = self.SiteModel.objects.get_current()
-        current_site.domain = 'sistema.lksh.ru'
-        current_site.name = 'SIStema'
-        current_site.save()
+        self.SiteModel.objects.update_or_create(id=settings.SITE_ID,
+                                                defaults={'domain': 'sistema.lksh.ru',
+                                                          'name': 'SIStema'})
 
         self.social_apps = {
             'vk': self._get_or_create_social_app(

@@ -127,7 +127,12 @@ class UserProfile(models.Model):
     middle_name = models.CharField('Отчество', max_length=100, blank=True)
     last_name = models.CharField('Фамилия', max_length=100, blank=True)
 
-    sex = models.PositiveIntegerField('Пол', choices=Sex.choices, validators=[Sex.validator])
+    sex = models.PositiveIntegerField(
+        'Пол',
+        choices=Sex.choices,
+        validators=[Sex.validator],
+        null=True
+    )
     birth_date = models.DateField('Дата рождения')
     _zero_class_year = models.PositiveIntegerField('Год поступления в "нулевой" класс',
                                                    null=True,
