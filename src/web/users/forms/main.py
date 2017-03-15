@@ -4,6 +4,7 @@ from django import forms
 from allauth.account import forms as account_forms
 from allauth.socialaccount import forms as social_account_forms
 
+from django.core import exceptions as django_exceptions
 from django.utils.translation import ugettext_lazy as _
 from frontend.forms import TextInputWithFaIcon, PasswordInputWithFaIcon
 
@@ -38,7 +39,7 @@ def _customize_widgets(form):
             })
 
 
-class EmptyChoiceField(forms.ChoiceField):
+class EmptyIntChoiceField(forms.ChoiceField):
     def __init__(self, choices=(), required=True, widget=None, label=None,
                  initial=None, help_text=None, *args, **kwargs):
         choices = tuple([(u'', u'')] + list(choices))
@@ -47,9 +48,13 @@ class EmptyChoiceField(forms.ChoiceField):
                          initial=initial, help_text=help_text, *args, **kwargs)
 
     def to_python(self, value):
-        if value == '' or value is None:
+        if not value:
             return None
-        return super().to_python(value)
+        value = super().to_python(value)
+        try:
+            return int(value)
+        except ValueError as e:
+            raise django_exceptions.ValidationError(e)
 
 
 class UserProfileForm(forms.Form):
@@ -84,11 +89,12 @@ class UserProfileForm(forms.Form):
         })
     )
 
-    sex = forms.ChoiceField(
+    sex = forms.TypedChoiceField(
         models.UserProfile.Sex.choices,
         required=True,
         label='Пол',
-        widget=forms.RadioSelect
+        widget=forms.RadioSelect,
+        coerce=int,
     )
 
     birth_date = forms.DateField(
@@ -143,11 +149,11 @@ class UserProfileForm(forms.Form):
         })
     )
 
-    citizenship = EmptyChoiceField(
+    citizenship = EmptyIntChoiceField(
         models.UserProfile.Citizenship.choices,
         label='Гражданство',
         help_text='Выберите «Другое», если имеете несколько гражданств',
-        required=False
+        required=False,
     )
     citizenship_other = forms.CharField(
         label='Другое гражданство',
@@ -160,10 +166,10 @@ class UserProfileForm(forms.Form):
         })
     )
 
-    document_type = EmptyChoiceField(
+    document_type = EmptyIntChoiceField(
         models.UserProfile.DocumentType.choices,
         label='Документ, удостоверяющий личность',
-        required=False
+        required=False,
     )
     document_number = forms.CharField(
         label='Номер документа',
@@ -184,6 +190,17 @@ class UserProfileForm(forms.Form):
             'fa': 'file-text-o',
         })
     )
+
+    def fill_user_profile(self, request):
+        if request.user_profile:
+            user_profile = request.user_profile
+        elif request.user.is_authenticated:
+            user_profile = models.UserProfile(user=request.user)
+        else:
+            user_profile = models.UserProfile()
+        for field_name in user_profile.get_field_names():
+            setattr(user_profile, field_name, self.cleaned_data.get(field_name))
+        return user_profile
 
 
 class SignupForm(account_forms.SignupForm, UserProfileForm):

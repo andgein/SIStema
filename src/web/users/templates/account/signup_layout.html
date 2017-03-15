@@ -1,4 +1,5 @@
 {% extends "account/centered_panel.html" %}
+{% load static %}
 
 {% block title %}Регистрация{% endblock %}
 
@@ -13,4 +14,8 @@
         <button type="submit" class="button btn-primary mr10 pull-right">Зарегистрироваться</button>
 {#        <a href="{% url 'account_reset_password' %}" class="btn btn-link pull-right mr10">Забыли пароль?</a>#}
     </div>
+{% endblock %}
+
+{% block centered_panel_scripts %}
+    <script src="{% static 'js/smart_signup.js' %}"></script>
 {% endblock %}
