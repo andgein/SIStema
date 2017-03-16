@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from . import models
 from .entrance import levels
+import modules.entrance.admin as entrance_admin
 
 
 class TopicQuestionnaireAdmin(admin.ModelAdmin):
@@ -150,3 +151,7 @@ class EntranceLevelRequirementAdmin(admin.ModelAdmin):
     search_fields = ('=entrance_level__short_name', '=entrance_level__name')
 
 admin.site.register(levels.EntranceLevelRequirement, EntranceLevelRequirementAdmin)
+
+
+admin.site.register(models.FillTopicsQuestionnaireEntranceStep,
+                    entrance_admin.AbstractEntranceStepAdmin)

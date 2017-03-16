@@ -1,0 +1,17 @@
+<div class="entrance-timeline__block
+            {% if not entrance_block.step.with_background %}without-background{% endif %}
+            {% block _block_css_classes %}{% endblock %}
+           ">
+    <div class="entrance-timeline__block__content
+                {% if not entrance_block.step.with_timeline_point %}without-timeline-point{% endif %}
+               ">
+
+        <div class="entrance-timeline__block__header">
+            {% block _header %}{% endblock %}
+        </div>
+
+        <div class="entrance-timeline__block__text">
+            {% block _text %}{% endblock %}
+        </div>
+    </div>
+</div>

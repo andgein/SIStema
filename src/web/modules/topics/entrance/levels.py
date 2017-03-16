@@ -4,23 +4,21 @@ import operator
 from modules.entrance import levels
 from modules.entrance import models as entrance_models
 from sistema.helpers import group_by
-from .. import models
 
 from django.db import models as django_models
 
 
-# TODO: move to models.py?
 class EntranceLevelRequirement(django_models.Model):
     """
     Каждое требование задаётся кортежом (tag, max_penalty).
     Это значит, что сумма баллов школьника по всем шкалам всех тем с тегом tag должна отличаться
     от максимальной не более чем на max_penalty.
     """
-    questionnaire = django_models.ForeignKey(models.TopicQuestionnaire)
+    questionnaire = django_models.ForeignKey('topics.TopicQuestionnaire')
 
     entrance_level = django_models.ForeignKey(entrance_models.EntranceLevel)
 
-    tag = django_models.ForeignKey(models.Tag)
+    tag = django_models.ForeignKey('topics.Tag')
 
     max_penalty = django_models.PositiveIntegerField()
 
@@ -46,6 +44,8 @@ class TopicsEntranceLevelLimiter(levels.EntranceLevelLimiter):
 
     def get_limit(self, user):
         # TODO: check status, if not FINISHED, return self._find_minimal_level()
+        # It's here to avoid cyclic imports
+        import modules.topics.models.main as models
 
         user_marks = models.UserMark.objects.filter(user=user, scale_in_topic__topic__questionnaire=self.questionnaire)\
             .prefetch_related('scale_in_topic__topic__tags')

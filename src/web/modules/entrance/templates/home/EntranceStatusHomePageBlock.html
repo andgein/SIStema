@@ -1,5 +1,0 @@
-{% if block.entrance_status %}
-    <div class="entrance-status alert alert-{{ block.entrance_status.is_enrolled|yesno:'success,danger' }} fs16 text-left">
-        {{ block.entrance_status.message|urlize|linebreaks }}
-    </div>
-{% endif %}

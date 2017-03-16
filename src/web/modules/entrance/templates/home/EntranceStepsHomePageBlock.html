@@ -1,13 +1,5 @@
-<div class="entrance-steps {{ block.is_past|yesno:'past,container' }}">
-    <div class="row">
-        {% for step in block.steps %}
-            {% if forloop.counter0|divisibleby:block.columns_count %}
-                </div>
-                <div class="row">
-            {% endif %}
-            <div class="col-sm-{{ block.bootstrap_column_width }}">
-                {{ step.rendered|safe }}
-            </div>
-        {% endfor %}
-    </div>
+<div class="entrance-timeline">
+    {% for block in block.blocks %}
+        {{ block|safe }}
+    {% endfor %}
 </div>

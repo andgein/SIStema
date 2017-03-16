@@ -1,5 +1,4 @@
 import datetime
-
 import re
 
 import djchoices
@@ -101,22 +100,6 @@ class EntranceExam(models.Model):
 
     def get_absolute_url(self):
         return urlresolvers.reverse('school:entrance:exam', kwargs={ 'school_name': self.school.short_name})
-
-
-class EntranceStep(models.Model):
-    school = models.ForeignKey(schools.models.School, related_name='entrance_steps')
-
-    class_name = models.CharField(max_length=100, help_text='Путь до класса, описывающий шаг')
-
-    params = models.TextField(help_text='Параметры для шага')
-
-    order = models.IntegerField()
-
-    def __str__(self):
-        return 'Шаг %s используется для %s' % (self.class_name, self.school)
-
-    class Meta:
-        ordering = ['order']
 
 
 class EntranceLevel(models.Model):
@@ -373,7 +356,10 @@ class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
 
     @classmethod
     def for_user_in_school(cls, user, school):
-        """Returns absence reason for specified user or None if user has not declined."""
+        """
+        Returns absence reason for specified user
+        or None if user has not declined.
+        """
         return cls.objects.filter(user=user, school=school).first()
 
     def default_public_comment(self):

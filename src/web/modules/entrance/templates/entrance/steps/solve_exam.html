@@ -1,0 +1,7 @@
+{% extends 'entrance/steps/base.html' %}
+
+{% block title %}Вступительная работа{% endblock %}
+
+{% block not_passed_after_text %}
+    <a href="{{ entrance_block.step.exam.get_absolute_url }}" class="btn btn-sm btn-default">Решить</a>
+{% endblock %}

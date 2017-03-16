@@ -159,7 +159,7 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = False
+USE_L10N = True
 
 USE_TZ = True
 
@@ -179,7 +179,9 @@ DATE_INPUT_FORMATS = (
     '%d-%m-%Y', '%d/%m/%Y', '%d/%m/%y',  # '25-10-2006', '25/10/2006', '25/10/06'
 )
 
-DATE_FORMAT = '%d.%m.%Y'
+DATE_FORMAT = 'd.m.Y'
+
+SISTEMA_QUESTIONNARE_STORING_DATE_FORMAT = '%d.%m.%Y'
 
 SISTEMA_UPLOAD_FILES_DIR = os.path.join(BASE_DIR, 'uploads')
 if not os.path.exists(SISTEMA_UPLOAD_FILES_DIR):

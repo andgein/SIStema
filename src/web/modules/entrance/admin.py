@@ -43,8 +43,6 @@ class EntranceLevelAdmin(admin.ModelAdmin):
 
 admin.site.register(models.EntranceLevel, EntranceLevelAdmin)
 
-admin.site.register(models.EntranceStep)
-
 
 class EntranceExamTaskSolutionAdmin(admin.ModelAdmin):
     list_display = ('id', 'task', 'user', 'ip')
@@ -176,11 +174,27 @@ class AbstractAbsenceReasonAdmin(admin.ModelAdmin):
                 ).order_by('last_name', 'first_name'))
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-admin.site.register(models.RejectionAbsenceReason, AbstractAbsenceReasonAdmin)
-admin.site.register(models.NotConfirmedAbsenceReason, AbstractAbsenceReasonAdmin)
+admin.site.register(models.RejectionAbsenceReason,
+                    AbstractAbsenceReasonAdmin)
+admin.site.register(models.NotConfirmedAbsenceReason,
+                    AbstractAbsenceReasonAdmin)
 
 
-admin.site.register(models.EntranceStepsHomePageBlock, AbstractHomePageBlockAdmin)
-admin.site.register(models.EnrolledStepsHomePageBlock, AbstractHomePageBlockAdmin)
-admin.site.register(models.AbsenceReasonHomePageBlock, AbstractHomePageBlockAdmin)
-admin.site.register(models.EntranceStatusHomePageBlock, AbstractHomePageBlockAdmin)
+admin.site.register(models.EntranceStepsHomePageBlock,
+                    AbstractHomePageBlockAdmin)
+
+
+class AbstractEntranceStepAdmin(admin.ModelAdmin):
+    list_display = ('id', 'school', 'order',
+                    'available_from_date', 'available_to_date',
+                    'available_after_step')
+    list_filter = (('school', admin.RelatedOnlyFieldListFilter), )
+
+admin.site.register(models.ConfirmProfileEntranceStep,
+                    AbstractEntranceStepAdmin)
+admin.site.register(models.FillQuestionnaireEntranceStep,
+                    AbstractEntranceStepAdmin)
+admin.site.register(models.SolveExamEntranceStep,
+                    AbstractEntranceStepAdmin)
+admin.site.register(models.ResultsEntranceStep,
+                    AbstractEntranceStepAdmin)

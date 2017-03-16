@@ -6,6 +6,19 @@
 
 {% block css %}
     <link rel="stylesheet" type="text/css" href="{% static 'home/css/home.css' %}" >
+    {% for block in blocks %}
+        {% for css_file in block.css_files %}
+            <link rel="stylesheet" type="text/css" href="{% static css_file %}" >
+        {% endfor %}
+    {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+    {% for block in blocks %}
+        {% for js_file in block.js_files %}
+            <script src="{% static js_file %}"></script>
+        {% endfor %}
+    {% endfor %}
 {% endblock %}
 
 {% block content %}

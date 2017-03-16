@@ -1,0 +1,27 @@
+{% extends 'entrance/steps/base.html' %}
+
+{% load markdown_deux_tags %}
+
+{% block title %}Тематическая анкета{% endblock %}
+
+{% block not_passed_text %}
+    {% if entrance_block.questionnaire_status == entrance_block.UserQuestionnaireStatus.STARTED %}
+        {{ entrance_block.step.text_questionnaire_not_finished|markdown }}
+    {% elif entrance_block.questionnaire_status == entrance_block.UserQuestionnaireStatus.CORRECTING %}
+        {{ entrance_block.step.text_questionnaire_correcting|markdown }}
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
+
+{% block not_passed_after_text %}
+    <a href="{{ entrance_block.step.questionnaire.get_absolute_url }}" class="btn btn-sm btn-default">
+        {% if entrance_block.questionnaire_status == entrance_block.UserQuestionnaireStatus.STARTED %}
+            Продолжить
+        {% elif entrance_block.questionnaire_status == entrance_block.UserQuestionnaireStatus.CORRECTING %}
+            Проверить оценки
+        {% else %}
+            Заполнить тематическую анкету
+        {% endif %}
+    </a>
+{% endblock %}

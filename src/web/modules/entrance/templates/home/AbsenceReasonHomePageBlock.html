@@ -1,9 +1,0 @@
-{% if block.reason %}
-    <div class="entrance-status alert alert-danger fs16 text-left">
-        {% if block.reason.public_comment %}
-            {{ block.reason.public_comment|urlize|linebreaks }}
-        {% else %}
-            {{ block.reason.default_public_comment|urlize|linebreaks }}
-        {% endif %}
-    </div>
-{% endif %}

@@ -1,2 +1,3 @@
-from modules.entrance.home.blocks import *
-from modules.entrance.models.main import *
+from ..home.blocks import *
+from .main import *
+from .steps import *

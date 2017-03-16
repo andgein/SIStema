@@ -1,0 +1,11 @@
+{% extends 'entrance/steps/base.html' %}
+
+{% block title %}Результаты поступления{% endblock %}
+
+{% block not_passed_text %}
+    {% if entrance_block.entrance_status %}
+        <div class="entrance-status alert alert-{{ entrance_block.entrance_status.is_enrolled|yesno:'success,danger' }} fs16 text-left">
+            {{ entrance_block.entrance_status.message|urlize|linebreaks }}
+        </div>
+    {% endif %}
+{% endblock %}

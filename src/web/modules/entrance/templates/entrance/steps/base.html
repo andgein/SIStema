@@ -1,0 +1,69 @@
+{% extends 'entrance/steps/_base_layout.html' %}
+
+{% load date %}
+{% load markdown_deux_tags %}
+
+{% block _block_css_classes %}
+    {% if entrance_block.state == EntranceStepState.NOT_OPENED or entrance_block.state == EntranceStepState.WAITING_FOR_OTHER_STEP %}
+        not-available
+    {% endif %}
+
+    {% if entrance_block.state == EntranceStepState.PASSED %}
+        done
+    {% elif entrance_block.state != EntranceStepState.NOT_OPENED and entrance_block.state != EntranceStepState.WAITING_FOR_OTHER_STEP%}
+        open
+    {% endif %}
+{% endblock %}
+
+{% block _header %}
+    {% if entrance_block.step.with_timeline_point %}
+        <div class="timeline-point"></div>
+    {% endif %}
+    {% block title %}{% endblock %}
+
+    {% if entrance_block.state == EntranceStepState.NOT_OPENED %}
+        <span class="deadline">с&nbsp;{{ entrance_block.step.available_from_date|without_year:entrance_block.step.school.year }}</span>
+    {% endif %}
+
+    {% if entrance_block.state == EntranceStepState.PASSED %}
+        <span class="done-icon  fa fa-check"></span>
+        <div class="collapse-icon">
+            <span class="fa fa-chevron-down"></span>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block _text %}
+    {% if entrance_block.state == EntranceStepState.NOT_OPENED %}
+        {% block not_available_text %}
+           {{ entrance_block.step.text_step_is_not_available|markdown }}
+        {% endblock %}
+        {% block not_available_after_text %}
+        {% endblock %}
+    {% endif %}
+
+    {% if entrance_block.state == EntranceStepState.WAITING_FOR_OTHER_STEP %}
+        {% block waiting_for_other_step_text %}
+           {{ entrance_block.step.text_waiting_for_other_step|markdown }}
+        {% endblock %}
+        {% block waiting_for_other_step_after_text %}
+        {% endblock %}
+    {% endif %}
+
+    {% if entrance_block.state == EntranceStepState.NOT_PASSED %}
+        {% block not_passed_text %}
+            {{ entrance_block.step.text_step_is_not_passed|markdown }}
+        {% endblock %}
+        {% block not_passed_after_text %}
+        {% endblock %}
+    {% endif %}
+
+    {% if entrance_block.state == EntranceStepState.PASSED %}
+        {% block passed_text %}
+            {{ entrance_block.step.text_step_is_passed|markdown }}
+        {% endblock %}
+        {% block passed_after_text %}
+        {% endblock %}
+    {% endif %}
+
+{% endblock %}

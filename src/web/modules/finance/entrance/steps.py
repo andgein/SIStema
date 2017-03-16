@@ -1,7 +1,9 @@
-from modules.entrance import steps
+from modules.entrance.models import steps
 import questionnaire.models
 from .. import models
 
+
+# TODO (andgein): rewrite following classes with the new Entrance Steps
 
 class PaymentInfoEntranceStep(steps.EntranceStep):
     def __init__(self, school, payment_questionnaire, previous_questionnaire=None):
@@ -9,7 +11,8 @@ class PaymentInfoEntranceStep(steps.EntranceStep):
         self.payment_questionnaire = payment_questionnaire
         if self.payment_questionnaire.school_id != self.school.id:
             raise ValueError(
-                'finance.entrance.steps.PaymentInfoEntranceStep: PaymentQuestionnaire must be for this school')
+                'finance.entrance.steps.PaymentInfoEntranceStep: '
+                'PaymentQuestionnaire should exist for this school')
 
     def is_passed(self, user):
         return self.payment_questionnaire.is_filled_by(user) and super().is_passed(user)
@@ -18,7 +21,8 @@ class PaymentInfoEntranceStep(steps.EntranceStep):
         if not self.is_available(user):
             template = self._template_factory('''
             <p>
-                {{ questionnaire.title }} будет доступна после заполнения раздела «{{ previous.title }}».
+                {{ questionnaire.title }} будет доступна
+                после заполнения раздела «{{ previous.title }}».
             </p>
             ''')
             body = template.render({
@@ -94,7 +98,11 @@ class PaymentInfoEntranceStep(steps.EntranceStep):
             'already_filled': already_filled,
         })
 
-        return self.panel(self.payment_questionnaire.title, body, 'success' if already_filled else 'alert')
+        return self.panel(
+            self.payment_questionnaire.title,
+            body,
+            'success' if already_filled else 'alert'
+        )
 
 
 class DocumentsEntranceStep(steps.EntranceStep):
@@ -103,7 +111,8 @@ class DocumentsEntranceStep(steps.EntranceStep):
         self.payment_questionnaire = payment_questionnaire
         if self.payment_questionnaire.school_id != self.school.id:
             raise ValueError(
-                'finance.entrance.steps.DocumentsEntranceStep: PaymentQuestionnaire must be for this school')
+                'finance.entrance.steps.DocumentsEntranceStep: '
+                'PaymentQuestionnaire must be for this school')
 
     def _get_needed_document_types(self, user):
         document_types = models.DocumentType.objects.filter(school=self.school)
@@ -222,5 +231,9 @@ class DocumentsEntranceStep(steps.EntranceStep):
                     'not_filled_fields': not_filled_fields
                 })
 
-        return self.panel('Документы', body, 'alert' if has_ready_document else 'danger')
+        return self.panel(
+            'Документы',
+            body,
+            'alert' if has_ready_document else 'danger'
+        )
 
