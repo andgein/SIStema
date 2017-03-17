@@ -131,13 +131,16 @@ class UserProfile(models.Model):
         'Пол',
         choices=Sex.choices,
         validators=[Sex.validator],
-        null=True
+        null=True,
+        blank=True,
     )
-    birth_date = models.DateField('Дата рождения')
+    birth_date = models.DateField('Дата рождения', null=True, blank=True)
     _zero_class_year = models.PositiveIntegerField('Год поступления в "нулевой" класс',
                                                    null=True,
                                                    help_text='используется для вычисления текущего класса',
-                                                   db_column='zero_class_year')
+                                                   db_column='zero_class_year',
+                                                   blank=True,
+                                                   )
 
     region = models.CharField('Субъект РФ', max_length=100, blank=True, help_text='или страна, если не Россия')
     city = models.CharField('Населённый пункт', max_length=100, blank=True, help_text='в котором находится школа')
@@ -151,6 +154,7 @@ class UserProfile(models.Model):
         choices=Citizenship.choices,
         validators=[Citizenship.validator],
         null=True,
+        blank=True,
     )
 
     citizenship_other = models.CharField('Другое гражданство', max_length=100, blank=True)
@@ -160,6 +164,7 @@ class UserProfile(models.Model):
         choices=DocumentType.choices,
         validators=[DocumentType.validator],
         null=True,
+        blank=True,
     )
     document_number = models.CharField('Номер документа', max_length=20, blank=True)
 
