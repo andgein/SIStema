@@ -1,6 +1,16 @@
-{% extends "account/login_and_signup.html" %}
+{% extends "account/centered_panel.html" %}
 
 {% block title %}Вход{% endblock %}
+
+{% block panel_heading %}
+    {% include 'socialaccount/_social_providers.html' %}
+{% endblock %}
+
+{% block panel_body %}
+    {% with need_form=True %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
 
 {% block panel_footer %}
     <div class="panel-footer clearfix p10 ph15">
