@@ -52,3 +52,15 @@ class UserProfileTestCase(TestCase):
             for i in range(365 * 3):
                 mock_date.today.return_value = start_date + datetime.timedelta(days=i)
                 self.assertEqual(start_class + i // 365, user_profile.current_class)
+
+    def test_class_none(self):
+        user_profile = UserProfile()
+        self.assertIsNone(user_profile.current_class)
+        self.assertIsNone(user_profile.get_zero_class_year())
+        user_profile.current_class = 8
+        self.assertIsNotNone(user_profile.current_class)
+        self.assertIsNotNone(user_profile.get_zero_class_year())
+        user_profile.current_class = None
+        self.assertIsNone(user_profile.current_class)
+        self.assertIsNone(user_profile.get_zero_class_year())
+

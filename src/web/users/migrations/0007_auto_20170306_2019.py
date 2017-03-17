@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('last_name', models.CharField(blank=True, max_length=100, verbose_name='Фамилия')),
                 ('sex', models.PositiveIntegerField(choices=[(1, 'женский'), (2, 'мужской')], null=True, validators=[djchoices.choices.ChoicesValidator({1: 'женский', 2: 'мужской'})], verbose_name='Пол')),
                 ('birth_date', models.DateField(verbose_name='Дата рождения')),
-                ('zero_class_year', models.PositiveIntegerField(help_text='используется для вычисления текущего класса', null=True, verbose_name='Год поступления в "нулевой" класс')),
+                ('_zero_class_year', models.PositiveIntegerField(db_column='zero_class_year', help_text='используется для вычисления текущего класса', null=True, verbose_name='Год поступления в "нулевой" класс')),
                 ('region', models.CharField(blank=True, help_text='или страна, если не Россия', max_length=100, verbose_name='Субъект РФ')),
                 ('city', models.CharField(blank=True, help_text='в котором находится школа', max_length=100, verbose_name='Населённый пункт')),
                 ('school_name', models.CharField(blank=True, max_length=100, verbose_name='Школа')),

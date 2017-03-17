@@ -137,7 +137,7 @@ class UserProfile(models.Model):
     _zero_class_year = models.PositiveIntegerField('Год поступления в "нулевой" класс',
                                                    null=True,
                                                    help_text='используется для вычисления текущего класса',
-                                                   name='zero_class_year')
+                                                   db_column='zero_class_year')
 
     region = models.CharField('Субъект РФ', max_length=100, blank=True, help_text='или страна, если не Россия')
     city = models.CharField('Населённый пункт', max_length=100, blank=True, help_text='в котором находится школа')
@@ -169,7 +169,7 @@ class UserProfile(models.Model):
         return self._zero_class_year
 
     def get_class(self, date=None):
-        if not hasattr(self, '_zero_class_year'):
+        if self._zero_class_year is None:
             return None
         if not date:
             date = datetime.date.today()
