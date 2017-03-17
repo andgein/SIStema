@@ -3,6 +3,7 @@ from django.db.models import Q
 from users import models
 from modules.entrance import models as entrance_models
 
+import operator
 
 __first_name_normalization_dict = {
     'саша': 'александр',
@@ -112,6 +113,14 @@ class SimilarAccountSearcher(object):
         self._candidates = []
 
     def search(self):
+        poldnev_person = self._new_user_profile.poldnev_person
+        if poldnev_person:
+            if poldnev_person.user:
+                return [poldnev_person.user]
+            related_profiles = poldnev_person.user_profiles.all()
+            if related_profiles:
+                return map(operator.attrgetter('user'), related_profiles)
+
         last_name = self._new_user_profile.last_name
         if not last_name:
             return []
@@ -119,11 +128,11 @@ class SimilarAccountSearcher(object):
         first_name = self._new_user_profile.first_name
         birth_date = self._new_user_profile.birth_date
 
-        expr = Q(last_name=last_name) | Q(user_profile__last_name=last_name) | Q(poldnev__last_name=last_name)
+        expr = Q(last_name=last_name) | Q(user_profile__last_name=last_name) | Q(poldnev_person__last_name=last_name)
         if birth_date:
             expr |= Q(user_profile__birth_date=birth_date)
         self._candidates = list(models.User.objects
-                                .select_related('user_profile', 'poldnev')
+                                .select_related('user_profile', 'poldnev_person')
                                 .filter(is_active=True)
                                 .filter(expr)
                                 .all())
@@ -157,8 +166,8 @@ class SimilarAccountSearcher(object):
     def _last_name_matched(self, user):
         last_name = self._new_user_profile.last_name
         ok = False
-        if hasattr(user, 'poldnev'):
-            ok |= _match_last_names(last_name, user.poldnev.last_name)
+        if hasattr(user, 'poldnev_person'):
+            ok |= _match_last_names(last_name, user.poldnev_person.last_name)
         if hasattr(user, 'user_profile'):
             ok |= _match_last_names(last_name, user.user_profile.last_name)
         ok |= _match_last_names(last_name, user.last_name)
@@ -176,10 +185,10 @@ class SimilarAccountSearcher(object):
         middle_name = self._new_user_profile.middle_name
         last_name = self._new_user_profile.last_name
         ok = False
-        if hasattr(user, 'poldnev'):
-            ok |= (_match_last_names(last_name, user.poldnev.last_name)
-                   and _match_first_names(first_name, user.poldnev.first_name)
-                   and _match_middle_names(middle_name, user.poldnev.middle_name))
+        if hasattr(user, 'poldnev_person'):
+            ok |= (_match_last_names(last_name, user.poldnev_person.last_name)
+                   and _match_first_names(first_name, user.poldnev_person.first_name)
+                   and _match_middle_names(middle_name, user.poldnev_person.middle_name))
         if hasattr(user, 'user_profile'):
             ok |= (_match_last_names(last_name, user.user_profile.last_name)
                    and _match_first_names(first_name, user.user_profile.first_name)
@@ -190,7 +199,7 @@ class SimilarAccountSearcher(object):
 
     @classmethod
     def _has_poldnev(cls, user):
-        return hasattr(user, 'poldnev')
+        return hasattr(user, 'poldnev_person')
 
     @classmethod
     def _was_enrolled(cls, user):

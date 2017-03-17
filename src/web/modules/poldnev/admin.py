@@ -3,9 +3,9 @@ from django.utils import html
 
 from . import models
 
+
 class SessionAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
         'poldnev_id',
         'name_as_url',
         'schools_session',
@@ -24,9 +24,9 @@ class SessionAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Session, SessionAdmin)
 
+
 class PersonAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
         'poldnev_id',
         'first_name',
         'middle_name',
@@ -49,6 +49,7 @@ class PersonAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Person, PersonAdmin)
 
+
 class RoleAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -70,6 +71,7 @@ class RoleAdmin(admin.ModelAdmin):
     )
 
 admin.site.register(models.Role, RoleAdmin)
+
 
 class HistoryEntryAdmin(admin.ModelAdmin):
     list_display = (

@@ -1,0 +1,6 @@
+<span class='last_name'>{{ person.last_name }}</span>
+<span class='first_name'>{{ person.first_name }}</span>
+<span class='middle_name'>{{ person.middle_name }}</span>
+{% with last_role=person.last_role %}
+    <span class='last_role'>- {{ last_role.session.name }}, {{ last_role.poldnev_role}}</span>
+{% endwith %}

@@ -14,11 +14,12 @@ $(document).ready(function () {
     $('input:radio').change(update_similar_accounts);
     $('input').focus(function(ev){
         var input = ev.target;
-        input.last_focus_value = input.value
+        input.last_focus_value = input.value;
     }).blur(function (ev) {
         var input = ev.target;
         if (input.last_focus_value != input.value) {
             update_similar_accounts();
         }
     });
+    $(':input[name$=poldnev_person]').change(update_similar_accounts);
 });

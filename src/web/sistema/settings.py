@@ -39,6 +39,11 @@ SERVER_EMAIL = 'admin@sistema.lksh.ru'
 # Application definition
 
 INSTALLED_APPS = (
+    # https://github.com/yourlabs/django-autocomplete-light/blob/master/docs/install.rst
+    # before django.contrib.admin and grappelli (if present)
+    'dal',
+    'dal_select2',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

@@ -4,12 +4,13 @@ from django import conf
 from django.db import models
 import schools.models
 
+
 class Session(models.Model):
     """SIS session from poldnev.ru"""
 
     poldnev_id = models.CharField(
+        primary_key=True,
         max_length=50,
-        unique=True,
         help_text='Id смены на poldnev.ru. Заполняется автоматически командой '
                   'manage.py update_poldnev по информации с сайта.')
 
@@ -21,8 +22,9 @@ class Session(models.Model):
     schools_session = models.OneToOneField(
         schools.models.Session,
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
-        related_name='poldnev',
+        related_name='poldnev_session',
         help_text='Смена из модуля schools, соответствующая этой смене на '
                   'poldnev.ru')
 
@@ -31,7 +33,7 @@ class Session(models.Model):
         help_text='True, если корректность значения schools_session была '
                   'проверена человеком')
 
-    url = models.URLField(null=True)
+    url = models.URLField(null=True, blank=True)
 
     class Meta:
         ordering = ('-poldnev_id',)
@@ -44,7 +46,7 @@ class Person(models.Model):
     """SIS person from poldnev.ru"""
 
     poldnev_id = models.IntegerField(
-        unique=True,
+        primary_key=True,
         help_text='Id человека на poldnev.ru. Заполняется автоматически '
                   'командой manage.py update_poldnev по информации с сайта.')
 
@@ -66,8 +68,9 @@ class Person(models.Model):
     user = models.OneToOneField(
         conf.settings.AUTH_USER_MODEL,
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
-        related_name='poldnev',
+        related_name='poldnev_person',
         help_text='Пользователь, соответствующий этому человеку на poldnev.ru')
 
     verified = models.BooleanField(
@@ -83,11 +86,17 @@ class Person(models.Model):
 
     @property
     def full_name(self):
-        return ' '.join([self.first_name, self.middle_name, self.last_name])
+        return ' '.join([self.last_name, self.first_name, self.middle_name])
 
     @property
     def url(self):
         return 'https://poldnev.ru/lksh/id' + str(self.poldnev_id)
+
+    @property
+    def last_role(self):
+        if not hasattr(self, '_last_role'):
+            self._last_role = self.history_entries.order_by('-role__session__poldnev_id').first().role
+        return self._last_role
 
 
 class Role(models.Model):
@@ -125,12 +134,16 @@ class HistoryEntry(models.Model):
     person = models.ForeignKey(
         Person,
         on_delete=models.CASCADE,
-        help_text='Человек')
+        help_text='Человек',
+        related_name='history_entries',
+    )
 
     role = models.ForeignKey(
         Role,
         on_delete=models.CASCADE,
-        help_text='Роль. Также содержит информацию о смене.')
+        help_text='Роль. Также содержит информацию о смене.',
+        related_name='history_entries',
+    )
 
     def __str__(self):
         return '{} ({})'.format(self.person, self.role)
