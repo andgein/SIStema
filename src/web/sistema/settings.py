@@ -73,6 +73,7 @@ INSTALLED_APPS = (
     'modules.exam_scorer_2016',
     'modules.finance',
     'modules.poldnev',
+    'modules.smartq',
     'modules.study_results',
     'modules.topics',
 
@@ -208,7 +209,26 @@ SISTEMA_FINANCE_DOCUMENTS = os.path.join(SISTEMA_UPLOAD_FILES_DIR, 'finance-docu
 
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_CONFIG = {
-    'SISTEMA_CURRENT_SCHOOL_SHORT_NAME': ('2016', 'Короткое название текущей смены')
+    'SISTEMA_CURRENT_SCHOOL_SHORT_NAME': ('2016',
+                                          'Короткое название текущей смены'),
+    'SMARTQ_MODULE_EXECUTION_TIMEOUT': (
+        1.0,
+        'Ограничение по времени на компиляцию и выполнение модуля вопроса '
+        '(в секундах)'),
+    'SMARTQ_CHECKER_INSTANTIATION_TIMEOUT': (
+        1.0,
+        'Ограничение по времени на создание объекта чекера для вопроса '
+        '(в секундах)'),
+    'SMARTQ_GENERATOR_INSTANTIATION_TIMEOUT': (
+        1.0,
+        'Ограничение по времени на создание объекта генератора для вопроса '
+        '(в секундах)'),
+    'SMARTQ_CHECKER_TIMEOUT': (
+        1.0,
+        'Ограничение по времени на проверку вопроса (в секундах)'),
+    'SMARTQ_GENERATOR_TIMEOUT': (
+        1.0,
+        'Ограничение по времени на генерацию вопроса (в секундах)'),
 }
 
 HIJACK_DISPLAY_ADMIN_BUTTON = False
