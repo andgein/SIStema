@@ -131,7 +131,7 @@ class ChoiceQuestionnaireQuestionVariant(models.Model):
     disable_question_if_chosen = models.BooleanField(default=False)
 
     def __str__(self):
-        return '{}: {}'.format(self.question, self.text)
+        return '{}: {} {}'.format(self.question, self.id, self.text)
 
 
 class ChoiceQuestionnaireQuestion(AbstractQuestionnaireQuestion):
@@ -294,7 +294,7 @@ class QuestionnaireAnswer(models.Model):
     answer = models.TextField(blank=True)
 
     def __str__(self):
-        return 'Ответ «%s» на вопрос %s анкеты %s' % (self.answer, self.question_short_name, self.questionnaire)
+        return 'Ответ «%s» на вопрос %s анкеты %s' % (self.answer.replace('\n', '\\n'), self.question_short_name, self.questionnaire)
 
     @property
     def question(self):

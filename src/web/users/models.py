@@ -82,7 +82,7 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
         mail.send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def __str__(self):
-        return '%s %s (%s)' % (self.last_name, self.first_name, self.email)
+        return '%d %s %s (%s)' % (self.id, self.last_name, self.first_name, self.email)
 
 
 class UserPasswordRecovery(models.Model):

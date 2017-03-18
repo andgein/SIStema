@@ -31,3 +31,6 @@ class Discount(models.Model):
     @property
     def type_name(self):
         return self.Type.values[self.type]
+
+    def __str__(self):
+        return "%s %s" % (self.user, self.Type.values[self.type])
