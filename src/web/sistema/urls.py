@@ -11,5 +11,6 @@ urlpatterns = [
     url(r'^hijack/', include('hijack.urls')),
     url(r'^study-results/', include('modules.study_results.urls',
                                     namespace='study_results')),
+    url(r'^smartq/', include('modules.smartq.urls', namespace='smartq')),
     url(r'', include('schools.urls', namespace='school')),
 ]
