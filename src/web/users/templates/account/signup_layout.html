@@ -11,12 +11,37 @@
 
 {% block panel_footer %}
     <div class="panel-footer clearfix p10 ph15">
-        <button type="submit" class="button btn-primary mr10 pull-right">Зарегистрироваться</button>
+        <button id='signup_button' type="submit" class="button btn-primary mr10 pull-right">Зарегистрироваться</button>
 {#        <a href="{% url 'account_reset_password' %}" class="btn btn-link pull-right mr10">Забыли пароль?</a>#}
     </div>
+{% endblock %}
+
+{% block centered_panel_css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/smart_signup.css' %}">
 {% endblock %}
 
 {% block centered_panel_scripts %}
     <script src="{% static 'js/smart_signup.js' %}"></script>
     {{ form.media }}
 {% endblock %}
+
+{% block additional_content %}
+    <div id="similar_account_container" data-url="{% url 'account_find_similar' %}" class='similar-accounts-container' style="display: none">
+        <div id="close_similar_accounts" class="pull-right">
+            <div class="expand-button"><i class="fa fa-expand"></i></div>
+            <div class="close-button"><i class="fa fa-close"></i></div>
+        </div>
+        <div class="title">Кажется, вы уже регистрировались.</div>
+        <div class="accounts"></div>
+        <div class="body">
+            Пожалуйста, не регистрируйтесь заново.
+            Если вы забыли пароль, вы можете <a href="{% url 'account_reset_password' %}">восстановить его</a>.
+            Если вы не имеете доступа к старой почте, то
+            <a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=У меня нет доступа к старому e-mail">напишете нам</a>.
+
+            <button id='decline_similar_accounts_button' class="button btn-primary mr10 pull-right">Здесь нет моего аккаунта</button>
+        </div>
+    </div>
+
+{% endblock %}
+
