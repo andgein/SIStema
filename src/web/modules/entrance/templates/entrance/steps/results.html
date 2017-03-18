@@ -2,9 +2,32 @@
 
 {% block title %}Результаты поступления{% endblock %}
 
+{% block done_icon %}{% endblock %}
+{% block collapse_icon %}{% endblock %}
+
 {% block not_passed_text %}
     {% if entrance_block.entrance_status %}
-        <div class="entrance-status alert alert-{{ entrance_block.entrance_status.is_enrolled|yesno:'success,danger' }} fs16 text-left">
+        {% if entrance_block.entrance_status.absence_reason %}
+            <div class="entrance-status alert alert-micro alert-border-left alert-danger">
+                {% with reason=entrance_block.entrance_status.absence_reason %}
+                    {% if reason.public_comment %}
+                        {{ reason.public_comment|urlize|linebreaks }}
+                    {% else %}
+                        {{ reason.default_public_comment|urlize|linebreaks }}
+                    {% endif %}
+                {% endwith %}
+            </div>
+        {% else %}
+            <div class="entrance-status alert alert-micro alert-border-left alert-danger">
+                {{ entrance_block.entrance_status.message|urlize|linebreaks }}
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block passed_text %}
+    {% if entrance_block.entrance_status %}
+        <div class="entrance-status alert alert-micro alert-border-left alert-success">
             {{ entrance_block.entrance_status.message|urlize|linebreaks }}
         </div>
     {% endif %}

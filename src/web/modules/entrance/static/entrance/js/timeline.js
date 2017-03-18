@@ -1,5 +1,5 @@
 $(document).ready(function(){
-    $('.entrance-timeline__block.done .entrance-timeline__block__header').click(function(e){
+    $('.entrance-timeline__block.done:not(.always-open) .entrance-timeline__block__header').click(function(e){
         if ($(e.target).closest('a,button').length > 0)
             return;
 

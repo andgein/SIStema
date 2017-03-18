@@ -1,14 +1,11 @@
-import datetime
 import enum
 
-from django.template import engines, Context
-from django.utils.safestring import mark_safe
 from django.db import models
-
+from django.utils import timezone
 from polymorphic import models as polymorphic_models
 
-import schools.models
 import questionnaire.models
+import schools.models
 
 
 class EntranceStepState(enum.Enum):
@@ -43,21 +40,21 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
         help_text='Шаги упорядочиваются по возрастанию этого параметра'
     )
 
-    available_from_date = models.DateField(
+    available_from_time = models.DateTimeField(
         null=True,
         blank=True,
         default=None,
-        help_text='Начиная с какой даты доступен шаг'
+        help_text='Начиная с какого времени доступен шаг'
     )
 
-    # TODO(andgein): Может, это DateTimeField, а не DateField?
-    available_to_date = models.DateField(
+    available_to_time = models.DateTimeField(
         null=True,
         blank=True,
         default=None,
-        help_text='До какой даты доступен доступен шаг'
+        help_text='До какого времени доступен доступен шаг'
     )
 
+    # TODO (andgein): Возможно, это должен быть ManyToManyField
     available_after_step = models.ForeignKey(
         'self',
         related_name='+',
@@ -68,19 +65,22 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
     )
 
     """
-    Set to False if you don't want to see background around you block
+    Override to False in your subclass if you don't want to see background
+    around you block
     """
     with_background = True
 
     """
-    Set to False for disabling timeline point at left border of the timeline
+    Override to False in your subclass for disabling timeline point
+    at left border of the timeline
     """
     with_timeline_point = True
 
-    """
-    Set to False for invisible steps
-    """
+    """ Override to False in your subclass for invisible steps """
     visible = True
+
+    """ Override to True in your subclass to keep your step open always  """
+    always_open = False
 
     def is_passed(self, user):
         """
@@ -97,17 +97,17 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
          Returns state of this step for user. You can override it in subclass
          :returns EntranceStepState
         """
-        today = datetime.date.today()
-        if self.available_from_date is not None and \
-           today < self.available_from_date:
+        now = timezone.now()
+        if (self.available_from_time is not None and
+           now < self.available_from_time):
             return EntranceStepState.NOT_OPENED
 
-        if self.available_to_date is not None and \
-           self.available_to_date < today:
+        if (self.available_to_time is not None and
+           self.available_to_time < now):
             return EntranceStepState.CLOSED
 
-        if self.available_after_step is not None and \
-           not self.available_after_step.is_passed(user):
+        if (self.available_after_step is not None and
+           not self.available_after_step.is_passed(user)):
             return EntranceStepState.WAITING_FOR_OTHER_STEP
 
         if self.is_passed(user):
@@ -118,7 +118,7 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
     def build(self, user):
         """
         You can override it in your subclass
-        :return: EntranceStepBlocks or None
+        :return: EntranceStepBlock or None
         """
         if not self.visible:
             return None
@@ -138,7 +138,7 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
 
 class EntranceStepTextsMixIn(models.Model):
     """
-    Inherit your entrance step from EntranceStepTextsMixIn to get follow
+    Inherit your entrance step from EntranceStepTextsMixIn to get the following
     TextFields in your model:
     * text_before_start_date
     * text_after_finish_date
@@ -199,12 +199,12 @@ class FillQuestionnaireEntranceStep(AbstractEntranceStep,
     )
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.questionnaire_id is not None and \
-           self.questionnaire.school is not None and \
-           self.school_id != self.questionnaire.school_id:
+        if (self.questionnaire_id is not None and
+           self.questionnaire.school is not None and
+           self.school_id != self.questionnaire.school_id):
             raise ValueError('entrance.steps.FillQuestionnaireEntranceStep: '
                              'questionnaire should belong to step\'s school')
+        super().save(*args, **kwargs)
 
     def is_passed(self, user):
         return super().is_passed(user) and self.questionnaire.is_filled_by(user)
@@ -224,11 +224,11 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
     )
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.exam.school_id is not None and \
-           self.school_id != self.exam.school_id:
+        if (self.exam.school_id is not None and
+           self.school_id != self.exam.school_id):
             raise ValueError('entrance.steps.SolveExamEntranceStep: '
                              'exam should belong to step\'s school')
+        super().save(*args, **kwargs)
 
     # Entrance exam is never passed. Mu-ha-ha!
     def is_passed(self, user):
@@ -240,55 +240,66 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
 
 
 class ResultsEntranceStep(AbstractEntranceStep):
+    """
+    Entrance step for show results (enrolled, not enrolled) and absence reason
+    if exists (not confirmed, rejected, ...).
+    """
     template_file = 'results.html'
 
     with_background = False
     with_timeline_point = False
+    always_open = True
 
     def _get_visible_entrance_status(self, user):
         # It's here to avoid cyclic imports
         import modules.entrance.models.main as entrance_models
 
-        qs = entrance_models.EntranceStatus.objects.filter(
+        return entrance_models.EntranceStatus.objects.filter(
             school=self.school,
             user=user,
             is_status_visible=True
-        )
-        entrance_status = None
-        if qs.exists():
-            entrance_status = qs.first()
-            entrance_status.is_enrolled = entrance_status.status == \
-                entrance_models.EntranceStatus.Status.ENROLLED
-        return entrance_status
+        ).first()
 
-    # TODO (andgein): cache calculated state
-    def get_state(self, user):
-        state = super().get_state(user)
+    def _get_absence_reason(self, user):
+        # It's here to avoid cyclic imports
+        import modules.entrance.models.main as entrance_models
 
-        if state == EntranceStepState.NOT_PASSED:
-            entrance_status = self._get_visible_entrance_status(user)
-            if entrance_status.is_enrolled:
-                return EntranceStepState.PASSED
-        return state
+        return (entrance_models.AbstractAbsenceReason
+            .for_user_in_school(user, self.school))
+
+    # TODO(andgein): cache calculated value
+    def is_passed(self, user):
+        entrance_status = self._get_visible_entrance_status(user)
+        absence_reason = self._get_absence_reason(user)
+        return (entrance_status is not None and entrance_status.is_enrolled
+            and absence_reason is None)
+
+    def _get_entrance_message(self, entrance_status):
+        if entrance_status.is_enrolled:
+            if entrance_status.session is not None:
+                session_name = str(entrance_status.session)
+            else:
+                session_name = self.school.name
+
+            message = 'Поздравляем! Вы приняты в ' + session_name
+            if entrance_status.parallel is not None:
+                message += ' в параллель ' + entrance_status.parallel.name
+        else:
+            message = 'К сожалению, вы не приняты в ' + self.school.name
+            if entrance_status.public_comment:
+                message += '.\nПричина: ' + entrance_status.public_comment
+
+        return message
 
     def build(self, user):
         block = super().build(user)
 
         entrance_status = self._get_visible_entrance_status(user)
+        absence_reason = self._get_absence_reason(user)
         if entrance_status is not None:
-            if entrance_status.is_enrolled:
-                entrance_status.message = \
-                    'Поздравляем! Вы приняты в %s, в параллель %s смены %s' % (
-                        self.school.name,
-                        entrance_status.parallel.name,
-                        entrance_status.session.name
-                    )
-            else:
-                entrance_status.message = \
-                    'К сожалению, вы не приняты в %s' % (self.school.name, )
-                if entrance_status.public_comment:
-                    entrance_status.message += \
-                        '.\nПричина: %s' % (entrance_status.public_comment, )
+            entrance_status.message = self._get_entrance_message(entrance_status)
+            if absence_reason is not None:
+                entrance_status.absence_reason = absence_reason
 
         block.entrance_status = entrance_status
         return block

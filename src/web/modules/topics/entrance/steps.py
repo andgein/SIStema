@@ -25,14 +25,14 @@ class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
         blank=True
     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.questionnaire_id is not None and \
-           self.questionnaire.school is not None and \
-           self.school_id != self.questionnaire.school_id:
+    def save(self, *args, **kwargs):
+        if (self.questionnaire_id is not None and
+           self.questionnaire.school is not None and
+           self.school_id != self.questionnaire.school_id):
             raise ValueError(
                 'topics.entrance.steps.FillTopicsQuestionnaireEntranceStep: '
                 'questionnaire should belong to step\'s school')
+        super().save(*args, **kwargs)
 
     def is_passed(self, user):
         return super().is_passed(user) and self.questionnaire.is_filled_by(user)
@@ -49,5 +49,5 @@ class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
         return block
 
     def __str__(self):
-        return 'Шаг заполнения тематической анкеты %s' % \
-               (str(self.questionnaire), )
+        return ('Шаг заполнения тематической анкеты %s' %
+               (str(self.questionnaire), ))

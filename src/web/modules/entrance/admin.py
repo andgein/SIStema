@@ -166,7 +166,7 @@ class AbstractAbsenceReasonAdmin(admin.ModelAdmin):
             kwargs['queryset'] = (
                 users.models.User.objects.filter(
                     entrance_statuses__status=models.EntranceStatus.Status.ENROLLED
-                ).order_by('last_name', 'first_name'))
+                ).distinct().order_by('last_name', 'first_name'))
         if db_field.name == 'created_by':
             kwargs['queryset'] = (
                 users.models.User.objects.filter(
@@ -186,7 +186,7 @@ admin.site.register(models.EntranceStepsHomePageBlock,
 
 class AbstractEntranceStepAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'order',
-                    'available_from_date', 'available_to_date',
+                    'available_from_time', 'available_to_time',
                     'available_after_step')
     list_filter = (('school', admin.RelatedOnlyFieldListFilter), )
 

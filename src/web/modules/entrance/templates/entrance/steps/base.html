@@ -6,11 +6,13 @@
 {% block _block_css_classes %}
     {% if entrance_block.state == EntranceStepState.NOT_OPENED or entrance_block.state == EntranceStepState.WAITING_FOR_OTHER_STEP %}
         not-available
+    {% elif entrance_block.state == EntranceStepState.PASSED %}
+        done
+    {% else %}
+        open
     {% endif %}
 
-    {% if entrance_block.state == EntranceStepState.PASSED %}
-        done
-    {% elif entrance_block.state != EntranceStepState.NOT_OPENED and entrance_block.state != EntranceStepState.WAITING_FOR_OTHER_STEP%}
+    {% if entrance_block.step.always_open %}
         open
     {% endif %}
 {% endblock %}
@@ -21,15 +23,23 @@
     {% endif %}
     {% block title %}{% endblock %}
 
-    {% if entrance_block.state == EntranceStepState.NOT_OPENED %}
-        <span class="deadline">с&nbsp;{{ entrance_block.step.available_from_date|without_year:entrance_block.step.school.year }}</span>
+    {% if entrance_block.state == EntranceStepState.NOT_OPENED and entrance_block.step.available_from_time %}
+        <span class="deadline">с&nbsp;{{ entrance_block.step.available_from_time.date|without_year:entrance_block.step.school.year }}</span>
+    {% endif %}
+
+    {% if entrance_block.state == EntranceStepState.NOT_PASSED and entrance_block.step.available_to_time %}
+        <span class="deadline">до&nbsp;{{ entrance_block.step.available_to_time.date|without_year:entrance_block.step.school.year }}</span>
     {% endif %}
 
     {% if entrance_block.state == EntranceStepState.PASSED %}
-        <span class="done-icon  fa fa-check"></span>
-        <div class="collapse-icon">
-            <span class="fa fa-chevron-down"></span>
-        </div>
+        {% block done_icon %}
+            <span class="done-icon  fa fa-check"></span>
+        {% endblock %}
+        {% block collapse_icon %}
+            <div class="collapse-icon">
+                <span class="fa fa-chevron-down"></span>
+            </div>
+        {% endblock %}
     {% endif %}
 {% endblock %}
 

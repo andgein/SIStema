@@ -313,27 +313,46 @@ class EntranceStatus(models.Model):
         AUTO_REJECTED = djchoices.ChoiceItem(2, 'Автоматический отказ')
         NOT_ENROLLED = djchoices.ChoiceItem(3, 'Не прошёл по конкурсу')
         ENROLLED = djchoices.ChoiceItem(4, 'Поступил')
+        PARTICIPATING = djchoices.ChoiceItem(5, 'Подал заявку')
 
     school = models.ForeignKey(schools.models.School, related_name='entrance_statuses')
 
     user = models.ForeignKey(users.models.User, related_name='entrance_statuses')
 
     # created_by=None means system's auto creating
-    created_by = models.ForeignKey(users.models.User, blank=True, null=True, default=None)
+    created_by = models.ForeignKey(
+        users.models.User,
+        blank=True, null=True, default=None
+    )
 
-    public_comment = models.TextField(help_text='Публичный комментарий. Может быть виден поступающему', blank=True)
+    public_comment = models.TextField(
+        help_text='Публичный комментарий. Может быть виден поступающему',
+        blank=True
+    )
 
     is_status_visible = models.BooleanField()
 
-    status = models.IntegerField(choices=Status.choices, validators=[Status.validator])
+    status = models.IntegerField(
+        choices=Status.choices,
+        validators=[Status.validator])
 
-    session = models.ForeignKey(schools.models.Session, blank=True, null=True, default=None)
+    session = models.ForeignKey(
+        schools.models.Session,
+        blank=True, null=True, default=None
+    )
 
-    parallel = models.ForeignKey(schools.models.Parallel, blank=True, null=True, default=None)
+    parallel = models.ForeignKey(
+        schools.models.Parallel,
+        blank=True, null=True, default=None
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def is_enrolled(self):
+        return self.status == EntranceStatus.Status.ENROLLED
 
     class Meta:
         verbose_name_plural = 'User entrance statuses'
@@ -341,16 +360,28 @@ class EntranceStatus(models.Model):
 
 
 class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
-    school = models.ForeignKey(schools.models.School, related_name='absences_reasons')
+    school = models.ForeignKey(
+        schools.models.School,
+        related_name='absences_reasons'
+    )
 
     user = models.ForeignKey(users.models.User, related_name='absences_reasons')
 
-    private_comment = models.TextField(blank=True, help_text='Не показывается школьнику')
+    private_comment = models.TextField(
+        blank=True,
+        help_text='Не показывается школьнику'
+    )
 
-    public_comment = models.TextField(blank=True, help_text='Показывается школьнику')
+    public_comment = models.TextField(
+        blank=True,
+        help_text='Показывается школьнику'
+    )
 
-    created_by = models.ForeignKey(users.models.User, related_name='+', null=True, default=None,
-                                   blank=True)
+    created_by = models.ForeignKey(
+        users.models.User,
+        related_name='+',
+        null=True, default=None, blank=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
