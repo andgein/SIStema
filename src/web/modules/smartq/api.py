@@ -65,6 +65,7 @@ class AnswerFieldSpec:
              max_length=None,
              multiline=False,
              validation_regexp=None,
+             validation_regexp_message=None,
              **kwargs):
         spec = cls._base(**kwargs)
 
@@ -88,6 +89,11 @@ class AnswerFieldSpec:
             if not isinstance(validation_regexp, str):
                 raise TypeError('validation_regexp must be a string')
             spec['validation_regexp'] = validation_regexp
+
+        if validation_regexp_message is not None:
+            if not isinstance(validation_regexp_message, str):
+                raise TypeError('validation_regexp_message must be a string')
+            spec['validation_regexp_message'] = validation_regexp_message
 
         return spec
 

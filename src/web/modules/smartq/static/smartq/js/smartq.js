@@ -22,12 +22,10 @@ $(document).ready(function() {
   });
 });
 
-// TODO(Artem Tabolin): implement displaying of verification error messages and
-//     field highlighting.
 // Validation
 $(document).ready(function() {
   $.validator.addMethod(
-      "regex",
+      "regexp",
       function(value, element, regexp) {
         var re = new RegExp(regexp);
         return this.optional(element) || re.test(value);
@@ -37,20 +35,51 @@ $(document).ready(function() {
 
   function validateForm() {
     var rules = {};
-    $(this).find('input[data-smartq-id]').each(function() {
+    var messages = {};
+
+     $(this).find('input[data-smartq-id]').each(function() {
       var name = $(this).attr('name');
+
       rules[name] = rules[name] || {};
+      messages[name] = messages[name] || {};
       
       var regexp = $(this).attr('data-smartq-validation-regexp');
       if (regexp) {
-        rules[name]['regex'] = regexp;
-        rules[name]['required'] = true;
+        rules[name]['regexp'] = regexp;
       }
 
+      var regexp_message =
+        $(this).attr('data-smartq-validation-regexp-message');
+      if (regexp_message) {
+        messages[name]['regexp'] = regexp_message;
+      }
     });
 
     $(this).validate({
-      'rules': rules
+      errorClass: 'state-error',
+      validClass: 'state-success',
+      errorElement: 'em',
+      rules: rules,
+      messages: messages,
+
+      highlight: function(element, errorClass, validClass) {
+        $(element).closest('.field').addClass(errorClass)
+                                    .removeClass(validClass);
+      },
+
+      unhighlight: function(element, errorClass, validClass) {
+        $(element).closest('.field').removeClass(errorClass)
+                                    .addClass(validClass);
+      },
+
+      errorPlacement: function(error, element) {
+        // TODO(Artem Tabolin): show errors in popovers
+        //if (element.is(":radio") || element.is(":checkbox")) {
+          //element.closest('.option-group').after(error);
+        //} else {
+          //error.insertAfter(element.parent());
+        //}
+      }
     });
   };
 
