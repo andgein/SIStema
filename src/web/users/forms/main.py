@@ -59,6 +59,7 @@ class UserProfileForm(forms.Form):
     last_name = forms.CharField(
         required=True,
         label='Фамилия',
+        help_text='Как в паспорте или свидетельстве о рождении',
         widget=TextInputWithFaIcon(attrs={
             'placeholder': 'Введите фамилию',
             'class': 'gui-input',
@@ -70,6 +71,7 @@ class UserProfileForm(forms.Form):
     first_name = forms.CharField(
         required=True,
         label='Имя',
+        help_text='Как в паспорте или свидетельстве о рождении',
         widget=TextInputWithFaIcon(attrs={
             'placeholder': 'Введите имя',
             'class': 'gui-input',
@@ -80,6 +82,7 @@ class UserProfileForm(forms.Form):
     middle_name = forms.CharField(
         required=True,
         label='Отчество',
+        help_text='Как в паспорте или свидетельстве о рождении',
         widget=TextInputWithFaIcon(attrs={
             'placeholder': 'Введите отчество',
             'class': 'gui-input',
