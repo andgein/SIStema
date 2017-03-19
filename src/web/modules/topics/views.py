@@ -232,6 +232,9 @@ def index(request):
     topic_issuer = issuer.TopicIssuer(request.user, request.questionnaire)
 
     if request.method == 'GET':
+        if user_status.status == models.UserQuestionnaireStatus.Status.CHECK_TOPICS:
+            return check_topics(request)
+
         # Show correcting form if need
         if user_status.status == models.UserQuestionnaireStatus.Status.CORRECTING:
             return correcting(request)
@@ -276,3 +279,101 @@ def finish(request):
     _update_questionnaire_status(request.user, request.questionnaire, models.UserQuestionnaireStatus.Status.FINISHED)
 
     return redirect(request.school)
+
+
+@login_required
+@topic_questionnaire_view
+def return_to_correcting(request):
+    user_status = _get_questionnaire_status(request.user, request.questionnaire)
+    if user_status.status != models.UserQuestionnaireStatus.Status.CHECK_TOPICS:
+        return redirect('school:topics:index', school_name=request.school.short_name)
+
+    _update_questionnaire_status(request.user, request.questionnaire, models.UserQuestionnaireStatus.Status.CORRECTING)
+    return redirect('school:topics:index', school_name=request.school.short_name)
+
+
+@login_required
+@topic_questionnaire_view
+def start_checking(request):
+    # TODO: uncomment
+    #if request.questionnaire.is_closed():
+        #return redirect('school:topics:index', school_name=request.school.short_name)
+
+    user_status = _get_questionnaire_status(request.user, request.questionnaire)
+    if user_status.status != models.UserQuestionnaireStatus.Status.CORRECTING:
+        return redirect('school:topics:index', school_name=request.school.short_name)
+
+    _update_questionnaire_status(request.user, request.questionnaire, models.UserQuestionnaireStatus.Status.CHECK_TOPICS)
+
+    _create_smartq_questionnaire(request)
+    return redirect('school:topics:check_topics', school_name=request.school.short_name)
+
+
+@login_required
+@topic_questionnaire_view
+def check_topics(request):
+    # TODO: uncomment
+    # TODO: cycle dep, when school is closed
+    #if request.questionnaire.is_closed():
+    #    return redirect('school:topics:index', school_name=request.school.short_name)
+
+    user_status = _get_questionnaire_status(request.user, request.questionnaire)
+    if user_status.status != models.UserQuestionnaireStatus.Status.CHECK_TOPICS:
+        return redirect('school:topics:index', school_name=request.school.short_name)
+    return _show_check_topics(request)
+
+
+@login_required
+@topic_questionnaire_view
+def finish_smartq(request):
+    # TODO: check the answers
+    return redirect('school:topics:finish', school_name=request.school.short_name)
+
+
+def _create_smartq_questionnaire(request):
+    topics_q = request.questionnaire
+    new_q = models.SmartqQuestionnaire.objects.create(user=request.user, topics=topics_q)
+
+    topics_with_marks = _get_user_marks_by_topics(
+            request.user, request.questionnaire, not_show_auto_marks=False)
+    topics_with_marks = sorted(topics_with_marks, key=lambda t: t.topic.order, reverse=True)
+    # Ask not more than max_questions
+    max_questions = models.TopicSmartqSettings.objects.get(
+            questionnaire=topics_q).max_questions
+
+    questions_counter = 0
+    groups = set()
+    for topic_with_mark in topics_with_marks:
+        for mark in topic_with_mark.marks:
+            for mapping in mark.scale_in_topic.smartq_mapping.all():
+                # User should have the max mark for topic
+                if mark.mark == mark.scale_in_topic.smartq_mapping.mark:
+                    # Skip questions of the same group
+                    if mapping.group is not None and mapping.group in groups:
+                        continue
+                    gen_question = mapping.question.create_instance(
+                            user=request.user)
+                    new_question = SmartqQuestionnaireQuestion.objects.create(
+                            question=gen_question, questionnaire=new_q)
+                    groups.add(mapping.group)
+                    questions_counter += 1
+                    if (max_questions is not None
+                            and questions_counter == max_questions):
+                        break
+            # Please tell, if you know other ways to exit nested loops
+            else:
+                continue
+            break
+        else:
+            continue
+        break
+    return new_q
+
+
+def _show_check_topics(request):
+    smartq_q = models.SmartqQuestionnaire.get_latest(request.user, request.questionnaire)
+    # show in progress
+    return render(request, 'topics/check_topics.html', {
+        'questionnaire': request.questionnaire,
+        'questions': smartq_q.questions.all(),
+    })

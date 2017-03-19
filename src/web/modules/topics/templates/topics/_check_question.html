@@ -1,0 +1,10 @@
+{% load static %}
+
+<div style="width: 600px; margin: auto;">
+  <form method="post" class="user-form">
+    {% csrf_token %}
+    {% autoescape off %}{{ question.html }}{% endautoescape %}
+    <button type="submit" class="btn btn-success">Отправить</button>
+  </form>
+
+</div>

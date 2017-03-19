@@ -1,6 +1,15 @@
 {% extends 'user_layout.html' %}
 
-{% block title %}{{ questionnaire.title }}{% endblock %}
+{% load static %}
+
+{% block css %}
+{{ block.super }}
+  {% for q in questions %}
+      <style>{{ q.question.css|safe }}</style>
+  {% endfor %}
+{% endblock css %}
+
+{% block title %}Проверочные вопросы{% endblock %}
 
 {% block content %}
 
@@ -13,7 +22,7 @@
 
                     <div class="panel-heading">
                         <span class="panel-title">
-                            <i class="fa fa-comments"></i> {{ questionnaire.title }}
+                            <i class="fa fa-comments"></i> Проверочные вопросы
                         </span>
                     </div>
 
@@ -39,32 +48,8 @@
                             </p>
                         </div>
 
-                        {% for topic_with_marks in topics %}
-                            <div class="row">
-                                <div class="col-xs-1">
-                                    <div class="mnw50 fs30 mr15 text-right text-{{ topic_with_marks.exists_automatically_mark|yesno:"alert,muted-lighter," }}">
-                                        {{ forloop.counter }}
-                                    </div>
-                                </div>
-                                <div class="col-xs-11 mb10">
-                                    <p class="text-{{ topic_with_marks.exists_automatically_mark|yesno:"alert,muted-lighter," }} fs18 fw600 mt5">
-                                        {{ topic_with_marks.topic.title }}
-                                        <span class="fs16">
-                                            <a href="{% url 'school:topics:correcting_topic' request.school.short_name topic_with_marks.topic.short_name %}"
-                                               title="Исправить оценки"
-                                               class="text-{{ topic_with_marks.exists_automatically_mark|yesno:"alert-dark,muted-lighter," }}">
-                                                <span class="fa fa-edit"></span>
-                                            </a>
-                                        </span>
-                                    </p>
-                                    {% for mark in topic_with_marks.marks %}
-                                        <p class="{{ mark.is_automatically|yesno:",text-muted-lighter," }}">
-                                            <strong>{{ mark.scale_in_topic.scale.title }}</strong>: {{ mark.label }}
-                                            <span class="label label-{{ mark.is_automatically|yesno:"success,muted," }} label-sm">{{ mark.mark }} из {{ mark.scale_in_topic.scale.max_mark }}</span>
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            </div>
+                        {% for q in questions %}
+                            {% include 'topics/_check_question.html' with question=q.question %} 
                         {% endfor %}
 
                         <div class="alert alert-micro alert-border-left alert-danger light mt10 mbn">
@@ -74,12 +59,19 @@
                         </div>
 
                     </div>
-
-                    <form method="POST" action="{% url 'school:topics:start_checking' request.school.short_name %}">
+                    <form method="POST" action="{% url 'school:topics:return_to_correcting' request.school.short_name %}">
                         {% csrf_token %}
 
                         <div class="panel-footer p25 text-right">
-                            <button type="submit" class="button btn-alert">Я согласен</button>
+                            <button type="submit" class="button btn-alert">Вернуться к редактированию тематической анкеты</button>
+                        </div>
+                    </form>
+
+                    <form method="POST" action="{% url 'school:topics:finish_smartq' request.school.short_name %}">
+                        {% csrf_token %}
+
+                        <div class="panel-footer p25 text-right">
+                            <button type="submit" class="button btn-alert">Проверить</button>
                         </div>
                     </form>
                 </div>
@@ -88,4 +80,13 @@
 
     </div>
 
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+    {% for q in questions %}
+        <script>{{ question.js|safe }}</script>
+    {% endfor %}
+<script src="{% static "vendor/admin-forms/js/jquery.validate.min.js" %}"></script>
+<script src="{% static "smartq/js/smartq.js" %}"></script>
 {% endblock %}

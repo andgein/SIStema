@@ -6,6 +6,7 @@ import django.utils.timezone
 
 import schools.models
 import users.models
+import modules.smartq.models as smartq_models
 
 from djchoices import choices
 
@@ -40,6 +41,26 @@ class TopicQuestionnaire(models.Model):
             questionnaire=self,
             status=UserQuestionnaireStatus.Status.FINISHED
         ).values_list('user_id', flat=True)
+
+
+class SmartqQuestionnaire(models.Model):
+    topics = models.ForeignKey(TopicQuestionnaire, related_name='+')
+
+    user = models.ForeignKey(users.models.User, related_name='+')
+
+    creation_date = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def get_latest(cls, user, topics_questionnaire):
+        smartq_q = cls.objects.filter(
+                user=user, topics=topics_questionnaire).latest('creation_date')
+        return smartq_q
+
+
+class SmartqQuestionnaireQuestion(models.Model):
+    questionnaire = models.ForeignKey(SmartqQuestionnaire, related_name='questions')
+
+    question = models.ForeignKey(smartq_models.GeneratedQuestion, related_name='+')
 
 
 class Level(models.Model):
@@ -290,6 +311,7 @@ class UserQuestionnaireStatus(models.Model):
         STARTED = choices.ChoiceItem(2)
         CORRECTING = choices.ChoiceItem(3)
         FINISHED = choices.ChoiceItem(4)
+        CHECK_TOPICS = choices.ChoiceItem(5)
 
     user = models.ForeignKey(users.models.User, related_name='+')
 
@@ -358,3 +380,20 @@ class ScaleInTopicIssue(models.Model):
 
     # TODO: may be store scale_in_topic, not label_group?
     label_group = models.ForeignKey(ScaleLabelGroup)
+
+
+class TopicQuestionMapping(models.Model):
+    scale_in_topic = models.ForeignKey(ScaleInTopic, related_name='smartq_mapping')
+
+    mark = models.PositiveIntegerField(null=True, default=None)
+
+    question = models.ForeignKey(smartq_models.Question,
+                                 related_name='topic_mapping')
+
+    group = models.IntegerField(null=True, default=None)
+
+
+class TopicSmartqSettings(models.Model):
+    questionnaire = models.ForeignKey(TopicQuestionnaire)
+
+    max_questions = models.PositiveIntegerField()

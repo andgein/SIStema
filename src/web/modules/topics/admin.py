@@ -150,3 +150,32 @@ class EntranceLevelRequirementAdmin(admin.ModelAdmin):
     search_fields = ('=entrance_level__short_name', '=entrance_level__name')
 
 admin.site.register(levels.EntranceLevelRequirement, EntranceLevelRequirementAdmin)
+
+
+class TopicQuestionMappingAdmin(admin.ModelAdmin):
+    list_display = ('id', 'scale_in_topic', 'question')
+    list_filter = ('scale_in_topic', 'question')
+    search_fields = ('topic__short_name', 'question__short_name')
+
+admin.site.register(models.TopicQuestionMapping, TopicQuestionMappingAdmin)
+
+
+class SmartqQuestionnaireAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'topics')
+    list_filter = ('topics',)
+    search_fields = ('user__first_name', 'user__last_name')
+
+admin.site.register(models.SmartqQuestionnaire, SmartqQuestionnaireAdmin)
+
+
+class SmartqQuestionnaireQuestionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'questionnaire', 'question')
+    search_fields = ('=questionnaire__id',)
+
+admin.site.register(models.SmartqQuestionnaireQuestion, SmartqQuestionnaireQuestionAdmin)
+
+
+class TopicSmartqSettingsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'questionnaire', 'max_questions')
+
+admin.site.register(models.TopicSmartqSettings, TopicSmartqSettingsAdmin)
