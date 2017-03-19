@@ -1,0 +1,5 @@
+{% load masked %}
+
+<p class="fw600">
+    {{ user.first_name }} {{ user.last_name }}, электронная почта {{ user.email|masked_email }}
+</p>

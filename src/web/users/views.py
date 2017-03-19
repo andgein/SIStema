@@ -1,12 +1,27 @@
+from django.views.decorators import http as http_decorators
 from django import shortcuts
 from django.contrib.auth import decorators as auth_decorators
 from sistema import decorators as sistema_decorators
-from users import forms, models
+from users import forms, models, search_utils
+from django.template.loader import render_to_string
+import django.http
 
 
 @auth_decorators.login_required()
 def account_settings(request):
     return shortcuts.render(request, 'users/account_settings.html')
+
+
+def _render_user_account(user):
+    return render_to_string('account/_similar_account.html', {'user': user})
+
+
+@http_decorators.require_POST
+def find_similar_accounts(request):
+    form = forms.UserProfileForm(data=request.POST)
+    form.full_clean()
+    users = search_utils.SimilarAccountSearcher(form.fill_user_profile(request)).search()
+    return django.http.JsonResponse({user.id: _render_user_account(user) for user in users})
 
 
 def _init_profile_form(request):
@@ -24,10 +39,4 @@ def _init_profile_form(request):
                                  forms.UserProfileForm,
                                  _init_profile_form)
 def profile(request, form):
-    if request.user_profile:
-        user_profile = request.user_profile
-    else:
-        user_profile = models.UserProfile(user=request.user)
-    for field_name in user_profile.get_field_names():
-        setattr(user_profile, field_name, form.cleaned_data.get(field_name))
-    user_profile.save()
+    form.fill_user_profile(request).save()

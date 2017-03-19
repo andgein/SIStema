@@ -149,6 +149,14 @@ class UserProfile(models.Model):
 
     phone = models.CharField('Телефон', max_length=20, blank=True)
 
+    poldnev_person = models.ForeignKey(
+        'poldnev.Person',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='user_profiles',
+    )
+
     citizenship = models.IntegerField(
         'Гражданство',
         choices=Citizenship.choices,
@@ -203,6 +211,7 @@ class UserProfile(models.Model):
             'last_name',
             'sex',
             'birth_date',
+            'poldnev_person',
             'current_class',
             'region',
             'city',

@@ -8,6 +8,8 @@
 {% block css %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/centered-form.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/datepicker/css/bootstrap-datetimepicker.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/select2/css/theme/default/layout.css' %}">
+    {% block centered_panel_css %}{% endblock %}
 {% endblock %}
 
 {% block scripts %}
@@ -115,8 +117,10 @@
         </section>
 
     </div>
+    {% block additional_content %}{% endblock %}
 {% endblock %}
 
+<<<<<<< HEAD
 {# These scripts is not used now #}
 
 {#    {% block scripts %}#}
@@ -149,3 +153,40 @@
 {#        });#}
 {#        </script>#}
 {#    {% endblock %}#}
+=======
+{% block comment %}
+    {# These scripts is not used now #}
+    {% block scripts %}
+        <script src="vendor/plugins/canvasbg/canvasbg.js"></script>
+
+        <script src="assets/js/utility/utility.js"></script>
+        <script src="assets/js/demo/demo.js"></script>
+        <script src="assets/js/main.js"></script>
+
+        {% block centered_panel_scripts %}{% endblock %}
+
+        <!-- Page Javascript -->
+        <script type="text/javascript">
+        jQuery(document).ready(function() {
+
+            "use strict";
+
+            // Init Theme Core
+            Core.init();
+
+            // Init Demo JS
+            Demo.init();
+
+            // Init CanvasBG and pass target starting location
+            CanvasBG.init({
+                Loc: {
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 3.3
+                },
+            });
+
+        });
+        </script>
+    {% endblock %}
+{% endblock %}
+>>>>>>> smart_signup
