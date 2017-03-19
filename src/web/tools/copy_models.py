@@ -53,7 +53,7 @@ def copy_object(from_school, to_school, obj):
     all_fields = cls._meta.get_fields()
     own_fields = [f for f in all_fields if not is_related_field(f)]
     plain_fields = [f for f in own_fields
-                    if is_plain_field(f) and f.name != 'id']
+                    if is_plain_field(f) and f.name != cls._meta.pk.attname]
     relation_fields = [f for f in own_fields if not is_plain_field(f)]
     to_one_fields = [f for f in relation_fields
                      if f.one_to_one or f.many_to_one]
