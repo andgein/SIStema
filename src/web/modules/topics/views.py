@@ -305,7 +305,11 @@ def start_checking(request):
 
     _update_questionnaire_status(request.user, request.questionnaire, models.UserQuestionnaireStatus.Status.CHECK_TOPICS)
 
-    _create_smartq_questionnaire(request)
+    new_q = _create_smartq_questionnaire(request)
+
+    if len(new_q.questions.all()) == 0:
+        return redirect('school:topics:finish', school_name=request.school.short_name)
+
     return redirect('school:topics:check_topics', school_name=request.school.short_name)
 
 
@@ -347,14 +351,15 @@ def _create_smartq_questionnaire(request):
         for mark in topic_with_mark.marks:
             for mapping in mark.scale_in_topic.smartq_mapping.all():
                 # User should have the max mark for topic
-                if mark.mark == mark.scale_in_topic.smartq_mapping.mark:
+                if  mark.mark == mapping.mark:
                     # Skip questions of the same group
                     if mapping.group is not None and mapping.group in groups:
                         continue
                     gen_question = mapping.question.create_instance(
                             user=request.user)
-                    new_question = SmartqQuestionnaireQuestion.objects.create(
-                            question=gen_question, questionnaire=new_q)
+                    new_question = models.SmartqQuestionnaireQuestion.objects.create(
+                            question=gen_question, questionnaire=new_q,
+                            topic_mapping=mapping)
                     groups.add(mapping.group)
                     questions_counter += 1
                     if (max_questions is not None

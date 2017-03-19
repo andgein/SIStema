@@ -105,7 +105,7 @@ admin.site.register(models.Tag, TagAdmin)
 class UserQuestionnaireStatusAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'questionnaire', 'status')
     list_filter = ('status', 'questionnaire')
-    search_fields = ('=user__username', '=user__email')
+    search_fields = ('=user__username', '=user__email', 'user__last_name')
 
 admin.site.register(models.UserQuestionnaireStatus, UserQuestionnaireStatusAdmin)
 

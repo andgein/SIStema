@@ -57,12 +57,6 @@ class SmartqQuestionnaire(models.Model):
         return smartq_q
 
 
-class SmartqQuestionnaireQuestion(models.Model):
-    questionnaire = models.ForeignKey(SmartqQuestionnaire, related_name='questions')
-
-    question = models.ForeignKey(smartq_models.GeneratedQuestion, related_name='+')
-
-
 class Level(models.Model):
     questionnaire = models.ForeignKey(TopicQuestionnaire)
 
@@ -390,10 +384,20 @@ class TopicQuestionMapping(models.Model):
     question = models.ForeignKey(smartq_models.Question,
                                  related_name='topic_mapping')
 
-    group = models.IntegerField(null=True, default=None)
+    group = models.IntegerField(blank=True, null=True, default=None)
 
 
 class TopicSmartqSettings(models.Model):
     questionnaire = models.ForeignKey(TopicQuestionnaire)
 
     max_questions = models.PositiveIntegerField()
+
+
+class SmartqQuestionnaireQuestion(models.Model):
+    questionnaire = models.ForeignKey(SmartqQuestionnaire, related_name='questions')
+
+    question = models.ForeignKey(smartq_models.GeneratedQuestion, related_name='+')
+
+    topic_mapping = models.ForeignKey(TopicQuestionMapping, related_name='+')
+
+

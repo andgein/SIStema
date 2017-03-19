@@ -4,89 +4,91 @@
 
 {% block css %}
 {{ block.super }}
-  {% for q in questions %}
-      <style>{{ q.question.css|safe }}</style>
-  {% endfor %}
+{% for q in questions %}
+<style>{{ q.question.css|safe }}</style>
+{% endfor %}
 {% endblock css %}
 
 {% block title %}Проверочные вопросы{% endblock %}
 
 {% block content %}
 
-    <div class="container-fluid">
+<div class="container-fluid">
 
-        <div class="mw800 center-block mt30">
+  <div class="mw800 center-block mt30">
 
-            <div class="admin-form theme-alert">
-                <div class="panel panel-alert heading-border">
+    <div class="admin-form theme-alert">
+      <div class="panel panel-alert heading-border">
 
-                    <div class="panel-heading">
-                        <span class="panel-title">
-                            <i class="fa fa-comments"></i> Проверочные вопросы
-                        </span>
-                    </div>
-
-                    <div class="panel-body p25">
-                        <div class="alert alert-micro alert-default alert-border-left">
-                            <h4 class="text-success">
-                                Поздравляем! Вы справились
-                            </h4>
-
-                            <p class="fs13">
-                                Ниже приведены все ваши оценки. Бледным выделены те, которые поставлены вами, их обычно проверять не надо.
-                                Цветом выделены ответы, автоматически проставленные системой.
-                                Пожалуйста, проверьте их правильность.
-                            </p>
-
-                            <p class="fs13">
-                                Для исправления оценок нажмите иконку рядом с вопросом. Вот такую <span class="fa fa-edit"></span>.
-                            </p>
-
-                            <p class="fs13">
-                                <span class="fa fa-warning"></span> Нечестное заполнение анкеты приведёт к тому,
-                                что вы получите задания, не соответствующие вашему уровню, и не сможете быть зачислены в ЛКШ.
-                            </p>
-                        </div>
-
-                        {% for q in questions %}
-                            {% include 'topics/_check_question.html' with question=q.question %} 
-                        {% endfor %}
-
-                        <div class="alert alert-micro alert-border-left alert-danger light mt10 mbn">
-                            <i class="fa fa-info pr10"></i>
-                            <strong>Внимание!</strong>
-                            После нажатия на «Я согласен» исправить или заново заполнить анкету будет нельзя
-                        </div>
-
-                    </div>
-                    <form method="POST" action="{% url 'school:topics:return_to_correcting' request.school.short_name %}">
-                        {% csrf_token %}
-
-                        <div class="panel-footer p25 text-right">
-                            <button type="submit" class="button btn-alert">Вернуться к редактированию тематической анкеты</button>
-                        </div>
-                    </form>
-
-                    <form method="POST" action="{% url 'school:topics:finish_smartq' request.school.short_name %}">
-                        {% csrf_token %}
-
-                        <div class="panel-footer p25 text-right">
-                            <button type="submit" class="button btn-alert">Проверить</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+        <div class="panel-heading">
+          <span class="panel-title">
+            <i class="fa fa-comments"></i> Проверочные вопросы
+          </span>
         </div>
 
+        <div class="panel-body p25">
+          <div class="alert alert-micro alert-default alert-border-left">
+            <h4 class="text-success">
+              Поздравляем! Вы справились
+            </h4>
+
+            <p class="fs13">
+              Текст про проверочные вопросы
+            </p>
+          </div>
+
+          <form method="POST" class="admin-form" action="{% url 'school:topics:finish_smartq' request.school.short_name %}">
+            {% csrf_token %}
+            {% for q in questions %}
+              <div class="row">
+                <div class="col-xs-1">
+                  <div class="mnw50 fs30 mr15 text-right text-alert">
+                    {{ forloop.counter }}
+                  </div>
+                </div>
+                <div class="col-xs-11 mb10">
+                  <p class="text-alert fs18 fw600 mt5">
+                  {{ q.topic_mapping.scale_in_topic.topic.title }}
+                  </p>
+                  <p class="text-alert">
+                    {% autoescape off %}{{ q.question.html }}{% endautoescape %}
+                  </p>
+                </div>
+              </div>
+            {% endfor %}
+            <div class="panel-footer p25 text-right">
+              <button type="submit" name="check" class="button btn-alert">Проверить</button>
+              <button type="button" id="return" class="button btn-alert return-button">Вернуться к редактированию тематической анкеты</button>
+            </div>
+          </form>
+
+        </div>
+
+        <form method="GET" action="{% url 'school:index' request.school.short_name %}">
+          {% csrf_token %}
+          <div class="panel-footer p25 text-center">
+            <button type="submit" class="button btn-alert">На главную</button>
+          </div>
+        </form>
+
+      </div>
     </div>
+  </div>
+
+</div>
 
 {% endblock %}
 
 {% block scripts %}
 {{ block.super }}
-    {% for q in questions %}
-        <script>{{ question.js|safe }}</script>
-    {% endfor %}
+{% for q in questions %}
+<script>{{ q.question.js|safe }}</script>
+{% endfor %}
 <script src="{% static "vendor/admin-forms/js/jquery.validate.min.js" %}"></script>
 <script src="{% static "smartq/js/smartq.js" %}"></script>
+<script type="text/javascript">
+  document.getElementById("return").onclick = function () {
+    location.href = "{% url 'school:topics:return_to_correcting' request.school.short_name %}";
+  };
+</script>
 {% endblock %}
