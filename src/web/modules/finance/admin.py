@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from . import models
 import questionnaire.admin
+import modules.entrance.admin
 import users.models
 import modules.entrance.models
 
@@ -26,7 +27,7 @@ class DiscountAdmin(admin.ModelAdmin):
             kwargs['queryset'] = (
                 users.models.User.objects.filter(
                     entrance_statuses__status=modules.entrance.models.EntranceStatus.Status.ENROLLED
-                ).order_by('last_name', 'first_name'))
+                ).distinct().order_by('last_name', 'first_name'))
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 admin.site.register(models.Discount, DiscountAdmin)
@@ -59,3 +60,7 @@ class QuestionnaireVariantDocumentGenerationConditionAdmin(admin.ModelAdmin):
 
 admin.site.register(models.QuestionnaireVariantDocumentGenerationCondition,
                     QuestionnaireVariantDocumentGenerationConditionAdmin)
+
+
+admin.site.register(models.FillPaymentInfoEntranceStep,
+                    modules.entrance.admin.AbstractEntranceStepAdmin)

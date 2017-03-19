@@ -292,15 +292,21 @@ class CheckingComment(models.Model):
 class EntranceRecommendation(models.Model):
     school = models.ForeignKey(schools.models.School, related_name='+')
 
-    user = models.ForeignKey(users.models.User, related_name='entrance_recommendations')
+    user = models.ForeignKey(
+        users.models.User,
+        related_name='entrance_recommendations'
+    )
 
     checked_by = models.ForeignKey(users.models.User, related_name='+')
 
     # Null parallel means recommendation to not enroll user
-    parallel = models.ForeignKey(schools.models.Parallel, related_name='entrance_recommendations',
-                                 blank=True,
-                                 null=True,
-                                 default=None)
+    parallel = models.ForeignKey(
+        schools.models.Parallel,
+        related_name='entrance_recommendations',
+        blank=True,
+        null=True,
+        default=None
+    )
 
     score = models.PositiveIntegerField()
 
@@ -315,9 +321,15 @@ class EntranceStatus(models.Model):
         ENROLLED = djchoices.ChoiceItem(4, 'Поступил')
         PARTICIPATING = djchoices.ChoiceItem(5, 'Подал заявку')
 
-    school = models.ForeignKey(schools.models.School, related_name='entrance_statuses')
+    school = models.ForeignKey(
+        schools.models.School,
+        related_name='entrance_statuses'
+    )
 
-    user = models.ForeignKey(users.models.User, related_name='entrance_statuses')
+    user = models.ForeignKey(
+        users.models.User,
+        related_name='entrance_statuses'
+    )
 
     # created_by=None means system's auto creating
     created_by = models.ForeignKey(
@@ -330,7 +342,7 @@ class EntranceStatus(models.Model):
         blank=True
     )
 
-    is_status_visible = models.BooleanField()
+    is_status_visible = models.BooleanField(default=False)
 
     status = models.IntegerField(
         choices=Status.choices,
@@ -352,7 +364,27 @@ class EntranceStatus(models.Model):
 
     @property
     def is_enrolled(self):
-        return self.status == EntranceStatus.Status.ENROLLED
+        return self.status == self.Status.ENROLLED
+
+    @classmethod
+    def create_or_update(cls, school, user, status, **kwargs):
+        with transaction.atomic():
+            current = cls.objects.filter(school=school, user=user).first()
+            if current is None:
+                current = cls(school=school, user=user, status=status, **kwargs)
+            else:
+                current.status = status
+                for key, value in current:
+                    setattr(current, key, value)
+            current.save()
+
+    @classmethod
+    def get_visible_status(cls, school, user):
+        return cls.objects.filter(
+            school=school,
+            user=user,
+            is_status_visible=True
+        ).first()
 
     class Meta:
         verbose_name_plural = 'User entrance statuses'

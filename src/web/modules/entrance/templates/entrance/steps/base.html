@@ -9,11 +9,11 @@
     {% elif entrance_block.state == EntranceStepState.PASSED %}
         done
     {% else %}
-        open
+        expanded
     {% endif %}
 
-    {% if entrance_block.step.always_open %}
-        open
+    {% if entrance_block.step.always_expanded %}
+        expanded always-expanded
     {% endif %}
 {% endblock %}
 

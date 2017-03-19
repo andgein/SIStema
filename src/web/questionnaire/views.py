@@ -19,7 +19,7 @@ def save_questionnaire_answers(user, questionnaire, form):
         if isinstance(answer, (tuple, list)):
             answer_list = answer
         elif isinstance(answer, (datetime.date, datetime.datetime)):
-            answer_list = [answer.strftime(settings.SISTEMA_QUESTIONNARE_STORING_DATE_FORMAT)]
+            answer_list = [answer.strftime(settings.SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT)]
         elif answer is None:  # For not-filled dates i.e.
             answer_list = []
         else:
@@ -52,7 +52,10 @@ def _get_user_questionnaire_answers(user, questionnaire):
                 result[answer.question_short_name] = []
             result[answer.question_short_name].append(answer.answer)
         elif isinstance(questions[answer.question_short_name], models.DateQuestionnaireQuestion):
-            result[answer.question_short_name] = datetime.datetime.strptime(answer.answer, settings.SISTEMA_QUESTIONNARE_STORING_DATE_FORMAT).date()
+            result[answer.question_short_name] = datetime.datetime.strptime(
+                answer.answer,
+                settings.SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT
+            ).date()
         else:
             result[answer.question_short_name] = answer.answer
 

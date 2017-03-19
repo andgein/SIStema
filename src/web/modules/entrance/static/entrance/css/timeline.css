@@ -33,6 +33,9 @@
 .entrance-timeline__block.done .entrance-timeline__block__header {
     background-color: #8ad681;
     color: white;
+}
+
+.entrance-timeline__block.done:not(.always-expanded) .entrance-timeline__block__header {
     cursor: pointer;
 }
 
@@ -82,11 +85,15 @@
     background-color: #e9effd;
 }
 
-.entrance-timeline__block:not(.open) .entrance-timeline__block__text {
+.entrance-timeline__block__text:empty {
     display: none;
 }
 
-.entrance-timeline__block.done.open .entrance-timeline__block__text {
+.entrance-timeline__block:not(.expanded) .entrance-timeline__block__text {
+    display: none;
+}
+
+.entrance-timeline__block.done.expanded .entrance-timeline__block__text {
     background-color: #eaf7e9;
 }
 

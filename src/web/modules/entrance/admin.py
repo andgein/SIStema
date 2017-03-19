@@ -189,6 +189,7 @@ class AbstractEntranceStepAdmin(admin.ModelAdmin):
                     'available_from_time', 'available_to_time',
                     'available_after_step')
     list_filter = (('school', admin.RelatedOnlyFieldListFilter), )
+    ordering = ('school', 'order')
 
 admin.site.register(models.ConfirmProfileEntranceStep,
                     AbstractEntranceStepAdmin)
@@ -197,4 +198,6 @@ admin.site.register(models.FillQuestionnaireEntranceStep,
 admin.site.register(models.SolveExamEntranceStep,
                     AbstractEntranceStepAdmin)
 admin.site.register(models.ResultsEntranceStep,
+                    AbstractEntranceStepAdmin)
+admin.site.register(models.MakeUserParticipatingEntranceStep,
                     AbstractEntranceStepAdmin)

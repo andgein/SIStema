@@ -19,11 +19,6 @@ from sistema.local_settings import *
 PROJECT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
 
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '&2_k-9xguisgilttn3^akg2v0@%8&d8_l)g_5_yha0yvxll^)%'
 
@@ -78,6 +73,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'htmlmin.middleware.HtmlMinifyMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -181,7 +177,7 @@ DATE_INPUT_FORMATS = (
 
 DATE_FORMAT = 'd.m.Y'
 
-SISTEMA_QUESTIONNARE_STORING_DATE_FORMAT = '%d.%m.%Y'
+SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT = '%d.%m.%Y'
 
 SISTEMA_UPLOAD_FILES_DIR = os.path.join(BASE_DIR, 'uploads')
 if not os.path.exists(SISTEMA_UPLOAD_FILES_DIR):
