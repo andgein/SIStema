@@ -1,3 +1,4 @@
+from dal.widgets import QuerySetSelectMixin
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import widgets
@@ -188,6 +189,39 @@ class RestrictedFileField(forms.FileField):
                     filesizeformat(file_size), filesizeformat(self.max_upload_size)))
 
         return data
+
+
+class AutocompleteSelect2WidgetMixin(object):
+    """Mixin for Select2 widgets.
+
+    This class has been copied from dal_select2/widgets.py,
+    but we replaced select2's files with our analogies.
+    """
+
+    class Media:
+        """Automatically include static files for the admin."""
+
+        css = {
+            'all': (
+                'vendor/plugins/select2/css/core.css',
+                'vendor/plugins/select2/css/theme/default/layout.css',
+            )
+        }
+        js = (
+            'autocomplete_light/jquery.init.js',
+            'autocomplete_light/autocomplete.init.js',
+            'vendor/plugins/select2/select2.full.min.js',
+            'autocomplete_light/forward.js',
+            'autocomplete_light/select2.js',
+        )
+
+    autocomplete_function = 'select2'
+
+
+class ModelAutocompleteSelect2(QuerySetSelectMixin,
+                               AutocompleteSelect2WidgetMixin,
+                               forms.Select):
+    """Select widget for QuerySet choices and Select2."""
 
 
 def add_classes_to_label(f, classes=''):

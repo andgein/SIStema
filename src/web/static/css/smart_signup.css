@@ -1,25 +1,4 @@
-.similar-accounts-container .close-button {
-    display: block;
-}
-
-.similar-accounts-container .expand-button {
-    display: none;
-}
-
-.similar-accounts-container.closed .close-button {
-    display: none;
-}
-
-.similar-accounts-container.closed .expand-button {
-    display: block;
-}
-
-.similar-accounts-container.closed .accounts {
-    display: none;
-}
-.similar-accounts-container.closed .title {
-    display: none;
-}
-.similar-accounts-container.closed .body {
-    display: none;
+.admin-form .select2.select2-container .select2-selection--single{
+    background-color: #fff;
+    borded-radius: 5px;
 }

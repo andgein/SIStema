@@ -1,43 +1,39 @@
 $(document).ready(function () {
-    var $container = $('#similar_account_container');
+    var $container = $('#similar-accounts__popup');
     var $accounts_data = $container.find('.accounts');
     var url = $container.attr('data-url');
     var $form = $('form');
-    var $signup_button = $('#signup_button');
-    var $decline_button = $('#decline_similar_accounts_button');
-    var $close_button = $('#close_similar_accounts');
+    var $signup_button = $('#signup__button');
+    var $decline_button = $('#decline-similar-accounts__button');
     var declined_accounts = {};
     var showed_accounts = [];
     var not_declined_count = 0;
 
-    $container.css({
-        position: "fixed",
-        marginLeft: 0, marginTop: 0,
-        top: 0, left: 0,
-        zIndex: 100,
-        backgroundColor: "orange"
-    });
+    var open_container = function() {
+        $.magnificPopup.open({
+            removalDelay: 500, //delay removal by X to allow out-animation,
+            items: {
+              src: '#' + $container.attr('id')
+            },
+            callbacks: {
+                close: function(){
+                    $signup_button.removeAttr('disabled');
+                }
+            },
+            midClick: true // allow opening popup on middle mouse click. Always set it to true if you don't provide alternative source.
+        });
+    };
 
-    function close_container() {
-       $container.addClass('closed');
-    }
-
-    function expand_container() {
-       $container.removeClass('closed');
-    }
-
-    $close_button.click(function() {
-       $container.toggleClass('closed');
-    });
+    var close_container = function() {
+        $.magnificPopup.close()
+    };
 
     $decline_button.click(function () {
         for (var i = 0; i < showed_accounts.length; ++i) {
             declined_accounts[showed_accounts[i]] = 1;
         }
         not_declined_count = 0;
-        $signup_button.removeAttr("disabled");
-        $decline_button.hide();
-        $close_button.show();
+        $signup_button.removeAttr('disabled');
         close_container();
     });
 
@@ -49,23 +45,20 @@ $(document).ready(function () {
             }
         }
         if (data.length == 0) {
-            $signup_button.removeAttr("disabled");
-            $container.hide();
+            $signup_button.removeAttr('disabled');
+            close_container();
         } else {
             showed_accounts = Object.keys(data);
             $accounts_data.html(Object.values(data).join());
             if (not_declined_count == 0) {
-                $signup_button.removeAttr("disabled");
-                $close_button.show();
+                $signup_button.removeAttr('disabled');
                 $decline_button.hide();
                 close_container();
             } else {
-                $signup_button.attr("disabled", true);
-                $close_button.hide();
+                $signup_button.attr('disabled', true);
                 $decline_button.show();
-                expand_container();
+                open_container();
             }
-            $container.show();
         }
     }
 
@@ -75,17 +68,18 @@ $(document).ready(function () {
                 show_similar_accounts(data);
             })
             .fail(function () {
-                alert("error");
+                alert('Произошла ошибка. Попробуйте ещё раз. ' +
+                    'В случае повторения ошибки напишите нам на lksh@lksh.ru');
             });
     }
 
     update_similar_accounts();
     $('input:radio').change(update_similar_accounts);
-    $('input').focus(function(ev){
-        var input = ev.target;
+    $('input').focus(function(e){
+        var input = e.target;
         input.last_focus_value = input.value;
-    }).blur(function (ev) {
-        var input = ev.target;
+    }).blur(function (e) {
+        var input = e.target;
         if (input.last_focus_value != input.value) {
             update_similar_accounts();
         }

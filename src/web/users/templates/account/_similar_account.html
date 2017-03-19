@@ -1,2 +1,5 @@
 {% load masked %}
-<div>{{ user.email|masked_email }} {{ user.first_name }} {{ user.last_name }}</div>
+
+<p class="fw600">
+    {{ user.first_name }} {{ user.last_name }}, электронная почта {{ user.email|masked_email }}
+</p>

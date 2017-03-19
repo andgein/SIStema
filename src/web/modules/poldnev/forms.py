@@ -1,22 +1,23 @@
-from dal import autocomplete
-
 from django import forms
-
-from modules.poldnev import models
 from django.template.loader import render_to_string
+
+import frontend.forms
+from modules.poldnev import models
 
 
 class PersonField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):
         super().__init__(queryset=models.Person.objects.all(),
-                         widget=autocomplete.ModelSelect2(
+                         widget=frontend.forms.ModelAutocompleteSelect2(
                              url='poldnev:person-autocomplete',
                              attrs={
-                                 'data-placeholder': 'Начните вводить фамилию',
+                                 'data-placeholder': 'Выберите себя из списка',
                                  'data-html': 'true',
                              },
                          ),
                          *args, **kwargs)
 
     def label_from_instance(self, obj):
-        return render_to_string('poldnev/_person_select_item.html', {'person': obj})
+        return render_to_string('poldnev/_person_select_item.html', {
+            'person': obj
+        })

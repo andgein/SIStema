@@ -1,4 +1,5 @@
 {% extends "account/centered_panel.html" %}
+
 {% load static %}
 
 {% block title %}Регистрация{% endblock %}
@@ -11,8 +12,7 @@
 
 {% block panel_footer %}
     <div class="panel-footer clearfix p10 ph15">
-        <button id='signup_button' type="submit" class="button btn-primary mr10 pull-right">Зарегистрироваться</button>
-{#        <a href="{% url 'account_reset_password' %}" class="btn btn-link pull-right mr10">Забыли пароль?</a>#}
+        <button id="signup__button" type="submit" class="button btn-primary mr10 pull-right">Зарегистрироваться</button>
     </div>
 {% endblock %}
 
@@ -26,22 +26,36 @@
 {% endblock %}
 
 {% block additional_content %}
-    <div id="similar_account_container" data-url="{% url 'account_find_similar' %}" class='similar-accounts-container' style="display: none">
-        <div id="close_similar_accounts" class="pull-right">
-            <div class="expand-button"><i class="fa fa-expand"></i></div>
-            <div class="close-button"><i class="fa fa-close"></i></div>
-        </div>
-        <div class="title">Кажется, вы уже регистрировались.</div>
-        <div class="accounts"></div>
-        <div class="body">
-            Пожалуйста, не регистрируйтесь заново.
-            Если вы забыли пароль, вы можете <a href="{% url 'account_reset_password' %}">восстановить его</a>.
-            Если вы не имеете доступа к старой почте, то
-            <a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=У меня нет доступа к старому e-mail">напишете нам</a>.
-
-            <button id='decline_similar_accounts_button' class="button btn-primary mr10 pull-right">Здесь нет моего аккаунта</button>
+    <div id="similar-accounts__popup" data-url="{% url 'account_find_similar' %}" class="popup-basic bg-none mfp-with-anim mfp-hide">
+        <div class="panel">
+            <div class="panel-heading">
+                <span class="panel-icon">
+                    <i class="fa fa-exclamation-triangle"></i>
+                </span>
+                <span class="panel-title"> Кажется, вы уже регистрировались</span>
+            </div>
+            <div class="panel-body">
+                <h3 class="mt10 mb20">
+                    Кажется, вы уже зарегистрированы</br>в&nbsp;нашей системе:
+                </h3>
+                <div class="accounts"></div>
+                <p>
+                    Пожалуйста, не регистрируйтесь заново. Если вы забыли пароль,
+                    <a href="{% url 'account_reset_password' %}">восстановите</a> его.
+                </p>
+                <p>
+                    Если вы не можете зайти в&nbsp;свою почту,
+                    <a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=У меня нет доступа к старому e-mail">напишите нам</a>,
+                    мы поможем восстановить доступ к&nbsp;аккаунту.
+                </p>
+            </div>
+            <div class="panel-footer">
+                <a href="{% url 'account_reset_password' %}" class="btn btn-primary" type="button">Восстановить пароль</a>
+                <a href="#" id="decline-similar-accounts__button" class="btn btn-link pull-right">Здесь нет моего аккаунта</a>
+            </div>
         </div>
     </div>
+
 
 {% endblock %}
 

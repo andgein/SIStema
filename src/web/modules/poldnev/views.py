@@ -8,8 +8,10 @@ _no_break_space = b'\xc2\xa0'.decode('utf8')
 
 
 def _normalize(s):
+    s = s.lower()
     """ Last name 'Деб Натх' contains no-break space instead of space"""
-    return s.lower().replace(_no_break_space, ' ')
+    s = s.replace(_no_break_space, ' ')
+    return s
 
 
 class PersonAutocomplete(autocomplete.Select2QuerySetView):
@@ -31,4 +33,6 @@ class PersonAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
     def get_result_label(self, item):
-        return render_to_string('poldnev/_person_select_item.html', {'person': item})
+        return render_to_string('poldnev/_person_select_item.html', {
+            'person': item
+        })

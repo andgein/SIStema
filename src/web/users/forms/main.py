@@ -59,8 +59,10 @@ class EmptyIntChoiceField(forms.ChoiceField):
 
 
 class UserProfileForm(forms.Form):
-    poldnev_person = poldnev_forms.PersonField(label='Бывали ли вы в ЛКШ?',
-                                               help_text='Оставьте это поле пустым, если еще не были в ЛКШ')
+    poldnev_person = poldnev_forms.PersonField(
+        label='Бывали ли вы в ЛКШ?',
+        help_text='Оставьте поле пустым, если ещё не были в ЛКШ'
+    )
 
     last_name = forms.CharField(
         required=True,
