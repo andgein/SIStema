@@ -46,7 +46,7 @@
                     {{ forloop.counter }}
                   </div>
                 </div>
-                <div class="col-xs-11 mb10">
+                <div class="col-xs-10 mb10">
                   <p class="text-alert fs18 fw600 mt5">
                   {{ q.topic_mapping.scale_in_topic.topic.title }}
                   </p>
@@ -63,13 +63,6 @@
           </form>
 
         </div>
-
-        <form method="GET" action="{% url 'school:index' request.school.short_name %}">
-          {% csrf_token %}
-          <div class="panel-footer p25 text-center">
-            <button type="submit" class="button btn-alert">На главную</button>
-          </div>
-        </form>
 
       </div>
     </div>

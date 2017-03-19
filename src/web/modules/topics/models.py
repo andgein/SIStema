@@ -44,17 +44,36 @@ class TopicQuestionnaire(models.Model):
 
 
 class SmartqQuestionnaire(models.Model):
+    class Status(choices.DjangoChoices):
+        IN_PROGRESS = choices.ChoiceItem(1)
+        REFUSED = choices.ChoiceItem(2)
+        FAILED = choices.ChoiceItem(3)
+        PASSED = choices.ChoiceItem(4)
+
     topics = models.ForeignKey(TopicQuestionnaire, related_name='+')
 
     user = models.ForeignKey(users.models.User, related_name='+')
 
     creation_date = models.DateTimeField(auto_now_add=True)
 
+    status = models.PositiveIntegerField(choices=Status.choices, validators=[Status.validator])
+
     @classmethod
     def get_latest(cls, user, topics_questionnaire):
-        smartq_q = cls.objects.filter(
-                user=user, topics=topics_questionnaire).latest('creation_date')
-        return smartq_q
+        try:
+            smartq_q = cls.objects.filter(
+                    user=user, topics=topics_questionnaire).latest('creation_date')
+            return smartq_q
+        except cls.DoesNotExist:
+            return None
+
+    def made_errors(self):
+        ok_count = 0
+        for q in self.questions.all():
+            if q.checker_result == SmartqQuestionnaireQuestion.CheckerResult.OK:
+                ok_count += 1
+        made_errors = len(self.questions.all()) - ok_count
+        return made_errors
 
 
 class Level(models.Model):
@@ -391,13 +410,30 @@ class TopicSmartqSettings(models.Model):
     questionnaire = models.ForeignKey(TopicQuestionnaire)
 
     max_questions = models.PositiveIntegerField()
+ 
+    @property
+    def allowed_errors_map(self):
+        # TODO: not hardcode
+        return {1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 2}
 
 
 class SmartqQuestionnaireQuestion(models.Model):
+    # Modify together with smartq
+    class CheckerResult(choices.DjangoChoices):
+        OK = choices.ChoiceItem(1)
+        WRONG_ANSWER = choices.ChoiceItem(2)
+        PRESENTATION_ERROR = choices.ChoiceItem(3)
+        CHECK_FAILED = choices.ChoiceItem(4)
+
     questionnaire = models.ForeignKey(SmartqQuestionnaire, related_name='questions')
 
     question = models.ForeignKey(smartq_models.GeneratedQuestion, related_name='+')
 
     topic_mapping = models.ForeignKey(TopicQuestionMapping, related_name='+')
 
+    checker_result = models.PositiveIntegerField(choices=CheckerResult.choices,
+            validators=[CheckerResult.validator],
+            null=True, default=None)
+
+    checker_message = models.CharField(max_length=2000, blank=True, null=True, default=None)
 

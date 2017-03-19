@@ -161,7 +161,7 @@ admin.site.register(models.TopicQuestionMapping, TopicQuestionMappingAdmin)
 
 
 class SmartqQuestionnaireAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'topics')
+    list_display = ('id', 'user', 'topics', 'status')
     list_filter = ('topics',)
     search_fields = ('user__first_name', 'user__last_name')
 
@@ -169,7 +169,7 @@ admin.site.register(models.SmartqQuestionnaire, SmartqQuestionnaireAdmin)
 
 
 class SmartqQuestionnaireQuestionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'questionnaire', 'question')
+    list_display = ('id', 'questionnaire', 'question', 'checker_result', 'checker_message')
     search_fields = ('=questionnaire__id',)
 
 admin.site.register(models.SmartqQuestionnaireQuestion, SmartqQuestionnaireQuestionAdmin)

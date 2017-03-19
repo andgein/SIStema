@@ -36,6 +36,7 @@ def topic_questionnaire_view(view):
             return HttpResponseNotFound()
 
         request.questionnaire = get_object_or_404(models.TopicQuestionnaire, school=request.school)
+        request.smartq_q = models.SmartqQuestionnaire.get_latest(request.user, request.questionnaire)
         return view(request, *args, **kwargs)
 
     func_wrapper.__name__ = view.__name__
@@ -100,6 +101,7 @@ def show_final_answers(request, user):
     return render(request, 'topics/answers.html', {
         'questionnaire': request.questionnaire,
         'topics': topics_with_marks,
+        'smartq_q': request.smartq_q,
     })
 
 
@@ -110,6 +112,7 @@ def correcting(request):
     return render(request, 'topics/correcting.html', {
         'questionnaire': request.questionnaire,
         'topics': topics_with_marks,
+        'smartq_q': request.smartq_q,
     })
 
 
@@ -288,6 +291,11 @@ def return_to_correcting(request):
     if user_status.status != models.UserQuestionnaireStatus.Status.CHECK_TOPICS:
         return redirect('school:topics:index', school_name=request.school.short_name)
 
+    smartq_q = request.smartq_q
+    if smartq_q.status == models.SmartqQuestionnaire.Status.IN_PROGRESS:
+        smartq_q.status = models.SmartqQuestionnaire.Status.REFUSED
+        smartq_q.save()
+
     _update_questionnaire_status(request.user, request.questionnaire, models.UserQuestionnaireStatus.Status.CORRECTING)
     return redirect('school:topics:index', school_name=request.school.short_name)
 
@@ -330,13 +338,37 @@ def check_topics(request):
 @login_required
 @topic_questionnaire_view
 def finish_smartq(request):
-    # TODO: check the answers
-    return redirect('school:topics:finish', school_name=request.school.short_name)
+    smartq_q = request.smartq_q
+    questions = smartq_q.questions.all()
+    allowed_errors_map = models.TopicSmartqSettings.objects.get(
+            questionnaire=request.questionnaire).allowed_errors_map
+    allowed_errors = allowed_errors_map.get(len(questions), 0)
+
+    for q in smartq_q.questions.all():
+        result = q.question.check_answer(request.POST)
+        q.checker_result = result.status
+        q.checker_message = result.message
+        q.save()
+
+    if smartq_q.made_errors() > allowed_errors:
+        # Too many mistakes
+        smartq_q.status = models.SmartqQuestionnaire.Status.FAILED
+        smartq_q.save()
+        return redirect('school:topics:return_to_correcting', school_name=request.school.short_name)
+
+    smartq_q.status = models.SmartqQuestionnaire.Status.PASSED
+    smartq_q.save()
+    _update_questionnaire_status(request.user, request.questionnaire, models.UserQuestionnaireStatus.Status.FINISHED)
+
+    return redirect('school:topics:index', school_name=request.school.short_name)
 
 
 def _create_smartq_questionnaire(request):
     topics_q = request.questionnaire
-    new_q = models.SmartqQuestionnaire.objects.create(user=request.user, topics=topics_q)
+    new_q = models.SmartqQuestionnaire.objects.create(
+            user=request.user,
+            topics=topics_q,
+            status=models.SmartqQuestionnaire.Status.IN_PROGRESS)
 
     topics_with_marks = _get_user_marks_by_topics(
             request.user, request.questionnaire, not_show_auto_marks=False)
@@ -376,9 +408,8 @@ def _create_smartq_questionnaire(request):
 
 
 def _show_check_topics(request):
-    smartq_q = models.SmartqQuestionnaire.get_latest(request.user, request.questionnaire)
     # show in progress
     return render(request, 'topics/check_topics.html', {
         'questionnaire': request.questionnaire,
-        'questions': smartq_q.questions.all(),
+        'questions': request.smartq_q.questions.order_by('topic_mapping__scale_in_topic__topic__order').all(),
     })

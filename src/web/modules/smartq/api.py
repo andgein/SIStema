@@ -6,6 +6,7 @@ class Generator:
 
 
 class Checker:
+    # Modify together with topics
     class Result(enum.IntEnum):
         # Use explicit values and don't change the existing ones. That's
         # important because they are stored in the database.
@@ -42,6 +43,10 @@ class CheckerResult:
         if not isinstance(self.field_messages, dict):
             raise TypeError('field_message should be a dict from field names '
                             'to messages')
+
+    def is_ok(self):
+        return self.status == Checker.Result.OK
+
 
 class AnswerFieldSpec:
     class Type(enum.IntEnum):
