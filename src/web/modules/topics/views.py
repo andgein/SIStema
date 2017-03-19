@@ -236,7 +236,10 @@ def index(request):
 
     if request.method == 'GET':
         if user_status.status == models.UserQuestionnaireStatus.Status.CHECK_TOPICS:
-            return check_topics(request)
+            if request.questionnaire.is_closed():
+                return correcting(request)
+            else:
+                return check_topics(request)
 
         # Show correcting form if need
         if user_status.status == models.UserQuestionnaireStatus.Status.CORRECTING:
@@ -323,7 +326,6 @@ def start_checking(request):
 @login_required
 @topic_questionnaire_view
 def check_topics(request):
-    # TODO: cycle dep, when school is closed
     if request.questionnaire.is_closed():
         return redirect('school:topics:index', school_name=request.school.short_name)
 
