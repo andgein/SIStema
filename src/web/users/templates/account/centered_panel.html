@@ -1,0 +1,155 @@
+{% extends 'layout.html' %}
+
+{% load staticfiles %}
+{% load dict_tags %}
+
+{% block body_classes %}external-page sb-l-c sb-r-c{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/centered-form.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/datepicker/css/bootstrap-datetimepicker.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/select2/css/theme/default/layout.css' %}">
+    {% block centered_panel_css %}{% endblock %}
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript" src="{% static 'vendor/plugins/moment/moment.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vendor/plugins/datepicker/js/bootstrap-datetimepicker.min.js' %}"></script>
+    {% block centered_panel_scripts %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+    <div id="main" class="">
+
+        <section id="content_wrapper">
+
+            <div id="canvas-wrapper">
+                <canvas id="demo-canvas"></canvas>
+            </div>
+
+            <section id="content">
+
+                <div class="admin-form centered-form {% block form_class %}{% endblock %}">
+
+                    <div class="row mb15 table-layout">
+
+                        <div class="col-xs-6 va-b fs15 fw600 pln text-white-lighter">
+                            Летняя компьютерная школа
+                        </div>
+
+                        <div class="col-xs-6 text-right va-b pr5">
+                            {% if not form.hide_links %}
+                                <div class="login-links">
+                                    <a href="{% url 'account_login' %}" class="{% if form.login_is_active %}active{% endif %}" title="Вход">Вход</a>
+                                    <span class="text-white"> | </span>
+                                    <a href="{% url 'account_signup' %}" class="{% if form.signup_is_active %}active{% endif %}" title="Регистрация">Регистрация</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="panel panel-info mt10 br-n">
+
+                        {% block panel_heading %}
+                            <div class="panel-heading heading-border bg-white pl30 pt25">
+                                <div class="panel-title">
+                                    {% block panel_title %}
+                                    {% endblock %}
+                                </div>
+                            </div>
+                        {% endblock %}
+
+                        {% with need_form=False %}
+                            {% block panel_body %}
+                                {% if need_form %}
+                                    <form method="POST" action="">
+                                    {% csrf_token %}
+                                {% endif %}
+
+                                <div class="panel-body bg-light p30 {{ need_form|yesno:'pbn,' }}">
+                                    {% block text_before_form %}{% endblock %}
+                                    {% if need_form %}
+                                        {% if form.errors %}
+                                            <div class="alert alert-micro alert-danger alert-border-left">
+                                                <span class="fa fa-remove pr10"></span>
+                                                Есть некоторые ошибки, давайте поправим
+                                            </div>
+                                        {% endif %}
+                                        {% for field_name in form.fields %}
+                                            {% with field=form|get_item:field_name %}
+                                                {% if field.field.required %}
+                                                    <div class="section mb20">
+                                                        <div class="{{ field.errors|yesno:'state-error,' }}">
+                                                            <label for="{{ field.id_for_label }}" class="field-label fs16">{{ field.label }}</label>
+                                                            <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
+                                                                {{ field }}
+                                                            </label>
+                                                            <p class="help-block">
+                                                                {{ field.help_text }}
+                                                            </p>
+                                                        </div>
+                                                        {% if field.errors %}
+                                                            {% for error in field.errors %}
+                                                                <em>{{ error }}</em>
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                    </div>
+
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endfor %}
+                                    {% endif %}
+                                    {% block text_after_form %}{% endblock %}
+                                </div>
+
+                                {% block panel_footer %}
+                                {% endblock %}
+
+                                {% if need_form %}
+                                    </form>
+                                {% endif %}
+                            {% endblock %}
+                        {% endwith %}
+                    </div>
+                </div>
+
+            </section>
+
+        </section>
+
+    </div>
+    {% block additional_content %}{% endblock %}
+{% endblock %}
+
+{# These scripts is not used now #}
+
+{#    {% block scripts %}#}
+{#        <script src="vendor/plugins/canvasbg/canvasbg.js"></script>#}
+{##}
+{#        <script src="assets/js/utility/utility.js"></script>#}
+{#        <script src="assets/js/demo/demo.js"></script>#}
+{#        <script src="assets/js/main.js"></script>#}
+{##}
+{#        <!-- Page Javascript -->#}
+{#        <script type="text/javascript">#}
+{#        jQuery(document).ready(function() {#}
+{##}
+{#            "use strict";#}
+{##}
+{#            // Init Theme Core#}
+{#            Core.init();#}
+{##}
+{#            // Init Demo JS#}
+{#            Demo.init();#}
+{##}
+{#            // Init CanvasBG and pass target starting location#}
+{#            CanvasBG.init({#}
+{#                Loc: {#}
+{#                    x: window.innerWidth / 2,#}
+{#                    y: window.innerHeight / 3.3#}
+{#                },#}
+{#            });#}
+{##}
+{#        });#}
+{#        </script>#}
+{#    {% endblock %}#}

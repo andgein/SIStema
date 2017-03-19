@@ -1,0 +1,14 @@
+{% extends "account/signup_layout.html" %}
+
+{% block panel_title %}
+    <i class="fa fa-user"></i> Регистрация
+{% endblock %}
+
+{% block text_before_form %}
+    {% with provider_name=account.get_provider.name site_name=site.name %}
+        <p>
+            Вы собираетесь использовать свой аккаунт {{ provider_name }}, чтобы войти в {{ site_name }}.
+            Для окончания регистрации заполните информацию о себе:
+        </p>
+    {% endwith %}
+{% endblock %}

@@ -295,12 +295,11 @@ class PoldnevUpdate:
 
             for obj in self.objects_to_save:
                 if isinstance(obj, models.Role):
-                    obj.session_id = obj.session.id
+                    obj.session_id = obj.session.pk
                 if isinstance(obj, models.HistoryEntry):
-                    obj.role_id = obj.role.id
-                    obj.person_id = obj.person.id
+                    obj.role_id = obj.role.pk
+                    obj.person_id = obj.person.pk
                 obj.save()
-
 
 
 def parse_roles(roles_str):

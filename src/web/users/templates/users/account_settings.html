@@ -1,0 +1,9 @@
+{% extends "user_layout.html" %}
+
+{% block content %}
+    <a href="{% url "account_change_password" %}">Изменить пароль</a>
+    <br/>
+    <a href="{% url "account_email" %}">Управление e-mail</a>
+    <br/>
+    <a href="{% url "socialaccount_connections" %}">Управление социальными аккаунтами</a>
+{% endblock %}

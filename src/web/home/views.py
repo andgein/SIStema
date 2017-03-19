@@ -1,15 +1,12 @@
 from constance import config
-from django import shortcuts
+from django import shortcuts, conf
 
 import schools.models
 
 
 def home(request):
-    if not request.user.is_authenticated():
-        return shortcuts.redirect('users:login')
-
-    if not request.user.is_email_confirmed:
-        return shortcuts.redirect('users:complete')
+    if not request.user.is_authenticated:
+        return shortcuts.redirect('account_login')
 
     # TODO(Artem Tabolin): That's the wrong way to get the current school. We
     #     should introduce some global settings module to hold its value.

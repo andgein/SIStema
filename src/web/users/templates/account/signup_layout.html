@@ -1,0 +1,65 @@
+{% extends "account/centered_panel.html" %}
+
+{% load static %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block form_class %}
+    wide
+{% endblock %}
+
+{% block panel_body %}
+    {% with need_form=True %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
+
+{% block panel_footer %}
+    <div class="panel-footer text-right p25">
+        <button type="submit" class="button btn-primary">Зарегистрироваться</button>
+    </div>
+{% endblock %}
+
+{% block centered_panel_css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/smart_signup.css' %}">
+{% endblock %}
+
+{% block centered_panel_scripts %}
+    <script src="{% static 'js/smart_signup.js' %}"></script>
+    {{ form.media }}
+{% endblock %}
+
+{% block additional_content %}
+    <div id="similar-accounts__popup" data-url="{% url 'account_find_similar' %}" class="popup-basic bg-none mfp-with-anim mfp-hide">
+        <div class="panel">
+            <div class="panel-heading">
+                <span class="panel-icon">
+                    <i class="fa fa-exclamation-triangle"></i>
+                </span>
+                <span class="panel-title"> Кажется, вы уже регистрировались</span>
+            </div>
+            <div class="panel-body">
+                <h3 class="mt10 mb20">
+                    Кажется, вы уже зарегистрированы</br>в&nbsp;нашей системе:
+                </h3>
+                <div class="accounts"></div>
+                <p>
+                    Пожалуйста, не регистрируйтесь заново. Если вы забыли пароль,
+                    <a href="{% url 'account_reset_password' %}">восстановите</a> его.
+                </p>
+                <p>
+                    Если вы не можете зайти в&nbsp;свою почту,
+                    <a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=У меня нет доступа к старому e-mail">напишите нам</a>,
+                    мы поможем восстановить доступ к&nbsp;аккаунту.
+                </p>
+            </div>
+            <div class="panel-footer">
+                <a href="{% url 'account_reset_password' %}" class="btn btn-primary" type="button">Восстановить пароль</a>
+                <a href="#" id="decline-similar-accounts__button" class="btn btn-link pull-right">Здесь нет моего аккаунта</a>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+

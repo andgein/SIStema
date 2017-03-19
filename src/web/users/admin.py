@@ -13,6 +13,7 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
         'first_name',
         'last_name',
         'email',
+        'is_active',
         'is_superuser',
         'is_staff',
         'is_email_confirmed',
@@ -23,6 +24,7 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
         'is_superuser',
         'is_staff',
         'is_email_confirmed',
+        'is_active',
     )
 
     search_fields = (
@@ -32,4 +34,20 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
         '=email',
     )
 
+
+class UserProfileAdmin(VersionAdmin):
+    list_display = (
+        'user_id',
+        'last_name',
+        'first_name',
+        'middle_name',
+    )
+
+    search_fields = (
+        '=first_name',
+        '=middle_name',
+        '=last_name',
+    )
+
 admin.site.register(models.User, UserAdmin)
+admin.site.register(models.UserProfile, UserProfileAdmin)

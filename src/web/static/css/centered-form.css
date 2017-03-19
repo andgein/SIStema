@@ -2,6 +2,10 @@
     max-width: 500px !important;
 }
 
+.centered-form.wide {
+    max-width: 700px !important;
+}
+
 .admin-form .vk {
     background-color: #4d75a3;
     color: white;

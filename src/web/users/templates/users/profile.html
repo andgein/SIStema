@@ -1,0 +1,65 @@
+{% extends "user_layout.html" %}
+
+{% load dict_tags %}
+{% load staticfiles %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+    <div class="mw800 center-block mt30">
+        <div class="admin-form theme-alert">
+            <div class="panel panel-alert heading-border">
+                <div class="panel-heading">
+                    <div class="panel-title">
+                        Профиль
+                    </div>
+                </div>
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <div class="panel-body bg-light p30">
+                        {# TODO (andgein) It's copy-paste #}
+                        {% for field_name in form.fields %}
+                            {% with field=form|get_item:field_name %}
+                                <div class="section mb20">
+                                    <div class="{{ field.errors|yesno:'state-error,' }}">
+                                        <label for="{{ field.id_for_label }}" class="field-label fs16">
+                                            {{ field.label }}
+                                            {% if field.field.required %}
+                                                *
+                                            {% endif %}
+                                        </label>
+                                        <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
+                                            {{ field }}
+                                        </label>
+                                        <p class="help-block">
+                                            {{ field.help_text }}
+                                        </p>
+                                    </div>
+                                    {% if field.errors %}
+                                        {% for error in field.errors %}
+                                            <em>{{ error }}</em>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            {% endwith %}
+                        {% endfor %}
+                    </div>
+                    <div class="panel-footer p25 text-right">
+                        <button type="submit" class="button btn-success">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript" src="{% static 'vendor/plugins/moment/moment.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vendor/plugins/datepicker/js/bootstrap-datetimepicker.min.js' %}"></script>
+    {{ form.media }}
+{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/datepicker/css/bootstrap-datetimepicker.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/select2/css/theme/default/layout.css' %}">
+{% endblock %}

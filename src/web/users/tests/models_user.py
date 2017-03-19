@@ -3,9 +3,11 @@
 """Tests for users.models.User."""
 
 import unittest
+import unittest.mock
 
 from django.test import TestCase
 from users.models import User
+
 
 class UserTestCase(TestCase):
     def setUp(self):

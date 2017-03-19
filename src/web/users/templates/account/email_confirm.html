@@ -1,0 +1,47 @@
+{% extends "account/centered_panel.html" %}
+
+{% load account %}
+
+{% block title %}Подтвердите e-mail адрес{% endblock %}
+
+{% block panel_title %}
+    {% if confirmation %}
+        <i class="fa fa-envelope"></i> Подтвердите адрес эл. почты
+    {% else %}
+        <i class="fa fa-warning"></i> Неправильная ссылка
+    {% endif %}
+{% endblock %}
+
+{% block panel_body %}
+    {% with need_form=confirmation %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
+
+{% block panel_footer %}
+    <div class="panel-footer clearfix p25 text-right">
+        <button type="submit" class="button btn-primary">Подтвердить</button>
+    </div>
+{% endblock %}
+
+{% block text_before_form %}
+    {% if confirmation %}
+        {% user_display confirmation.email_address.user as user_display %}
+        <p>
+            {% with confirmation.email_address.email as email %}
+                Подтвердите, что при регистрации под именем {{ user_display }}
+                вы указали адрес <a href="mailto:{{ email }}">{{ email }}</a>.
+            {% endwith %}
+        </p>
+    {% else %}
+        <p>
+            Ссылка некорректна или срок её действия истек.
+            {% if user.is_authenticated %}
+                <a href="{% url 'account_email' %}">Запросите подтверждение электронной почты заново</a>.
+            {% else %}
+                <a href="{% url 'account_login' %}">Войдите</a>, и мы отправим вам новое
+                письмо для подтверждения электронной почты.
+            {% endif %}
+        </p>
+    {% endif %}
+{% endblock %}

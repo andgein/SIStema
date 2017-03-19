@@ -1,16 +1,12 @@
 from django.conf.urls import url, include
 
-from . import views
+from users import views
 
 urlpatterns = [
-    url(r'^login/$', views.login, name='login'),
-    url(r'^logout/$', views.logout, name='logout'),
-    url(r'^register/$', views.register, name='register'),
-    url(r'^complete/$', views.complete, name='complete'),
-    url(r'^confirm/(?P<token>[^/]+)$', views.confirm, name='confirm'),
-
-    url(r'^forget/$', views.forget, name='forget'),
-    url(r'^recover/(?P<token>[^/]+)$', views.recover, name='recover'),
-
-    url(r'', include('social_django.urls', namespace='social')),
+    url(r'^accounts/settings/$', views.account_settings, name='account_settings'),
+    url(r'^accounts/find-similar/$', views.find_similar_accounts, name='account_find_similar'),
+    url(r'^accounts/', include('allauth.urls')),
+    url(r'^user/', include([
+        url(r'^profile/$', views.profile, name='profile'),
+    ], namespace='user')),
 ]

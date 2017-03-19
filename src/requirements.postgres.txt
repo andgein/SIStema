@@ -1,0 +1,5 @@
+### This file contains requiremenets for Sistema with postgres backend. Install them with `pip install -r requirements.postgres.txt`
+
+-r requirements.txt
+
+psycopg2

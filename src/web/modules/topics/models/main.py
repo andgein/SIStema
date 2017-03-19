@@ -21,10 +21,13 @@ class TopicQuestionnaire(models.Model):
         return '%s. %s' % (self.school.name, self.title)
 
     def is_closed(self):
-        return self.close_time is not None and django.utils.timezone.now() >= self.close_time
+        return (self.close_time is not None and
+                django.utils.timezone.now() >= self.close_time)
 
     def get_absolute_url(self):
-        return urlresolvers.reverse('school:topics:index', kwargs={'school_name': self.school.short_name})
+        return urlresolvers.reverse(
+            'school:topics:index',
+            kwargs={'school_name': self.school.short_name})
 
     def get_status(self, user):
         qs = self.statuses.filter(user=user)
@@ -45,7 +48,10 @@ class TopicQuestionnaire(models.Model):
 class Level(models.Model):
     questionnaire = models.ForeignKey(TopicQuestionnaire)
 
-    name = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=20)
+
+    class Meta:
+        unique_together = ('questionnaire', 'name')
 
     def __str__(self):
         return '%s. %s' % (self.questionnaire, self.name)
@@ -58,22 +64,31 @@ class LevelDependency(models.Model):
 
     destination_level = models.ForeignKey(Level, related_name='+')
 
-    min_percent = models.IntegerField(help_text='Минимальный процент максимальных/минимальных оценок из source_level',
-                                      validators=[
-                                          validators.MinValueValidator(0, message='Процент не может быть меньше нуля'),
-                                          validators.MaxValueValidator(100,
-                                                                       message='Процент не может быть больше 100')])
+    min_percent = models.IntegerField(
+        help_text='Минимальный процент максимальных/минимальных оценок из '
+                  'source_level',
+        validators=[validators.MinValueValidator(
+                        0, message='Процент не может быть меньше нуля'),
+                    validators.MaxValueValidator(
+                        100, message='Процент не может быть больше 100')]
+    )
 
     def __str__(self):
-        return '%s. Downward %s → %s (%d%%)' % (
-            self.questionnaire, self.source_level.name, self.destination_level.name, self.min_percent)
+        return '%s. Downward %s → %s (%d%%)' % (self.questionnaire,
+                                                self.source_level.name,
+                                                self.destination_level.name,
+                                                self.min_percent)
 
     def save(self, *args, **kwargs):
-        if self.source_level.questionnaire == self.destination_level.questionnaire == self.questionnaire:
-            super(LevelDependency, self).save(*args, **kwargs)
-        else:
-            raise ValueError('topics.settings.LevelDependency:'
-                             'source_level and destination_level should be set up as one of questionnaire level')
+        q1 = self.source_level.questionnaire
+        q2 = self.destination_level.questionnaire
+        if q1 != q2 or q2 != self.questionnaire:
+            raise ValueError(
+                'topics.settings.LevelDependency: source_level and '
+                'destination_level should be set up as one of questionnaire '
+                'level')
+
+        super(LevelDependency, self).save(*args, **kwargs)
 
     def satisfy(self, marks_count, total_questions):
         """
@@ -88,8 +103,8 @@ class LevelDependency(models.Model):
 
 class LevelDownwardDependency(LevelDependency):
     """
-    Если школьник знает на максимальный балл хотя бы min_percent процентов тем из source_level,
-    то он также знает все темы из destination_level.
+    Если школьник знает на максимальный балл хотя бы min_percent процентов тем
+    из source_level, то он также знает все темы из destination_level.
     """
 
     class Meta:
@@ -98,8 +113,8 @@ class LevelDownwardDependency(LevelDependency):
 
 class LevelUpwardDependency(LevelDependency):
     """
-    Если школьник знает на минимальный балл хотя бы min_percent процентов тем из source_level,
-    то он не знает ни одной темы из destination_level.
+    Если школьник знает на минимальный балл хотя бы min_percent процентов тем из
+    source_level, то он не знает ни одной темы из destination_level.
     """
 
     class Meta:
@@ -109,21 +124,27 @@ class LevelUpwardDependency(LevelDependency):
 class Scale(models.Model):
     questionnaire = models.ForeignKey(TopicQuestionnaire)
 
-    short_name = models.CharField(max_length=100,
-                                  help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием',
-                                  unique=True)
+    short_name = models.CharField(
+        max_length=100,
+        help_text='Используется в урлах. Лучше обойтись латинскими буквами, '
+                  'цифрами и подчёркиванием')
 
-    title = models.CharField(max_length=100, help_text='Например, «Практика». Показывается школьнику')
+    title = models.CharField(
+        max_length=100,
+        help_text='Например, «Практика». Показывается школьнику')
 
     count_values = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = ('questionnaire', 'short_name')
 
     def get_label_group(self, group_name):
         labels = ScaleLabel.objects.where(group__short_name=group_name)
         if labels.count() != self.count_values:
             raise AssertionError(
-                    'topics.models.Scale.get_label_group: labels count in group "%s" (%d) '
-                    'must be equal to count_values defined in scale (%d)' % (
-                        group_name, labels.count(), self.count_values))
+                'topics.models.Scale.get_label_group: labels count in group '
+                '"%s" (%d) must be equal to count_values defined in scale (%d)'
+                % (group_name, labels.count(), self.count_values))
 
         return [l.label_text for l in labels]
 
@@ -138,8 +159,10 @@ class Scale(models.Model):
 class ScaleLabelGroup(models.Model):
     scale = models.ForeignKey(Scale, related_name='label_groups')
 
-    short_name = models.CharField(max_length=100,
-                                  help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием')
+    short_name = models.CharField(
+        max_length=100,
+        help_text='Используется в урлах. Лучше обойтись латинскими буквами, '
+                  'цифрами и подчёркиванием')
 
     def __str__(self):
         return '%s, группа %s' % (self.scale, self.short_name)
@@ -162,9 +185,10 @@ class ScaleLabel(models.Model):
 class Tag(models.Model):
     questionnaire = models.ForeignKey(TopicQuestionnaire)
 
-    short_name = models.CharField(max_length=100,
-                                  help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием',
-                                  unique=True)
+    short_name = models.CharField(
+        max_length=100,
+        help_text='Используется в урлах. Лучше обойтись латинскими буквами, '
+                  'цифрами и подчёркиванием')
 
     title = models.CharField(max_length=100)
 
@@ -178,27 +202,37 @@ class Tag(models.Model):
 class Topic(models.Model):
     questionnaire = models.ForeignKey(TopicQuestionnaire)
 
-    short_name = models.CharField(max_length=100,
-                                  help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием',
-                                  unique=True)
+    short_name = models.CharField(
+        max_length=100,
+        help_text='Используется в урлах. Лучше обойтись латинскими буквами, '
+                  'цифрами и подчёркиванием')
 
-    title = models.CharField(max_length=100, help_text='Показывается школьнику при заполнении анкеты')
+    title = models.CharField(
+        max_length=100,
+        help_text='Показывается школьнику при заполнении анкеты')
 
-    text = models.TextField(help_text='Более подробное описание. Показывается школьнику при заполнении анкеты')
+    text = models.TextField(
+        help_text='Более подробное описание. Показывается школьнику при '
+                  'заполнении анкеты')
 
     level = models.ForeignKey(Level)
 
     tags = models.ManyToManyField(Tag, related_name='topics')
 
-    order = models.IntegerField(help_text='Внутренний порядок возрастания сложности',
-                                default=0)
+    order = models.IntegerField(
+        default=0,
+        help_text='Внутренний порядок возрастания сложности')
+
+    class Meta:
+        unique_together = ('questionnaire', 'short_name')
 
     def save(self, *args, **kwargs):
         # TODO: check all tags too
         if self.level.questionnaire == self.questionnaire:
             super(Topic, self).save(*args, **kwargs)
         else:
-            raise ValueError('topics.settings.Topic: level must be set up as one of questionnaire level')
+            raise ValueError('topics.settings.Topic: level must be set up as '
+                             'one of questionnaire level')
 
     def __str__(self):
         return '%s. Тема «%s»' % (self.questionnaire, self.title)
@@ -209,19 +243,26 @@ class Topic(models.Model):
 
         # TODO: optimize database queries
         for idx, scale_issue in enumerate(scales_issues):
-            scale = ScaleInTopic.objects.filter(topic=self, scale_label_group=scale_issue.label_group).get()
+            scale = ScaleInTopic.objects.filter(
+                topic=self,
+                scale_label_group=scale_issue.label_group).get()
             scale_label_group = scale.scale_label_group
             labels = ScaleLabel.objects.filter(group=scale_label_group)
-            name = '%s__%s__%s' % (self.short_name, scale_label_group.scale.short_name, scale_label_group.short_name)
+            name = '%s__%s__%s' % (self.short_name,
+                                   scale_label_group.scale.short_name,
+                                   scale_label_group.short_name)
 
             # TODO: extract to class
-            fields[name] = forms.TypedChoiceField(label=scale.scale.title,
-                                                  choices=[(label.mark, label.label_text) for label in labels],
-                                                  coerce=int,
-                                                  required=True,
-                                                  error_messages={'required': 'Выберите вариант',
-                                                                  'invalid_choice': 'Какой-то неправильный вариант. Давайте попробуем ещё раз'},
-                                                  widget=widgets.RadioSelect(attrs={}))
+            fields[name] = forms.TypedChoiceField(
+                label=scale.scale.title,
+                choices=[(label.mark, label.label_text) for label in labels],
+                coerce=int,
+                required=True,
+                error_messages={
+                    'required': 'Выберите вариант',
+                    'invalid_choice': 'Какой-то неправильный вариант. Давайте '
+                                      'попробуем ещё раз'},
+                widget=widgets.RadioSelect(attrs={}))
 
         return type('%sForm' % self.short_name, (forms.Form,), fields)
 
@@ -248,8 +289,9 @@ class ScaleInTopic(models.Model):
 
 class TopicDependency(models.Model):
     """
-    Каждая зависимость описана в виде кортежа (src_entry, src_scale, dst_entry, dst_scale, function), и говорит,
-    что шкала dst_scale темы dst_entry зависит от шкалы src_scale темы src_entry как function.
+    Каждая зависимость описана в виде кортежа (src_entry, src_scale, dst_entry,
+    dst_scale, function), и говорит, что шкала dst_scale темы dst_entry зависит
+    от шкалы src_scale темы src_entry как function.
 
     Проще говоря, если знаешь src, то знаешь dst.
 
@@ -258,12 +300,16 @@ class TopicDependency(models.Model):
     При значении src_scale = 1, dst_scale может принимать значения 1, 2.
     При значении src_scale = 2, dst_scale может быть равно только 2.
 
-    Все указанные в конфигах зависимости от более сложных тем к более простым. Поэтому вместе с каждой зависимостью
-    надо добавлять обратную ей (получается инверсией отображения).
+    Все указанные в конфигах зависимости от более сложных тем к более простым.
+    Поэтому вместе с каждой зависимостью надо добавлять обратную ей (получается
+    инверсией отображения).
     """
-    source = models.ForeignKey(ScaleInTopic, related_name='dependencies_as_source_topic')
+    source = models.ForeignKey(ScaleInTopic,
+                               related_name='dependencies_as_source_topic')
 
-    destination = models.ForeignKey(ScaleInTopic, related_name='dependencies_as_destination_topic')
+    destination = models.ForeignKey(
+        ScaleInTopic,
+        related_name='dependencies_as_destination_topic')
 
     source_mark = models.PositiveIntegerField()
 
@@ -273,11 +319,13 @@ class TopicDependency(models.Model):
         if self.source.questionnaire == self.destination.questionnaire:
             super(TopicDependency, self).save(*args, **kwargs)
         else:
-            raise ValueError('topics.settings.TopicDependency: source and destination should be from one questionnaire')
+            raise ValueError('topics.settings.TopicDependency: source and '
+                             'destination should be from one questionnaire')
 
     def __str__(self):
-        return 'Зависимость от «%s» (оценка %d) к «%s» (оценка %d)' % (self.source, self.source_mark,
-                                                                       self.destination, self.destination_mark)
+        return 'Зависимость от «%s» (оценка %d) к «%s» (оценка %d)' % (
+            self.source, self.source_mark, self.destination,
+            self.destination_mark)
 
     class Meta:
         index_together = (('source', 'destination'), ('source', 'source_mark'))
@@ -293,12 +341,16 @@ class UserQuestionnaireStatus(models.Model):
 
     user = models.ForeignKey(users.models.User, related_name='+')
 
-    questionnaire = models.ForeignKey(TopicQuestionnaire, related_name='statuses')
+    questionnaire = models.ForeignKey(TopicQuestionnaire,
+                                      related_name='statuses')
 
-    status = models.PositiveIntegerField(choices=Status.choices, validators=[Status.validator])
+    status = models.PositiveIntegerField(choices=Status.choices,
+                                         validators=[Status.validator])
 
     def __str__(self):
-        return 'Пользователь %s. %s. Статус: %s' % (self.user, self.questionnaire, self.status)
+        return 'Пользователь %s. %s. Статус: %s' % (self.user,
+                                                    self.questionnaire,
+                                                    self.status)
 
     class Meta:
         verbose_name_plural = 'User questionnaire statuses'
@@ -318,12 +370,14 @@ class BaseMark(models.Model):
 
     def save(self, *args, **kwargs):
         if self.mark > self.scale_in_topic.scale.count_values:
-            raise Exception('topics.models.UserMark: mark can\'t be greater than scale\'s count_values')
+            raise Exception('topics.models.UserMark: mark can\'t be greater '
+                            'than scale\'s count_values')
         super(BaseMark, self).save(*args, **kwargs)
 
     def __str__(self):
         return 'Оценка %d пользователя %s за «%s» %s' % (
-            self.mark, self.user, self.scale_in_topic, ' (автоматически)' if self.is_automatically else '')
+            self.mark, self.user, self.scale_in_topic,
+            ' (автоматически)' if self.is_automatically else '')
 
     class Meta:
         unique_together = ('user', 'scale_in_topic')
@@ -336,7 +390,8 @@ class UserMark(BaseMark):
 
 class BackupUserMark(BaseMark):
     def __str__(self):
-        return super(BackupUserMark, self).__str__() + ' [оценка была исправлена]'
+        return (super(BackupUserMark, self).__str__() +
+                ' [оценка была исправлена]')
 
 
 class TopicIssue(models.Model):
@@ -350,7 +405,10 @@ class TopicIssue(models.Model):
 
     def __str__(self):
         return '%s (%s) выдана пользователю %s в %s' % (
-            self.topic, ', '.join(str(s.label_group) for s in self.scales.all()), self.user, self.created_at)
+            self.topic,
+            ', '.join(str(s.label_group) for s in self.scales.all()),
+            self.user,
+            self.created_at)
 
 
 class ScaleInTopicIssue(models.Model):

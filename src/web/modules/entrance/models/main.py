@@ -386,6 +386,9 @@ class EntranceStatus(models.Model):
             is_status_visible=True
         ).first()
 
+    def __str__(self):
+        return '%s %s' % (self.user, self.Status.values[self.status])
+
     class Meta:
         verbose_name_plural = 'User entrance statuses'
         unique_together = ('school', 'user')

@@ -131,7 +131,7 @@ class ChoiceQuestionnaireQuestionVariant(models.Model):
     disable_question_if_chosen = models.BooleanField(default=False)
 
     def __str__(self):
-        return '{}: {}'.format(self.question, self.text)
+        return '{}: {} {}'.format(self.question, self.id, self.text)
 
 
 class ChoiceQuestionnaireQuestion(AbstractQuestionnaireQuestion):
@@ -201,7 +201,7 @@ class DateQuestionnaireQuestion(AbstractQuestionnaireQuestion):
             label=self.text,
             help_text=self.help_text,
             widget=django.forms.DateInput(attrs={
-                'class': 'datetimepicker',
+                'class': 'gui-input datetimepicker',
                 'data-format': 'DD.MM.YYYY',
                 'data-view-mode': 'years',
                 'data-pick-time': 'false',
@@ -294,7 +294,7 @@ class QuestionnaireAnswer(models.Model):
     answer = models.TextField(blank=True)
 
     def __str__(self):
-        return 'Ответ «%s» на вопрос %s анкеты %s' % (self.answer, self.question_short_name, self.questionnaire)
+        return 'Ответ «%s» на вопрос %s анкеты %s' % (self.answer.replace('\n', '\\n'), self.question_short_name, self.questionnaire)
 
     @property
     def question(self):

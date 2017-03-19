@@ -1,0 +1,17 @@
+{% extends "account/centered_panel.html" %}
+
+{% block title %}Ошибка входа{% endblock %}
+
+{% block panel_title %}
+    <i class="fa fa-warning"></i> Ошибка входа
+{% endblock %}
+
+{% block text_before_form %}
+    <p>
+        Во&nbsp;время входа через социальную сеть произошла ошибка.
+        Попробуйте ещё раз. Если ошибка сохраняется,
+        <a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}">напишите нам</a>.
+    </p>
+{% endblock %}
+
+

@@ -30,15 +30,20 @@ ALLOWED_HOSTS = []
 ADMINS = [('Андрей Гейн', 'andgein@yandex.ru')]
 
 SERVER_EMAIL = 'admin@sistema.lksh.ru'
-EMAIL_SUBJECT_PREFIX = '[Sistema] '
 
 # Application definition
 
 INSTALLED_APPS = (
+    # https://github.com/yourlabs/django-autocomplete-light/blob/master/docs/install.rst
+    # before django.contrib.admin and grappelli (if present)
+    'dal',
+    'dal_select2',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
@@ -70,7 +75,25 @@ INSTALLED_APPS = (
     'modules.poldnev',
     'modules.study_results',
     'modules.topics',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.vk',
+    'allauth.socialaccount.providers.twitter',
 )
+
+SITE_ID = 1
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_USER_DISPLAY = lambda user: user.get_full_name()
 
 MIDDLEWARE_CLASSES = (
     'htmlmin.middleware.HtmlMinifyMiddleware',
@@ -83,7 +106,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 
-    'schools.middleware.SchoolMiddleware'
+    'schools.middleware.SchoolMiddleware',
+    'users.middleware.UserProfileMiddleware',
 )
 
 ROOT_URLCONF = 'sistema.urls'
@@ -101,6 +125,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django_settings_export.settings_export',
 
                 'sistema.staff.staff_context_processor',
             ],
@@ -111,27 +136,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sistema.wsgi.application'
 
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.vk.VKOAuth2',
-    'social_core.backends.twitter.TwitterOAuth',
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-LOGIN_URL = '/user/login/'
-LOGOUT_URL = '/user/logout/'
-
-SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
-SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
-SOCIAL_AUTH_NEW_USER_REDIRECT_URL = '/user/complete/'
-
-SOCIAL_AUTH_URL_NAMESPACE = 'users:social'
-
-SOCIAL_AUTH_VK_OAUTH2_KEY = '2888774'
-SOCIAL_AUTH_VK_OAUTH2_SECRET = 'xO6ka9PBnhNunuUyfx5f'
-
-SOCIAL_AUTH_TWITTER_KEY = 'a4XGu2XP4DZE7DAqphTZfdltj'
-SOCIAL_AUTH_TWITTER_SECRET = 'DRakQj6dslpLSG2ceoZRrkHF8uh4dGnlMia55cHt9fuuRrNiYs'
-
+LOGIN_URL = '/accounts/login/'
+LOGOUT_URL = '/accounts/logout/'
 
 
 
@@ -196,8 +206,6 @@ SISTEMA_GENERATOR_ASSETS_DIR = os.path.join(SISTEMA_UPLOAD_FILES_DIR, 'generator
 
 SISTEMA_FINANCE_DOCUMENTS = os.path.join(SISTEMA_UPLOAD_FILES_DIR, 'finance-documents')
 
-SISTEMA_SEND_CONFIRMATION_EMAILS = False
-
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_CONFIG = {
     'SISTEMA_CURRENT_SCHOOL_SHORT_NAME': ('2016', 'Короткое название текущей смены')
@@ -209,3 +217,32 @@ HIJACK_LOGOUT_REDIRECT_URL = '/admin/users/user'
 HIJACK_USE_BOOTSTRAP = True
 HIJACK_REGISTER_ADMIN = False
 HIJACK_ALLOW_GET_REQUESTS = True
+
+EMAIL_BACKEND = 'postmark.django_backend.EmailBackend'
+DEFAULT_FROM_EMAIL = 'admin@sistema.lksh.ru'
+SISTEMA_CONTACT_US_EMAIL = 'lksh@lksh.ru'
+
+ACCOUNT_ADAPTER = 'users.adapter.AccountAdapter'
+ACCOUNT_SIGNUP_FORM_CLASS = 'users.forms.base.BaseSignupForm'
+ACCOUNT_FORMS = {
+    'login': 'users.forms.LoginForm',
+    'signup': 'users.forms.SignupForm',
+    'reset_password': 'users.forms.ResetPasswordForm',
+    'reset_password_from_key': 'users.forms.ResetPasswordKeyForm',
+    'change_password': 'users.forms.ChangePasswordForm',
+}
+SOCIALACCOUNT_FORMS = {
+    'signup': 'users.forms.SocialSignupForm',
+}
+
+SETTINGS_EXPORT = [
+    'DEBUG',
+    'SISTEMA_CONTACT_US_EMAIL',
+]
+
+
+"""For migration: to create SocialApp model"""
+SOCIAL_AUTH_VK_OAUTH2_KEY = '2888774'
+SOCIAL_AUTH_VK_OAUTH2_SECRET = 'xO6ka9PBnhNunuUyfx5f'
+SOCIAL_AUTH_TWITTER_KEY = 'a4XGu2XP4DZE7DAqphTZfdltj'
+SOCIAL_AUTH_TWITTER_SECRET = 'DRakQj6dslpLSG2ceoZRrkHF8uh4dGnlMia55cHt9fuuRrNiYs'

@@ -20,14 +20,42 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ChoiceQuestionnaireQuestion',
+            name='AbstractQuestionnaireBlock',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('short_name', models.CharField(help_text='Идентификатор. Лучше сделать из английских букв, цифр и подчёркивания', max_length=100)),
-                ('text', models.CharField(help_text='Вопрос', max_length=100)),
+                ('short_name', models.CharField(help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием', max_length=100)),
+                ('order', models.IntegerField(default=0, help_text='Блоки выстраиваются по возрастанию порядка')),
+            ],
+            options={
+                'ordering': ('questionnaire_id', 'order'),
+            },
+        ),
+        migrations.CreateModel(
+            name='AbstractQuestionnaireQuestion',
+            fields=[
+                ('abstractquestionnaireblock_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='questionnaire.AbstractQuestionnaireBlock')),
+                ('text', models.TextField(help_text='Вопрос')),
                 ('is_required', models.BooleanField(help_text='Является ли вопрос обязательным')),
                 ('help_text', models.CharField(blank=True, help_text='Подсказка, помогающая ответить на вопрос', max_length=400)),
-                ('Порядок', models.IntegerField(default=0, help_text='Вопросы выстраиваются по возрастанию порядка')),
+                ('is_disabled', models.BooleanField(default=False, help_text='Выключена ли возможность ответить на вопрос. Не может быть отмечено одновременно с is_required')),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=('questionnaire.abstractquestionnaireblock',),
+        ),
+        migrations.CreateModel(
+            name='QuestionnaireBlockShowCondition',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ChoiceQuestionnaireQuestion',
+            fields=[
+                ('abstractquestionnairequestion_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='questionnaire.AbstractQuestionnaireQuestion')),
+                ('is_inline', models.BooleanField()),
+                ('is_multiple', models.BooleanField()),
             ],
             options={
                 'abstract': False,
@@ -39,29 +67,26 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('text', models.TextField()),
                 ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='variants', to='questionnaire.ChoiceQuestionnaireQuestion')),
+                ('disable_question_if_chosen', models.BooleanField(default=False)),
+                ('is_disabled', models.BooleanField(default=False)),
             ],
         ),
         migrations.CreateModel(
             name='Questionnaire',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('short_name', models.CharField(help_text='Используется для урлов. Лучше обойтись латинскими букваи, цифрами и подчёркиванием', max_length=100)),
+                ('short_name', models.CharField(help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием', max_length=100)),
                 ('title', models.CharField(help_text='Название анкеты', max_length=100)),
-                ('for_school', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, to='schools.School')),
-                ('for_session', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, to='schools.Session')),
+                ('school', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='schools.School')),
+                ('session', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='schools.Session')),
+                ('close_time', models.DateTimeField(blank=True, default=None, null=True)),
             ],
         ),
         migrations.CreateModel(
             name='TextQuestionnaireQuestion',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('short_name', models.CharField(help_text='Идентификатор. Лучше сделать из английских букв, цифр и подчёркивания', max_length=100)),
-                ('text', models.TextField(help_text='Вопрос')),
-                ('is_required', models.BooleanField(help_text='Является ли вопрос обязательным')),
-                ('help_text', models.CharField(blank=True, help_text='Подсказка, помогающая ответить на вопрос', max_length=400)),
-                ('order', models.IntegerField(default=0, help_text='Вопросы выстраиваются по возрастанию порядка')),
+                ('abstractquestionnairequestion_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='questionnaire.AbstractQuestionnaireQuestion')),
                 ('is_multiline', models.BooleanField()),
-                ('questionnaire', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='textquestionnairequestion_questions', to='questionnaire.Questionnaire')),
                 ('fa', models.CharField(blank=True, help_text='Имя иконки FontAwesome, которую нужно показать в поле', max_length=20)),
                 ('placeholder', models.TextField(blank=True, help_text='Подсказка, показываемая в поле для ввода; пример')),
             ],
@@ -72,70 +97,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='YesNoQuestionnaireQuestion',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('short_name', models.CharField(help_text='Идентификатор. Лучше сделать из английских букв, цифр и подчёркивания', max_length=100)),
-                ('text', models.TextField(help_text='Вопрос')),
-                ('is_required', models.BooleanField(help_text='Является ли вопрос обязательным')),
-                ('help_text', models.CharField(blank=True, help_text='Подсказка, помогающая ответить на вопрос', max_length=400)),
-                ('order', models.IntegerField(default=0, help_text='Вопросы выстраиваются по возрастанию порядка')),
-                ('questionnaire', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='yesnoquestionnairequestion_questions', to='questionnaire.Questionnaire')),
+                ('abstractquestionnairequestion_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='questionnaire.AbstractQuestionnaireQuestion')),
             ],
             options={
                 'abstract': False,
             },
         ),
-        migrations.AddField(
-            model_name='choicequestionnairequestion',
-            name='questionnaire',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='choicequestionnairequestion_questions', to='questionnaire.Questionnaire'),
-        ),
         migrations.AlterUniqueTogether(
             name='questionnaire',
-            unique_together=set([('for_school', 'short_name')]),
-        ),
-        migrations.AlterField(
-            model_name='questionnaire',
-            name='for_school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='schools.School'),
-        ),
-        migrations.AlterField(
-            model_name='questionnaire',
-            name='for_session',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='schools.Session'),
-        ),
-        migrations.RenameField(
-            model_name='choicequestionnairequestion',
-            old_name='Порядок',
-            new_name='order',
-        ),
-        migrations.AddField(
-            model_name='choicequestionnairequestion',
-            name='is_inline',
-            field=models.BooleanField(default=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='choicequestionnairequestion',
-            name='is_multiple',
-            field=models.BooleanField(default=False),
-            preserve_default=False,
-        ),
-        migrations.AlterField(
-            model_name='choicequestionnairequestion',
-            name='text',
-            field=models.TextField(help_text='Вопрос'),
-        ),
-        migrations.AlterUniqueTogether(
-            name='choicequestionnairequestion',
-            unique_together=set([('short_name', 'questionnaire')]),
-        ),
-        migrations.AlterUniqueTogether(
-            name='textquestionnairequestion',
-            unique_together=set([('short_name', 'questionnaire')]),
-        ),
-        migrations.AlterUniqueTogether(
-            name='yesnoquestionnairequestion',
-            unique_together=set([('short_name', 'questionnaire')]),
+            unique_together=set([('school', 'short_name')]),
         ),
         migrations.CreateModel(
             name='QuestionnaireAnswer',
@@ -155,15 +125,10 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'User questionnaire statuses',
             },
         ),
-        migrations.AlterField(
-            model_name='questionnaire',
-            name='short_name',
-            field=models.CharField(help_text='Используется для урлов. Лучше обойтись латинскими буквами, цифрами и подчёркиванием', max_length=100),
-        ),
         migrations.AddField(
             model_name='userquestionnairestatus',
             name='questionnaire',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='questionnaire.Questionnaire'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='statuses', to='questionnaire.Questionnaire'),
         ),
         migrations.AddField(
             model_name='userquestionnairestatus',
@@ -188,92 +153,21 @@ class Migration(migrations.Migration):
             name='questionnaireanswer',
             unique_together=set([]),
         ),
-        migrations.AlterField(
-            model_name='userquestionnairestatus',
-            name='questionnaire',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='statuses', to='questionnaire.Questionnaire'),
-        ),
         migrations.AlterIndexTogether(
             name='questionnaireanswer',
             index_together=set([('questionnaire', 'user', 'question_short_name')]),
         ),
-        migrations.AddField(
-            model_name='questionnaire',
-            name='close_time',
-            field=models.DateTimeField(blank=True, default=None, null=True),
-        ),
-        migrations.AlterField(
-            model_name='questionnaire',
-            name='short_name',
-            field=models.CharField(help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием', max_length=100),
-        ),
         migrations.CreateModel(
             name='DateQuestionnaireQuestion',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('short_name', models.CharField(help_text='Идентификатор. Лучше сделать из английских букв, цифр и подчёркивания', max_length=100)),
-                ('text', models.TextField(help_text='Вопрос')),
-                ('is_required', models.BooleanField(help_text='Является ли вопрос обязательным')),
-                ('help_text', models.CharField(blank=True, help_text='Подсказка, помогающая ответить на вопрос', max_length=400)),
-                ('order', models.IntegerField(default=0, help_text='Вопросы выстраиваются по возрастанию порядка')),
+                ('abstractquestionnairequestion_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='questionnaire.AbstractQuestionnaireQuestion')),
                 ('with_year', models.BooleanField(default=True)),
                 ('min_year', models.PositiveIntegerField(null=True)),
                 ('max_year', models.PositiveIntegerField(null=True)),
-                ('questionnaire', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='datequestionnairequestion_questions', to='questionnaire.Questionnaire')),
             ],
             options={
                 'abstract': False,
             },
-        ),
-        migrations.AlterUniqueTogether(
-            name='datequestionnairequestion',
-            unique_together=set([('short_name', 'questionnaire')]),
-        ),
-        migrations.CreateModel(
-            name='AbstractQuestionnaireBlock',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('short_name', models.CharField(help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием', max_length=100)),
-                ('order', models.IntegerField(default=0, help_text='Блоки выстраиваются по возрастанию порядка')),
-            ],
-            options={
-                'ordering': ('questionnaire_id', 'order'),
-            },
-        ),
-        migrations.CreateModel(
-            name='AbstractQuestionnaireQuestion',
-            fields=[
-                ('abstractquestionnaireblock_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='questionnaire.AbstractQuestionnaireBlock')),
-                ('text', models.TextField(help_text='Вопрос')),
-                ('is_required', models.BooleanField(help_text='Является ли вопрос обязательным')),
-                ('help_text', models.CharField(blank=True, help_text='Подсказка, помогающая ответить на вопрос', max_length=400)),
-            ],
-            options={
-                'abstract': False,
-            },
-            bases=('questionnaire.abstractquestionnaireblock',),
-        ),
-        migrations.CreateModel(
-            name='QuestionnaireBlockShowCondition',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-            ],
-        ),
-        migrations.AlterUniqueTogether(
-            name='choicequestionnairequestion',
-            unique_together=set([]),
-        ),
-        migrations.AlterUniqueTogether(
-            name='datequestionnairequestion',
-            unique_together=set([]),
-        ),
-        migrations.AlterUniqueTogether(
-            name='textquestionnairequestion',
-            unique_together=set([]),
-        ),
-        migrations.AlterUniqueTogether(
-            name='yesnoquestionnairequestion',
-            unique_together=set([]),
         ),
         migrations.CreateModel(
             name='MarkdownQuestionnaireBlock',
@@ -285,26 +179,6 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
             bases=('questionnaire.abstractquestionnaireblock',),
-        ),
-        migrations.RemoveField(
-            model_name='choicequestionnairequestionvariant',
-            name='question_id',
-        ),
-        migrations.RemoveField(
-            model_name='choicequestionnairequestion',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='datequestionnairequestion',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='yesnoquestionnairequestion',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='textquestionnairequestion',
-            name='id',
         ),
         migrations.AddField(
             model_name='questionnaireblockshowcondition',
@@ -326,159 +200,9 @@ class Migration(migrations.Migration):
             name='questionnaire',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='questionnaire.Questionnaire'),
         ),
-        migrations.AddField(
-            model_name='choicequestionnairequestion',
-            name='abstractquestionnairequestion_ptr',
-            field=models.OneToOneField(auto_created=True, default=None, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='questionnaire.AbstractQuestionnaireQuestion'),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='datequestionnairequestion',
-            name='abstractquestionnairequestion_ptr',
-            field=models.OneToOneField(auto_created=True, default=None, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='questionnaire.AbstractQuestionnaireQuestion'),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='textquestionnairequestion',
-            name='abstractquestionnairequestion_ptr',
-            field=models.OneToOneField(auto_created=True, default=None, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='questionnaire.AbstractQuestionnaireQuestion'),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='yesnoquestionnairequestion',
-            name='abstractquestionnairequestion_ptr',
-            field=models.OneToOneField(auto_created=True, default=None, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='questionnaire.AbstractQuestionnaireQuestion'),
-            preserve_default=False,
-        ),
-        migrations.RemoveField(
-            model_name='choicequestionnairequestion',
-            name='help_text',
-        ),
-        migrations.RemoveField(
-            model_name='choicequestionnairequestion',
-            name='is_required',
-        ),
-        migrations.RemoveField(
-            model_name='choicequestionnairequestion',
-            name='order',
-        ),
-        migrations.RemoveField(
-            model_name='choicequestionnairequestion',
-            name='questionnaire',
-        ),
-        migrations.RemoveField(
-            model_name='choicequestionnairequestion',
-            name='short_name',
-        ),
-        migrations.RemoveField(
-            model_name='choicequestionnairequestion',
-            name='text',
-        ),
-        migrations.RemoveField(
-            model_name='datequestionnairequestion',
-            name='help_text',
-        ),
-        migrations.RemoveField(
-            model_name='datequestionnairequestion',
-            name='is_required',
-        ),
-        migrations.RemoveField(
-            model_name='datequestionnairequestion',
-            name='order',
-        ),
-        migrations.RemoveField(
-            model_name='datequestionnairequestion',
-            name='questionnaire',
-        ),
-        migrations.RemoveField(
-            model_name='datequestionnairequestion',
-            name='short_name',
-        ),
-        migrations.RemoveField(
-            model_name='datequestionnairequestion',
-            name='text',
-        ),
-        migrations.RemoveField(
-            model_name='textquestionnairequestion',
-            name='help_text',
-        ),
-        migrations.RemoveField(
-            model_name='textquestionnairequestion',
-            name='is_required',
-        ),
-        migrations.RemoveField(
-            model_name='textquestionnairequestion',
-            name='order',
-        ),
-        migrations.RemoveField(
-            model_name='textquestionnairequestion',
-            name='questionnaire',
-        ),
-        migrations.RemoveField(
-            model_name='textquestionnairequestion',
-            name='short_name',
-        ),
-        migrations.RemoveField(
-            model_name='textquestionnairequestion',
-            name='text',
-        ),
-        migrations.RemoveField(
-            model_name='yesnoquestionnairequestion',
-            name='help_text',
-        ),
-        migrations.RemoveField(
-            model_name='yesnoquestionnairequestion',
-            name='is_required',
-        ),
-        migrations.RemoveField(
-            model_name='yesnoquestionnairequestion',
-            name='order',
-        ),
-        migrations.RemoveField(
-            model_name='yesnoquestionnairequestion',
-            name='questionnaire',
-        ),
-        migrations.RemoveField(
-            model_name='yesnoquestionnairequestion',
-            name='short_name',
-        ),
-        migrations.RemoveField(
-            model_name='yesnoquestionnairequestion',
-            name='text',
-        ),
         migrations.AlterUniqueTogether(
             name='abstractquestionnaireblock',
             unique_together=set([('short_name', 'questionnaire'), ('questionnaire', 'order')]),
-        ),
-        migrations.AddField(
-            model_name='choicequestionnairequestionvariant',
-            name='question',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='variants', to='questionnaire.ChoiceQuestionnaireQuestion'),
-        ),
-        migrations.AddField(
-            model_name='choicequestionnairequestionvariant',
-            name='disable_question_if_chosen',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name='choicequestionnairequestionvariant',
-            name='is_disabled',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name='abstractquestionnairequestion',
-            name='is_disabled',
-            field=models.BooleanField(default=False, help_text='Выключена ли возможность ответить на вопрос. Не может быть отмечено одновременно с is_required'),
-        ),
-        migrations.RenameField(
-            model_name='questionnaire',
-            old_name='for_school',
-            new_name='school',
-        ),
-        migrations.RenameField(
-            model_name='questionnaire',
-            old_name='for_session',
-            new_name='session',
         ),
         migrations.AlterUniqueTogether(
             name='questionnaire',

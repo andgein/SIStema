@@ -1,0 +1,17 @@
+{% extends "account/centered_panel.html" %}
+
+{% block title %}Вход отменён{% endblock %}
+
+{% block panel_title %}
+    <i class="fa fa-remove"></i> Вход отменён
+{% endblock %}
+
+{% block text_before_form %}
+    <p>
+        Вы отменили вход через социальную сеть.
+    </p>
+    <p>
+        Вернитесь <a href="{% url 'account_login' %}">на&nbsp; страницу входа</a>
+        и&nbsp;повторите попытку.
+    </p>
+{% endblock %}
