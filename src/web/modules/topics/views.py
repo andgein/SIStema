@@ -303,9 +303,8 @@ def return_to_correcting(request):
 @login_required
 @topic_questionnaire_view
 def start_checking(request):
-    # TODO: uncomment
-    #if request.questionnaire.is_closed():
-        #return redirect('school:topics:index', school_name=request.school.short_name)
+    if request.questionnaire.is_closed():
+        return redirect('school:topics:index', school_name=request.school.short_name)
 
     user_status = _get_questionnaire_status(request.user, request.questionnaire)
     if user_status.status != models.UserQuestionnaireStatus.Status.CORRECTING:
@@ -324,10 +323,9 @@ def start_checking(request):
 @login_required
 @topic_questionnaire_view
 def check_topics(request):
-    # TODO: uncomment
     # TODO: cycle dep, when school is closed
-    #if request.questionnaire.is_closed():
-    #    return redirect('school:topics:index', school_name=request.school.short_name)
+    if request.questionnaire.is_closed():
+        return redirect('school:topics:index', school_name=request.school.short_name)
 
     user_status = _get_questionnaire_status(request.user, request.questionnaire)
     if user_status.status != models.UserQuestionnaireStatus.Status.CHECK_TOPICS:
