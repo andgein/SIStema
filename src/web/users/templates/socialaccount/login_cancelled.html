@@ -1,16 +1,17 @@
 {% extends "account/centered_panel.html" %}
 
-{% block title %}Авторизация отменена {% endblock %}
+{% block title %}Вход отменён{% endblock %}
 
 {% block panel_title %}
-    <i class="fa fa-remove"></i> Авторизация отменена
+    <i class="fa fa-remove"></i> Вход отменён
 {% endblock %}
 
 {% block text_before_form %}
-
-    {% url 'account_login' as login_url %}
-    <div>
-        Вы прервали авторизацию, используя один из ваших аккаутов.
-        Если это было ошибкой, перейдите к <a href="{{login_url}}">авторизации</a>.
-    </div>
+    <p>
+        Вы отменили вход через социальную сеть.
+    </p>
+    <p>
+        Вернитесь <a href="{% url 'account_login' %}">на&nbsp; страницу входа</a>
+        и&nbsp;повтолрите попытку.
+    </p>
 {% endblock %}

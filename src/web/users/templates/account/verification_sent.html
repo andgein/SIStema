@@ -3,14 +3,16 @@
 {% block title %}Подтвердите ваш e-mail{% endblock %}
 
 {% block panel_title %}
-    <i class="fa fa-envelope"></i> Подтвердите ваш e-mail
+    <i class="fa fa-envelope"></i> Подтвердите эл. почту
 {% endblock %}
 
 {% block text_before_form %}
-    <div>
-        Мы отправили вам письмо для подтверждения вашего e-mail.
-        Пройдите по ссылке в письме для окончания регистрации.
-        Пожалуйста, <a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=Не приходит письмо для подтверждения">свяжитесь с нами</a>,
+    <p>
+        Для подтверждения электронной почты мы отправили вам письмо.
+        Перейдите по ссылке из него, чтобы закончить регистрацию.
+    </p>
+    <p>
+        <a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=Не приходит письмо для подтверждения">Напишите нам</a>,
         если вы не получили письмо в течение нескольких минут.
-    </div>
+    </p>
 {% endblock %}

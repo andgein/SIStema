@@ -7,6 +7,12 @@
 
 {% block css %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/centered-form.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/datepicker/css/bootstrap-datetimepicker.css' %}">
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript" src="{% static 'vendor/plugins/moment/moment.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vendor/plugins/datepicker/js/bootstrap-datetimepicker.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -29,11 +35,13 @@
                         </div>
 
                         <div class="col-xs-6 text-right va-b pr5">
-                            <div class="login-links">
-                                <a href="{% url 'account_login' %}" class="{% if form.login_is_active %}active{% endif %}" title="Вход">Вход</a>
-                                <span class="text-white"> | </span>
-                                <a href="{% url 'account_signup' %}" class="{% if form.signup_is_active %}active{% endif %}" title="Регистрация">Регистрация</a>
-                            </div>
+                            {% if not form.hide_links %}
+                                <div class="login-links">
+                                    <a href="{% url 'account_login' %}" class="{% if form.login_is_active %}active{% endif %}" title="Вход">Вход</a>
+                                    <span class="text-white"> | </span>
+                                    <a href="{% url 'account_signup' %}" class="{% if form.signup_is_active %}active{% endif %}" title="Регистрация">Регистрация</a>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -49,38 +57,55 @@
                         {% endblock %}
 
                         {% with need_form=False %}
-                        {% block panel_body %}
-                            {% if need_form %}
-                            <form method="POST" action="">
-                                {% csrf_token %}
-                            {% endif %}
-                                <div class="panel-body bg-light p30">
-                                {% block text_before_form %}{% endblock %}
+                            {% block panel_body %}
                                 {% if need_form %}
-                                    {% for field_name in form.fields %}
-                                        {% with field=form|get_item:field_name %}
-                                            {% if field.field.required %}
-                                                <div class="section mbn">
-                                                    <label for="{{ field.id_for_label }}" class="field-label text-muted fs18 mb10">{{ field.label }}</label>
-                                                    <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
-                                                        {{ field }}
-                                                    </label>
-                                                    <p class="help-block">{{ field.help_text }}</p>
-                                                    {{ field.errors }}
-                                                </div>
-                                            {% endif %}
-                                        {% endwith %}
-                                    {% endfor %}
+                                    <form method="POST" action="">
+                                    {% csrf_token %}
                                 {% endif %}
-                                {% block text_after_form %}{% endblock %}
+
+                                <div class="panel-body bg-light p30 {{ need_form|yesno:'pbn,' }}">
+                                    {% block text_before_form %}{% endblock %}
+                                    {% if need_form %}
+                                        {% if form.errors %}
+                                            <div class="alert alert-micro alert-danger alert-border-left">
+                                                <span class="fa fa-remove pr10"></span>
+                                                Есть некоторые ошибки, давайте поправим
+                                            </div>
+                                        {% endif %}
+                                        {% for field_name in form.fields %}
+                                            {% with field=form|get_item:field_name %}
+                                                {% if field.field.required %}
+                                                    <div class="section mb20">
+                                                        <div class="{{ field.errors|yesno:'state-error,' }}">
+                                                            <label for="{{ field.id_for_label }}" class="field-label fs16">{{ field.label }}</label>
+                                                            <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
+                                                                {{ field }}
+                                                            </label>
+                                                            <p class="help-block">
+                                                                {{ field.help_text }}
+                                                            </p>
+                                                        </div>
+                                                        {% if field.errors %}
+                                                            {% for error in field.errors %}
+                                                                <em>{{ error }}</em>
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                    </div>
+
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endfor %}
+                                    {% endif %}
+                                    {% block text_after_form %}{% endblock %}
                                 </div>
 
                                 {% block panel_footer %}
                                 {% endblock %}
-                            {% if need_form %}
-                            </form>
-                            {% endif %}
-                        {% endblock %}
+
+                                {% if need_form %}
+                                    </form>
+                                {% endif %}
+                            {% endblock %}
                         {% endwith %}
                     </div>
                 </div>
@@ -92,36 +117,35 @@
     </div>
 {% endblock %}
 
-{% block comment %}
-    {# These scripts is not used now #}
-    {% block scripts %}
-        <script src="vendor/plugins/canvasbg/canvasbg.js"></script>
+{# These scripts is not used now #}
 
-        <script src="assets/js/utility/utility.js"></script>
-        <script src="assets/js/demo/demo.js"></script>
-        <script src="assets/js/main.js"></script>
-
-        <!-- Page Javascript -->
-        <script type="text/javascript">
-        jQuery(document).ready(function() {
-
-            "use strict";
-
-            // Init Theme Core
-            Core.init();
-
-            // Init Demo JS
-            Demo.init();
-
-            // Init CanvasBG and pass target starting location
-            CanvasBG.init({
-                Loc: {
-                    x: window.innerWidth / 2,
-                    y: window.innerHeight / 3.3
-                },
-            });
-
-        });
-        </script>
-    {% endblock %}
-{% endblock %}
+{#    {% block scripts %}#}
+{#        <script src="vendor/plugins/canvasbg/canvasbg.js"></script>#}
+{##}
+{#        <script src="assets/js/utility/utility.js"></script>#}
+{#        <script src="assets/js/demo/demo.js"></script>#}
+{#        <script src="assets/js/main.js"></script>#}
+{##}
+{#        <!-- Page Javascript -->#}
+{#        <script type="text/javascript">#}
+{#        jQuery(document).ready(function() {#}
+{##}
+{#            "use strict";#}
+{##}
+{#            // Init Theme Core#}
+{#            Core.init();#}
+{##}
+{#            // Init Demo JS#}
+{#            Demo.init();#}
+{##}
+{#            // Init CanvasBG and pass target starting location#}
+{#            CanvasBG.init({#}
+{#                Loc: {#}
+{#                    x: window.innerWidth / 2,#}
+{#                    y: window.innerHeight / 3.3#}
+{#                },#}
+{#            });#}
+{##}
+{#        });#}
+{#        </script>#}
+{#    {% endblock %}#}

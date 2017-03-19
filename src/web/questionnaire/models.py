@@ -201,7 +201,7 @@ class DateQuestionnaireQuestion(AbstractQuestionnaireQuestion):
             label=self.text,
             help_text=self.help_text,
             widget=django.forms.DateInput(attrs={
-                'class': 'datetimepicker',
+                'class': 'gui-input datetimepicker',
                 'data-format': 'DD.MM.YYYY',
                 'data-view-mode': 'years',
                 'data-pick-time': 'false',

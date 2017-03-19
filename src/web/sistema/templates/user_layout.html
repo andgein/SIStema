@@ -16,20 +16,20 @@
                             <span class="hidden-xs pl15"> {{ user.first_name }} {{ user.last_name }}</span>
                             <span class="caret caret-tp hidden-xs"></span>
                         </a>
-                        <ul class="dropdown-menu list-group dropdown-persist w150" role="menu">
+                        <ul class="dropdown-menu list-group dropdown-persist w200" role="menu">
                             <li class="list-group-item">
                                 <a href="{% url "user:profile" %}">
                                     <span class="fa fa-user"></span> Профиль
                                 </a>
                             </li>
                             <li class="list-group-item">
-                                <a href="{% url "account_settings" %}">
-                                    <span class="fa fa-gear"></span> Настройки
+                                <a href="{% url "account_change_password" %}">
+                                    <span class="fa fa-gear"></span> Изменить пароль
                                 </a>
                             </li>
-                            <li class="dropdown-footer">
-                                <a href="{% url 'account_logout' %}">
-                                    <span class="fa fa-power-off pr5"></span> Выход
+                            <li class="list-group-item">
+                                <a href="{% url "account_logout" %}">
+                                    <span class="fa fa-power-off"></span> Выход
                                 </a>
                             </li>
                         </ul>

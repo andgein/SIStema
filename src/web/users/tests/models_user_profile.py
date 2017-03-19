@@ -3,6 +3,7 @@
 """Tests for users.models.UserProfile."""
 
 import unittest
+import unittest.mock
 
 from django.test import TestCase
 from users.models import UserProfile

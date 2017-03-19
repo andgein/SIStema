@@ -10,16 +10,20 @@ class AccountBaseForm(forms.Form):
         NONE = 0,
         LOGIN = 1,
         SIGNUP = 2,
+        HIDE = 3,
 
     def __init__(self, *args, **kwargs):
         self.__active_tab = kwargs.pop('active_tab')
         super().__init__(*args, **kwargs)
 
     def login_is_active(self):
-        return self.__active_tab == AccountBaseForm.Tab.LOGIN
+        return self.__active_tab == self.Tab.LOGIN
 
     def signup_is_active(self):
-        return self.__active_tab == AccountBaseForm.Tab.SIGNUP
+        return self.__active_tab == self.Tab.SIGNUP
+
+    def hide_links(self):
+        return self.__active_tab == self.Tab.HIDE
 
 
 def _signup(form, user):

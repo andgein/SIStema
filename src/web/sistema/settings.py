@@ -226,6 +226,7 @@ ACCOUNT_FORMS = {
     'signup': 'users.forms.SignupForm',
     'reset_password': 'users.forms.ResetPasswordForm',
     'reset_password_from_key': 'users.forms.ResetPasswordKeyForm',
+    'change_password': 'users.forms.ChangePasswordForm',
 }
 SOCIALACCOUNT_FORMS = {
     'signup': 'users.forms.SocialSignupForm',

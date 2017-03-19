@@ -5,7 +5,8 @@ from allauth.account import forms as account_forms
 from allauth.socialaccount import forms as social_account_forms
 
 from django.utils.translation import ugettext_lazy as _
-from frontend.forms import TextInputWithFaIcon, PasswordInputWithFaIcon
+from frontend.forms import TextInputWithFaIcon, PasswordInputWithFaIcon,\
+    SistemaRadioSelect
 
 from users import models
 from users.forms import base as base_forms
@@ -18,12 +19,14 @@ def _get_allowed_birth_years():
 
 def _customize_widgets(form):
     if 'email' in form.fields:
+        form.fields['email'].label = 'Эл. почта'
         form.fields['email'].widget = TextInputWithFaIcon(attrs={
             'placeholder': 'Введите почту',
             'class': 'gui-input',
             'fa': 'envelope',
         })
     if 'login' in form.fields:
+        form.fields['login'].label = 'Эл. почта'
         form.fields['login'].widget = TextInputWithFaIcon(attrs={
             'placeholder': 'Введите почту',
             'class': 'gui-input',
@@ -78,7 +81,7 @@ class UserProfileForm(forms.Form):
         required=True,
         label='Отчество',
         widget=TextInputWithFaIcon(attrs={
-            'placeholder': 'Введите отчество (если есть)',
+            'placeholder': 'Введите отчество',
             'class': 'gui-input',
             'fa': 'user',
         })
@@ -88,19 +91,28 @@ class UserProfileForm(forms.Form):
         models.UserProfile.Sex.choices,
         required=True,
         label='Пол',
-        widget=forms.RadioSelect
+        widget=SistemaRadioSelect(attrs={'inline': True})
     )
 
     birth_date = forms.DateField(
         required=True,
         label='Дата рождения',
-        widget=forms.DateInput(format='%d.%m.%Y')
+        widget=forms.DateInput(attrs={
+                'class': 'gui-input datetimepicker',
+                'data-format': 'DD.MM.YYYY',
+                'data-view-mode': 'years',
+                'data-pick-time': 'false',
+                'placeholder': 'дд.мм.гггг',
+            })
     )  # TODO widget=forms.SelectDateWidget(years=_get_allowed_birth_years()))
 
     current_class = forms.IntegerField(
         required=True,
         label='Класс',
         min_value=1,
+        widget=forms.NumberInput(attrs={
+            'class': 'gui-input'
+        })
     )
 
     region = forms.CharField(
@@ -110,8 +122,10 @@ class UserProfileForm(forms.Form):
         widget=TextInputWithFaIcon(attrs={
             'class': 'gui-input',
             'fa': 'building-o',
+            'placeholder': 'Например, Москва или Тюменская область'
         })
     )
+
     city = forms.CharField(
         required=True,
         label='Населённый пункт',
@@ -122,6 +136,7 @@ class UserProfileForm(forms.Form):
             'fa': 'building-o',
         })
     )
+
     school_name = forms.CharField(
         required=True,
         label='Школа',
@@ -137,7 +152,7 @@ class UserProfileForm(forms.Form):
         label='Телефон',
         help_text='С кодом города',
         widget=TextInputWithFaIcon(attrs={
-            'placeholder': '+7(901)234-56-78',
+            'placeholder': '+7 900 000-00-00',
             'class': 'gui-input',
             'fa': 'phone',
         })
@@ -212,6 +227,13 @@ class LoginForm(account_forms.LoginForm, base_forms.AccountBaseForm):
 class ResetPasswordForm(account_forms.ResetPasswordForm, base_forms.AccountBaseForm):
     def __init__(self, *args, **kwargs):
         kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.NONE
+        super().__init__(*args, **kwargs)
+        _customize_widgets(self)
+
+
+class ChangePasswordForm(account_forms.ChangePasswordForm, base_forms.AccountBaseForm):
+    def __init__(self, *args, **kwargs):
+        kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.HIDE
         super().__init__(*args, **kwargs)
         _customize_widgets(self)
 

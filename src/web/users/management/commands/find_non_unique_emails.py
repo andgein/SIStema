@@ -87,6 +87,7 @@ class AccountInfo(object):
                 raise Exception('Too many entrance statuses')
             if len(entr_stat) == 0:
                 status = AccountInfo.Status.NO_ENTRANCE_STATUS
+            # TODO (andgein): replace with not entr_stat[0].is_enrolled
             elif entr_stat[0].status != entrance_models.EntranceStatus.Status.ENROLLED:
                 status = AccountInfo.Status.NOT_ENROLLED
             else:
