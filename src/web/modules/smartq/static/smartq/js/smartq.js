@@ -57,7 +57,7 @@ $(document).ready(function() {
 
     $(this).validate({
       errorClass: 'state-error',
-      validClass: 'state-success',
+      validClass: 'state-success-do-not-highlight',
       errorElement: 'em',
       rules: rules,
       messages: messages,
