@@ -3,19 +3,22 @@ $(document).ready(function() {
   function saveAnswer(url, generated_question_id) {
     var data = {};
     $('input[data-smartq-id=' + generated_question_id + ']').each(function(i) {
-      data[$(this).attr('name')] = $(this).val();
+      var $self = $(this);
+      data[$self.attr('name')] = $self.val();
     });
     $.post(url, data)
   };
 
-  var inputs = $('input[data-smartq-id]');
+  var $inputs = $('input[data-smartq-id]');
 
-  inputs.focus(function() {
-    $(this).data('last_focus_value', $(this).val());
+  $inputs.focus(function() {
+    var $self = $(this);
+    $self.data('last_focus_value', $self.val());
   }).blur(function() {
-    if ($(this).data('last_focus_value') !== $(this).val()) {
-      var url = $(this).attr('data-smartq-save-url');
-      var id = $(this).attr('data-smartq-id');
+    var $self = $(this);
+    if ($self.data('last_focus_value') !== $self.val()) {
+      var url = $self.attr('data-smartq-save-url');
+      var id = $self.attr('data-smartq-id');
 
       saveAnswer(url, id);
     }
@@ -36,12 +39,14 @@ $(document).ready(function() {
   );
 
   function validateForm() {
+    var $self = $(this);
     var rules = {};
-    $(this).find('input[data-smartq-id]').each(function() {
-      var name = $(this).attr('name');
+    $self.find('input[data-smartq-id]').each(function() {
+      var $self = $(this);
+      var name = $self.attr('name');
       rules[name] = rules[name] || {};
       
-      var regexp = $(this).attr('data-smartq-validation-regexp');
+      var regexp = $self.attr('data-smartq-validation-regexp');
       if (regexp) {
         rules[name]['regex'] = regexp;
         rules[name]['required'] = true;
@@ -49,7 +54,7 @@ $(document).ready(function() {
 
     });
 
-    $(this).validate({
+    $self.validate({
       'rules': rules
     });
   };
