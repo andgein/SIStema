@@ -6,13 +6,13 @@ class Generator:
 
 
 class Checker:
-    class Result(enum.IntEnum):
+    class Status(enum.IntEnum):
         # Use explicit values and don't change the existing ones. That's
         # important because they are stored in the database.
         OK = 1
-        WrongAnswer = 2
-        PresentationError = 3
-        CheckFailed = 4
+        WRONG_ANSWER = 2
+        PRESENTATION_ERROR = 3
+        CHECK_FAILED = 4
 
     def check(self, generated_question_data, answer):
         raise NotImplementedError()
@@ -33,7 +33,7 @@ class CheckerResult:
         self.message = message or ''
         self.field_messages = field_messages or {}
 
-        if not isinstance(self.status, Checker.Result):
+        if not isinstance(self.status, Checker.Status):
             raise TypeError('status should be of api.Checker.Result')
 
         if not isinstance(self.message, str):
@@ -75,13 +75,17 @@ class AnswerFieldSpec:
 
         # TODO(Artem Tabolin): can we avoid code duplication?
         if min_length is not None:
-            if not isinstance(min_length, int) or min_length < 0:
-                raise TypeError('min_length must be a non-negative integer')
+            if not isinstance(min_length, int):
+                raise TypeError('min_length must be an integer')
+            if min_length < 0:
+                raise ValueError('min_length must be non-negative')
             spec['min_length'] = min_length
 
         if max_length is not None:
-            if not isinstance(max_length, int) or max_length < 0:
-                raise TypeError('max_length must be a non-negative integer')
+            if not isinstance(max_length, int):
+                raise TypeError('max_length must be an integer')
+            if max_length < 0:
+                raise ValueError('max_length must be non-negative')
             spec['max_length'] = max_length
 
         if validation_regexp is not None:
