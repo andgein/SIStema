@@ -38,7 +38,7 @@
             <div class="admin-form theme-alert">
                 <div class="panel panel-alert heading-border">
 
-                    <div class="panel-heading">
+                    <div class="panel-heading bg-white">
                         <div class="panel-title">
                             {{ questionnaire.title }}
                         </div>
@@ -46,7 +46,7 @@
 
                     <form method="POST" action="">
                         {% csrf_token %}
-                        <div class="panel-body p25">
+                        <div class="panel-body bg-white p25">
 
                             {% if form.errors %}
                                 <div class="alert alert-micro alert-danger alert-border-left">

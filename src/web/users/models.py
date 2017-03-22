@@ -74,11 +74,17 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     def get_full_name(self):
         """Returns the first_name plus the last_name, with a space in between.
         """
-        full_name = '%s %s' % (self.first_name, self.last_name)
+        if hasattr(self, 'user_profile'):
+            full_name = '%s %s' % (self.user_profile.last_name,
+                                   self.user_profile.first_name)
+        else:
+            full_name = '%s %s' % (self.first_name, self.last_name)
         return full_name.strip()
 
     def get_short_name(self):
         """Returns the short name for the user."""
+        if hasattr(self, 'user_profile'):
+            return self.user_profile.first_name
         return self.first_name
 
     def email_user(self, subject, message, from_email=None, **kwargs):
@@ -86,7 +92,7 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
         mail.send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def __str__(self):
-        return '%d %s %s (%s)' % (self.id, self.last_name, self.first_name, self.email)
+        return '%d %s (%s)' % (self.id, self.get_full_name(), self.email)
 
 
 class UserPasswordRecovery(models.Model):
@@ -190,8 +196,8 @@ class UserProfile(models.Model):
         year = date.year
         if date.month < 9:
             year -= 1
-        return ('Класс в %d–%d учебном году. Если вы обучаетесь не в РФ, введите '
-                'максимально подходящий класс по Российской системе' % (year, year + 1))
+        return ('Класс в %d–%d учебном году. Если вы обучаетесь не в РФ, введите '
+                'максимально подходящий класс по Российской системе' % (year, year + 1))
 
     def get_class(self, date=None):
         if self._zero_class_year is None:

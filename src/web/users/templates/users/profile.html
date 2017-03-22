@@ -9,26 +9,27 @@
     <div class="mw800 center-block mt30">
         <div class="admin-form theme-alert">
             <div class="panel panel-alert heading-border">
-                <div class="panel-heading">
+                <div class="panel-heading bg-white">
                     <div class="panel-title">
                         Профиль
                     </div>
                 </div>
-                {% if is_creating %}
-                    <div class="alert alert-info alert-micro alert-border-left">
-                        Пожалуйста, заполните данные о себе. Вопросы без звёздочки можете не
-                        заполнять — они понадобятся только в случае зачисления вас в школу.
-                    </div>
-                {% elif is_confirming %}
-                    <div class="alert alert-warning alert-micro alert-border-left">
-                        Проверьте указанные данные на корректность и актуальность. Вопросы
-                        без звёздочки можете не заполнять — они понадобятся только в случае
-                        зачисления вас в школу.
-                    </div>
-                {% endif %}
                 <form method="POST" action="">
                     {% csrf_token %}
-                    <div class="panel-body bg-light p30">
+                    <div class="panel-body bg-white p25">
+                        {% if is_creating %}
+                            <div class="alert alert-info alert-micro alert-border-left mb25">
+                                Заполните данные о себе. Вопросы без звёздочки можете пока
+                                не&nbsp;заполнять — они понадобятся только в&nbsp;случае вашего зачисления.
+                            </div>
+                        {% elif is_confirming %}
+                            <div class="alert alert-warning alert-micro alert-border-left mb25">
+                                Проверьте актуальность всех введённых данных.
+                                Вопросы без звёздочки можете пока
+                                не&nbsp;заполнять — они понадобятся только в&nbsp;случае вашего зачисления.
+                            </div>
+                        {% endif %}
+
                         {# TODO (andgein) It's copy-paste #}
                         {% for field_name in form.fields %}
                             {% with field=form|get_item:field_name %}

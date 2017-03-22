@@ -8,15 +8,44 @@
     <div>
         {% if user.is_authenticated %}
             <header class="navbar navbar-shadow">
+                <div class="navbar-branding">
+                    {% if request.school %}
+                        <a class="navbar-brand" href="{% url 'school:index' request.school.short_name %}">
+                            <b>{{ request.school.name }}</b>
+                        </a>
+                    {% else %}
+                        <a class="navbar-brand" href="{% url 'home' %}">
+                            <b>ЛКШ</b>
+                        </a>
+                    {% endif %}
+                </div>
                 <ul class="nav navbar-nav navbar-right">
                     <li class="menu-divider hidden-xs"><i class="fa fa-circle"></i></li>
                     <li class="dropdown menu-merge">
                         <a href="#" class="dropdown-toggle fw600 p15" data-toggle="dropdown" aria-expanded="false">
                             <img src="{% static 'images/default_avatar.jpg' %}" alt="avatar" class="mw30 br64">
-                            <span class="hidden-xs pl15"> {{ user.first_name }} {{ user.last_name }}</span>
+                            <span class="pl15">
+                                {% if user.user_profile.first_name %}
+                                    {{ user.user_profile.first_name }}
+                                    <span class="hidden-xs">
+                                        {{ user.user_profile.last_name }}
+                                    </span>
+                                {% elif user.first_name %}
+                                    {{ user.first_name }}
+                                {% else %}
+                                    Меню
+                                {% endif %}
+                            </span>
                             <span class="caret caret-tp hidden-xs"></span>
                         </a>
                         <ul class="dropdown-menu list-group dropdown-persist w200" role="menu">
+                            {% if user.is_staff and request.school %}
+                                <li class="list-group-item">
+                                    <a href="{% url "school:staff" request.school.short_name %}">
+                                        <span class="fa fa-gears"></span> Админка
+                                    </a>
+                                </li>
+                            {% endif %}
                             <li class="list-group-item">
                                 <a href="{% url "user:profile" %}">
                                     <span class="fa fa-user"></span> Профиль

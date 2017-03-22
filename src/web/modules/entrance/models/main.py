@@ -393,6 +393,9 @@ class EntranceStatus(models.Model):
         verbose_name_plural = 'User entrance statuses'
         unique_together = ('school', 'user')
 
+# For using in templates
+EntranceStatus.do_not_call_in_templates = True
+
 
 class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
     school = models.ForeignKey(

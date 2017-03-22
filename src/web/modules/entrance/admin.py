@@ -1,4 +1,7 @@
 from django.contrib import admin
+from polymorphic.admin.childadmin import PolymorphicChildModelAdmin
+from polymorphic.admin.filters import PolymorphicChildModelFilter
+from polymorphic.admin.parentadmin import PolymorphicParentModelAdmin
 
 from home.admin import AbstractHomePageBlockAdmin
 from . import models
@@ -171,20 +174,58 @@ admin.site.register(models.EntranceStepsHomePageBlock,
                     AbstractHomePageBlockAdmin)
 
 
-class AbstractEntranceStepAdmin(admin.ModelAdmin):
+class AbstractEntranceStepAdmin(PolymorphicChildModelAdmin):
+    base_model = models.AbstractEntranceStep
+
     list_display = ('id', 'school', 'order',
                     'available_from_time', 'available_to_time',
                     'available_after_step')
     list_filter = (('school', admin.RelatedOnlyFieldListFilter), )
     ordering = ('school', 'order')
 
-admin.site.register(models.ConfirmProfileEntranceStep,
-                    AbstractEntranceStepAdmin)
-admin.site.register(models.FillQuestionnaireEntranceStep,
-                    AbstractEntranceStepAdmin)
-admin.site.register(models.SolveExamEntranceStep,
-                    AbstractEntranceStepAdmin)
-admin.site.register(models.ResultsEntranceStep,
-                    AbstractEntranceStepAdmin)
-admin.site.register(models.MakeUserParticipatingEntranceStep,
-                    AbstractEntranceStepAdmin)
+
+@admin.register(models.AbstractEntranceStep)
+class EntranceStepsAdmin(PolymorphicParentModelAdmin):
+    base_model = models.AbstractEntranceStep
+    child_models = (models.ConfirmProfileEntranceStep,
+                    models.FillQuestionnaireEntranceStep,
+                    models.SolveExamEntranceStep,
+                    models.ResultsEntranceStep,
+                    models.MakeUserParticipatingEntranceStep)
+    list_display = ('id',
+                    'get_class',
+                    'school', 'order',
+                    'available_from_time', 'available_to_time',
+                    'available_after_step')
+    list_filter = (('school', admin.RelatedOnlyFieldListFilter),
+                   PolymorphicChildModelFilter)
+    ordering = ('school', 'order')
+
+    @staticmethod
+    def get_class(obj):
+        return obj.get_real_instance_class().__name__
+
+
+@admin.register(models.ConfirmProfileEntranceStep)
+class ConfirmProfileEntranceStepAdmin(AbstractEntranceStepAdmin):
+    base_model = models.ConfirmProfileEntranceStep
+
+
+@admin.register(models.FillQuestionnaireEntranceStep)
+class FillQuestionnaireEntranceStepAdmin(AbstractEntranceStepAdmin):
+    base_model = models.FillQuestionnaireEntranceStep
+
+
+@admin.register(models.SolveExamEntranceStep)
+class SolveExamEntranceStepAdmin(AbstractEntranceStepAdmin):
+    base_model = models.SolveExamEntranceStep
+
+
+@admin.register(models.ResultsEntranceStep)
+class ResultsEntranceStepAdmin(AbstractEntranceStepAdmin):
+    base_model = models.ResultsEntranceStep
+
+
+@admin.register(models.MakeUserParticipatingEntranceStep)
+class MakeUserParticipatingEntranceStepAdmin(AbstractEntranceStepAdmin):
+    base_model = models.MakeUserParticipatingEntranceStep

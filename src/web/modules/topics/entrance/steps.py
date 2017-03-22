@@ -5,7 +5,7 @@ import modules.entrance.models.steps as entrance_steps
 
 class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
                                           entrance_steps.EntranceStepTextsMixIn):
-    template_file = 'fill_topics_questionnaire.html'
+    template_file = 'topics/fill_topics_questionnaire.html'
 
     questionnaire = models.ForeignKey(
         'topics.TopicQuestionnaire',

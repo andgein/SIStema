@@ -35,10 +35,11 @@ SERVER_EMAIL = 'admin@sistema.lksh.ru'
 
 INSTALLED_APPS = (
     # https://github.com/yourlabs/django-autocomplete-light/blob/master/docs/install.rst
-    # before django.contrib.admin and grappelli (if present)
+    # It should be before django.contrib.admin and grappelli (if present)
     'dal',
     'dal_select2',
 
+    # Django modules
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,6 +48,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # External django modules
     'reversion',
     'social_django',
     'markdown_deux',
@@ -58,8 +60,10 @@ INSTALLED_APPS = (
     'constance',
     'constance.backends.database',
 
+    # Sistema core
     'sistema',
 
+    # Sistema core modules
     'frontend',
     'generator',
     'home',
@@ -67,6 +71,14 @@ INSTALLED_APPS = (
     'schools',
     'users',
 
+    # Allauth should be after importing 'users'
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.vk',
+    'allauth.socialaccount.providers.twitter',
+
+    # Sistema modules (all should be modules.*)
     'modules.ejudge',
     'modules.enrolled_scans',
     'modules.entrance',
@@ -75,28 +87,11 @@ INSTALLED_APPS = (
     'modules.poldnev',
     'modules.study_results',
     'modules.topics',
-
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.vk',
-    'allauth.socialaccount.providers.twitter',
 )
-
-SITE_ID = 1
-LOGIN_REDIRECT_URL = '/'
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
-ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
-ACCOUNT_LOGOUT_ON_GET = True
-ACCOUNT_USER_DISPLAY = lambda user: user.get_full_name()
 
 MIDDLEWARE_CLASSES = (
     'htmlmin.middleware.HtmlMinifyMiddleware',
+    'htmlmin.middleware.MarkRequestMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -143,7 +138,17 @@ AUTHENTICATION_BACKENDS = (
 LOGIN_URL = '/accounts/login/'
 LOGOUT_URL = '/accounts/logout/'
 
-
+SITE_ID = 1
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_USER_DISPLAY = lambda user: user.get_full_name()
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases

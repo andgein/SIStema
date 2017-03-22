@@ -8,7 +8,9 @@
 
 {% block panel_body %}
     {% with need_form=True %}
-        {{ block.super }}
+        {% with suppress_global_form_errors_message=True %}
+            {{ block.super }}
+        {% endwith %}
     {% endwith %}
 {% endblock %}
 

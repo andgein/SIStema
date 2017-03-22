@@ -95,12 +95,6 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
     """
     with_background = True
 
-    """
-    Override to False in your subclass for disabling timeline point
-    at the left border of the timeline
-    """
-    with_timeline_point = True
-
     """ Override to True in your subclass to keep your step always open """
     always_expanded = False
 
@@ -129,14 +123,8 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
          Returns state of this step for user. You can override it in subclass
          :returns EntranceStepState
         """
-        now = timezone.now()
-        if (self.available_from_time is not None and
-           now < self.available_from_time):
+        if not self.is_opened:
             return EntranceStepState.NOT_OPENED
-
-        if (self.available_to_time is not None and
-           self.available_to_time < now):
-            return EntranceStepState.CLOSED
 
         if (self.available_after_step is not None and
            not self.available_after_step.is_passed(user)):
@@ -145,12 +133,15 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
         if self.is_passed(user):
             return EntranceStepState.PASSED
 
+        if self.is_closed:
+            return EntranceStepState.CLOSED
+
         return EntranceStepState.NOT_PASSED
 
     def build(self, user):
         """
         You can override it in your subclass
-        :return: EntranceStepBlock or None
+        :returns EntranceStepBlock or None
         """
         if not self.is_visible(user):
             return None
@@ -178,13 +169,30 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
                              'parallel should belong to the same school as step')
         super().save(*args, **kwargs)
 
+    @property
+    def is_opened(self):
+        if self.is_closed:
+            return False
+        if self.available_from_time is None:
+            return True
+        now = timezone.now()
+        return now >= self.available_from_time
+
+    @property
+    def is_closed(self):
+        if self.available_to_time is None:
+            return False
+        now = timezone.now()
+        return now > self.available_to_time
+
 
 class EntranceStepTextsMixIn(models.Model):
     """
     Inherit your entrance step from EntranceStepTextsMixIn to get the following
     TextFields in your model:
     * text_before_start_date
-    * text_after_finish_date
+    * text_after_finish_date_if_passed
+    * text_after_finish_date_if_not_passed
     * text_required_step_is_not_passed
     * text_step_is_not_passed
     * text_step_is_passed
@@ -196,15 +204,21 @@ class EntranceStepTextsMixIn(models.Model):
         blank=True
     )
 
-    text_after_finish_date = models.TextField(
-        help_text='Текст, который показывается после даты окончания заполнения. '
-                  'Поддерживается Markdown',
+    text_after_finish_date_if_passed = models.TextField(
+        help_text='Текст, который показывается после даты окончания заполнения, '
+                  'если шаг выполнен. Поддерживается Markdown',
+        blank=True
+    )
+
+    text_after_finish_date_if_not_passed = models.TextField(
+        help_text='Текст, который показывается после даты окончания заполнения, '
+                  'если шаг не выполнен. Поддерживается Markdown',
         blank=True
     )
 
     text_waiting_for_other_step = models.TextField(
-        help_text='Текст, который показывается, когда не пройден один из'
-                  'предыдущих шагов. Поддерживается Markdown',
+        help_text='Текст, который показывается, когда не пройден один '
+                  'из предыдущих шагов. Поддерживается Markdown',
         blank=True
     )
 
@@ -293,7 +307,6 @@ class ResultsEntranceStep(AbstractEntranceStep):
     template_file = 'results.html'
 
     with_background = False
-    with_timeline_point = False
     always_expanded = True
 
     def _get_visible_entrance_status(self, user):

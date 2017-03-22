@@ -18,29 +18,37 @@
 {% endblock %}
 
 {% block _header %}
-    {% if entrance_block.step.with_timeline_point %}
-        <div class="timeline-point"></div>
-    {% endif %}
     {% block title %}{% endblock %}
 
-    {% if entrance_block.state == EntranceStepState.NOT_OPENED and entrance_block.step.available_from_time %}
-        <span class="deadline">с&nbsp;{{ entrance_block.step.available_from_time.date|without_year:entrance_block.step.school.year }}</span>
+    {% if entrance_block.state == EntranceStepState.NOT_OPENED %}
+        {% if entrance_block.step.available_from_time %}
+            <span class="deadline">с&nbsp;{{ entrance_block.step.available_from_time.date|without_year:entrance_block.step.school.year }}</span>
+        {% endif %}
     {% endif %}
 
-    {% if entrance_block.state == EntranceStepState.NOT_PASSED and entrance_block.step.available_to_time %}
-        <span class="deadline">до&nbsp;{{ entrance_block.step.available_to_time.date|without_year:entrance_block.step.school.year }}</span>
+    {% if entrance_block.state == EntranceStepState.NOT_PASSED or entrance_block.state == EntranceStepState.WAITING_FOR_OTHER_STEP %}
+        {% if entrance_block.step.available_to_time %}
+            <span class="deadline">до&nbsp;{{ entrance_block.step.available_to_time.date|without_year:entrance_block.step.school.year }}</span>
+        {% endif %}
     {% endif %}
 
     {% if entrance_block.state == EntranceStepState.PASSED %}
         {% block done_icon %}
             <span class="done-icon  fa fa-check"></span>
         {% endblock %}
-        {% block collapse_icon %}
-            <div class="collapse-icon">
-                <span class="fa fa-chevron-down"></span>
-            </div>
-        {% endblock %}
     {% endif %}
+
+    {% block collapse_icon %}
+        {% if not entrance_block.step.always_expanded %}
+            <div class="collapse-icon">
+                {% if entrance_block.state == EntranceStepState.NOT_PASSED or entrance_block.state == EntranceStepState.CLOSED %}
+                    <span class="fa fa-chevron-up"></span>
+                {% else %}
+                    <span class="fa fa-chevron-down"></span>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endblock %}
 {% endblock %}
 
 {% block _text %}
@@ -70,9 +78,21 @@
 
     {% if entrance_block.state == EntranceStepState.PASSED %}
         {% block passed_text %}
-            {{ entrance_block.step.text_step_is_passed|markdown }}
+            {% if entrance_block.step.is_closed %}
+                {{ entrance_block.step.text_after_finish_date_if_passed|markdown }}
+            {% else %}
+                {{ entrance_block.step.text_step_is_passed|markdown }}
+            {% endif %}
         {% endblock %}
         {% block passed_after_text %}
+        {% endblock %}
+    {% endif %}
+
+    {% if entrance_block.state == EntranceStepState.CLOSED %}
+        {% block closed_text %}
+           {{ entrance_block.step.text_after_finish_date_if_not_passed|markdown }}
+        {% endblock %}
+        {% block closed_after_text %}
         {% endblock %}
     {% endif %}
 

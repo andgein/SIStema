@@ -8,11 +8,11 @@ from users import models
 
 def find_all_related_objects(model):
     collector = NestedObjects(using="default")  # database name
-    collector.collect([model])  # list of objects. single one won't do
-    list = []
+    collector.collect([model])  # list of objects. Single one won't do
+    objects = []
     for obj_set in collector.data.values():
-        list += obj_set
-    return list
+        objects += obj_set
+    return objects
 
 
 class Command(management_base.BaseCommand):

@@ -6,6 +6,7 @@ urlpatterns = [
     url(r'^(?P<school_name>[^/]+)/', include([
         url(r'^$', views.index, name='index'),
         url(r'^user/$', views.user, name='user'),
+        url(r'^staff/$', views.staff, name='staff'),
         url(r'^questionnaire/(?P<questionnaire_name>[^/]+)/$',
             views.questionnaire,
             name='questionnaire'),

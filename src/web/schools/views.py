@@ -1,9 +1,10 @@
 from django import shortcuts
-from django.contrib import auth
+import django.contrib.auth.decorators as auth_decorators
 
 from questionnaire import views as questionnaire_views
 
 
+@auth_decorators.login_required
 def user(request):
     # TODO(Artem Tabolin): home_page_blocks should probably not be used here,
     #     because it's defined in another module. It's better to make this
@@ -22,21 +23,17 @@ def user(request):
     })
 
 
+@auth_decorators.login_required
 def staff(request):
     return shortcuts.redirect('school:entrance:enrolling',
                               school_name=request.school.short_name)
 
 
-@auth.decorators.login_required
+@auth_decorators.login_required
 def index(request):
-    """Returns default page for school for current user."""
-    if request.user.is_staff:
-        return staff(request)
-    else:
-        return user(request)
+    return user(request)
 
 
-@auth.decorators.login_required
+@auth_decorators.login_required
 def questionnaire(request, questionnaire_name):
-    # TODO(Artem Tabolin): shouldn't redirect be used here instead?
     return questionnaire_views.questionnaire(request, questionnaire_name)

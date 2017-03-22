@@ -70,10 +70,19 @@
                                     {% block text_before_form %}{% endblock %}
                                     {% if need_form %}
                                         {% if form.errors %}
-                                            <div class="alert alert-micro alert-danger alert-border-left">
-                                                <span class="fa fa-remove pr10"></span>
-                                                Есть некоторые ошибки, давайте поправим
-                                            </div>
+                                            {% if not suppress_global_form_errors_message %}
+                                                <div class="alert alert-micro alert-danger alert-border-left">
+                                                    <span class="fa fa-remove pr10"></span>
+                                                    Есть некоторые ошибки, давайте поправим
+                                                </div>
+                                            {% endif %}
+                                            {% if form.non_field_errors %}
+                                                <div class="alert alert-micro alert-danger alert-border-left">
+                                                    {% for error in form.non_field_errors %}
+                                                        <p>{{ error }}</p>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
                                         {% endif %}
                                         {% for field_name in form.fields %}
                                             {% with field=form|get_item:field_name %}

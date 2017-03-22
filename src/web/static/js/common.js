@@ -15,21 +15,25 @@ $(document).ready(function() {
     })
 });
 
+/* TODO (Andgein) Extract it from common.js */
 $(document).ready(function() {
-    $(':input[name$=poldnev_person]').change(function() {
-        var text = $(this).data().select2.$selection.text();
-        var is_deletion = !text.includes('<span');
-        var $val = $($.parseHTML('<span>' + text + '</span>')[0]);
-        var field_names = ['last_name', 'first_name', 'middle_name'];
+    var field_names = ['last_name', 'first_name', 'middle_name'];
+
+    $(':input[name$=poldnev_person]').on('select2:select', function(e) {
+        var text = e.params.data.text;
+        var $val = $($.parseHTML('<span>' + text + '</span>'));
         for (var i = 0; i < field_names.length; i++) {
-            var input = $(':input[name$=' + field_names[i] + ']');
-            if (is_deletion) {
-                input.val(input[0].backup_value).trigger('change');
-            } else {
-                input[0].backup_value = input.val();
-                var field_value = $val.find('.' + field_names[i]).text();
-                input.val(field_value).trigger('change');
-            }
+            var $input = $(':input[name$="' + field_names[i] + '"]');
+            $input.data('backup-value',  $input.val());
+            var field_value = $val.find('.' + field_names[i]).text();
+            $input.val(field_value).trigger('change');
+        }
+    });
+
+    $(':input[name$=poldnev_person]').on('select2:unselect', function(e) {
+        for (var i = 0; i < field_names.length; i++) {
+            var $input = $(':input[name$="' + field_names[i] + '"]');
+            $input.val($input.data('backup-value')).trigger('change');
         }
     });
 });

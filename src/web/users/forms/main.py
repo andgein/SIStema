@@ -75,7 +75,6 @@ class UserProfileForm(forms.Form):
         widget=TextInputWithFaIcon(attrs={
             'placeholder': 'Введите фамилию',
             'class': 'gui-input',
-            'autofocus': 'autofocus',
             'fa': 'user',
         })
     )

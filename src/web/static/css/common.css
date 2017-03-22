@@ -1,6 +1,6 @@
 html,
 body {
-    background-color: #f9f9f9;
+    background-color: white;
 }
 
 .alert a {
@@ -11,3 +11,41 @@ body {
 .alert a:hover {
     text-decoration: none;
 }
+
+/* Navbar */
+.navbar {
+    background-color: #fafafa;
+}
+
+.sb-l-c .navbar-branding {
+    width: auto !important;
+    max-width: none !important;
+}
+
+.sb-l-c .navbar-brand {
+    display: initial !important;
+}
+
+/* Admin forms */
+.admin-form .heading-border .panel-heading {
+    padding: 25px 28px 17px;
+}
+
+/* Select2 */
+.admin-form .select2-container--default .select2-selection--single {
+    background-color: white;
+    border-radius: 5px;
+    height: 40px;
+    padding: 2px 5px;
+}
+
+/* Placeholders */
+.form-control:-moz-placeholder  { color: #bbb; opacity: 1; text-overflow:ellipsis; }
+.form-control::-moz-placeholder  { color: #bbb; opacity: 1; text-overflow:ellipsis; }
+.form-control:-ms-input-placeholder  { color: #bbb; opacity: 1; text-overflow:ellipsis; }
+.form-control::-webkit-input-placeholder { color: #bbb; opacity: 1; text-overflow:ellipsis; }
+
+.form-control:not(.dont-hide-placeholder-on-focus):focus:-moz-placeholder { opacity: 0; transition: opacity 0.3s ease; }
+.form-control:not(.dont-hide-placeholder-on-focus):focus::-moz-placeholder { opacity: 0; transition: opacity 0.3s ease; }
+.form-control:not(.dont-hide-placeholder-on-focus):focus:-ms-input-placeholder { opacity: 0; transition: opacity 0.3s ease; }
+.form-control:not(.dont-hide-placeholder-on-focus):focus::-webkit-input-placeholder { opacity: 0; transition: opacity 0.3s ease; }
