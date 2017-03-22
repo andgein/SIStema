@@ -6,6 +6,7 @@ import django.utils.timezone
 
 import schools.models
 import users.models
+import modules.smartq.models as smartq_models
 
 from djchoices import choices
 
@@ -43,6 +44,39 @@ class TopicQuestionnaire(models.Model):
             questionnaire=self,
             status=UserQuestionnaireStatus.Status.FINISHED
         ).values_list('user_id', flat=True)
+
+
+class TopicCheckingQuestionnaire(models.Model):
+    class Status(choices.DjangoChoices):
+        IN_PROGRESS = choices.ChoiceItem(1)
+        REFUSED = choices.ChoiceItem(2)
+        FAILED = choices.ChoiceItem(3)
+        PASSED = choices.ChoiceItem(4)
+
+    topic_questionnaire = models.ForeignKey(TopicQuestionnaire, related_name='+')
+
+    user = models.ForeignKey(users.models.User, related_name='+')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    status = models.PositiveIntegerField(choices=Status.choices, validators=[Status.validator])
+
+    @classmethod
+    def get_latest(cls, user, topic_questionnaire):
+        try:
+            smartq_q = cls.objects.filter(
+                user=user, topic_questionnaire=topic_questionnaire).latest('created_at')
+            return smartq_q
+        except cls.DoesNotExist:
+            return None
+
+    def errors_count(self):
+        err_count = 0
+        for q in self.questions.all():
+            # I was counting ok_counts, but artemtab made me think in negative way
+            if q.checker_result != TopicCheckingQuestionnaireQuestion.CheckerResult.OK:
+                err_count += 1
+        return err_count
 
 
 class Level(models.Model):
@@ -338,6 +372,7 @@ class UserQuestionnaireStatus(models.Model):
         STARTED = choices.ChoiceItem(2)
         CORRECTING = choices.ChoiceItem(3)
         FINISHED = choices.ChoiceItem(4)
+        CHECK_TOPICS = choices.ChoiceItem(5)
 
     user = models.ForeignKey(users.models.User, related_name='+')
 
@@ -416,3 +451,55 @@ class ScaleInTopicIssue(models.Model):
 
     # TODO: may be store scale_in_topic, not label_group?
     label_group = models.ForeignKey(ScaleLabelGroup)
+
+
+class QuestionForTopic(models.Model):
+    scale_in_topic = models.ForeignKey(ScaleInTopic,
+            related_name='smartq_mapping',
+            help_text='Question is for this topic')
+
+    mark = models.PositiveIntegerField(
+            help_text='Question will be asked is this mark is equal to user mark for topic')
+
+    smartq_question = models.ForeignKey(
+            smartq_models.Question,
+            related_name='topic_mapping',
+            help_text='Base checking question without specified numbers')
+
+    group = models.IntegerField(
+            blank=True, null=True, default=None,
+            help_text='Same group indicates similar questions, e.g. bfs/dfs, and only one of them is asked')
+
+
+class TopicCheckingSettings(models.Model):
+    questionnaire = models.ForeignKey(TopicQuestionnaire)
+
+    max_questions = models.PositiveIntegerField()
+ 
+    @property
+    def allowed_errors_map(self):
+        # TODO: not hardcode
+        return {1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 2}
+
+
+class TopicCheckingQuestionnaireQuestion(models.Model):
+    # Modify together with smartq
+    class CheckerResult(choices.DjangoChoices):
+        # TODO: no doubling the Checker result from smartq
+        OK = choices.ChoiceItem(1)
+        WRONG_ANSWER = choices.ChoiceItem(2)
+        PRESENTATION_ERROR = choices.ChoiceItem(3)
+        CHECK_FAILED = choices.ChoiceItem(4)
+
+    questionnaire = models.ForeignKey(TopicCheckingQuestionnaire, related_name='questions')
+
+    generated_question = models.ForeignKey(smartq_models.GeneratedQuestion, related_name='+')
+
+    topic_mapping = models.ForeignKey(QuestionForTopic, related_name='+')
+
+    checker_result = models.PositiveIntegerField(choices=CheckerResult.choices,
+            validators=[CheckerResult.validator],
+            null=True, default=None)
+
+    checker_message = models.CharField(max_length=2000, blank=True, null=True, default=None)
+

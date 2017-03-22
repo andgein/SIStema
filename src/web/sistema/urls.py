@@ -11,6 +11,7 @@ urlpatterns = [
     url(r'^poldnev/', include('modules.poldnev.urls', namespace='poldnev')),
     url(r'^study-results/', include('modules.study_results.urls',
                                     namespace='study_results')),
+    url(r'^smartq/', include('modules.smartq.urls', namespace='smartq')),
     url(r'', include('users.urls')),
     url(r'', include('schools.urls', namespace='school')),
 ]

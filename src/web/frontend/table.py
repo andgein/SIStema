@@ -119,7 +119,7 @@ class SimplePropertyColumn(Column):
 
 
 class SimpleFuncColumn(Column):
-    def __init__(self, func, title, name=None):
+    def __init__(self, func, title, name=None, search_attrs=None):
         super().__init__()
         self.func = func
         self.title = title
@@ -129,6 +129,16 @@ class SimpleFuncColumn(Column):
             self.name = name
         self.order_function = lambda obj: self.func(obj)
         self.search_function = lambda obj, f: f in self.func(obj)
+        if search_attrs is not None:
+            self.search_filter = lambda f: self.build_q(search_attrs, f)
+
+    @staticmethod
+    def build_q(search_attrs, filter):
+        result = query_utils.Q()
+        for search_attr in search_attrs:
+            kwargs = {search_attr + '__icontains': filter}
+            result = result | query_utils.Q(**kwargs)
+        return result
 
     def get_cell_data(self, table, obj):
         return self.func(obj)

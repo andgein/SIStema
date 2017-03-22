@@ -18,6 +18,15 @@
                     </div>
 
                     <div class="panel-body p25">
+                        {% if smartq_q.get_status_display == "PASSED" %}
+                            <div class="alert alert-border-left alert-success light">
+                                <i class="fa fa-info pr10"></i>
+                                <strong>Проверочные вопросы пройдены!</strong>
+                                <p class="fs13">
+                                    Поздравляем, ваша анкета подтверждена!
+                                </p>
+                            </div>
+                        {% endif %}
 
                         {% for topic_with_marks in topics %}
                             <div class="row">
@@ -47,3 +56,4 @@
     </div>
 
 {% endblock %}
+

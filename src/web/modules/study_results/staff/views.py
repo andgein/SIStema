@@ -23,7 +23,8 @@ class StudyResultsTable(frontend.table.Table):
         super().__init__(
             study_results_models.StudyResult,
             study_results_models.StudyResult.objects.filter(
-                id__in=study_result_ids).prefetch_related('comments')
+                id__in=study_result_ids).prefetch_related('comments').order_by(
+                    'school_participant__parallel__name', 'school_participant__user__last_name')
         )
         self.school = school
         self.identifiers = {'school_name': school.short_name}
@@ -40,7 +41,7 @@ class StudyResultsTable(frontend.table.Table):
         # TODO: add search by name
         name_column = frontend.table.SimpleFuncColumn(
             lambda study_result: study_result.school_participant.user
-                .get_full_name(), 'Имя')
+                .get_full_name(), 'Имя', search_attrs=['school_participant__user__last_name', 'school_participant__user__first_name'])
         name_column.data_type = frontend.table.LinkDataType(
             frontend.table.StringDataType(),
             lambda study_result: urlresolvers.reverse(
@@ -50,7 +51,7 @@ class StudyResultsTable(frontend.table.Table):
 
         parallel_column = frontend.table.SimpleFuncColumn(
             lambda study_result: study_result.school_participant.parallel.name,
-            'Параллель')
+            'Параллель', search_attrs=['school_participant__parallel__name'])
         theory_column = frontend.table.SimplePropertyColumn(
             'theory', 'Оценка теории', name='theory')
         practice_column = frontend.table.SimplePropertyColumn(

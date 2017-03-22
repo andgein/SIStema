@@ -41,6 +41,20 @@ class ParallelAdmin(admin.ModelAdmin):
     )
 
 
+class SchoolParticipantAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'school',
+        'user',
+        'parallel',
+    )
+    list_filter = (
+        'school',
+        'parallel',
+    )
+
+
 admin.site.register(models.School, SchoolAdmin)
 admin.site.register(models.Session, SessionAdmin)
 admin.site.register(models.Parallel, ParallelAdmin)
+admin.site.register(models.SchoolParticipant, SchoolParticipantAdmin)

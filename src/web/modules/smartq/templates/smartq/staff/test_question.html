@@ -1,0 +1,39 @@
+{% extends "staff_layout.html" %}
+
+{% load static %}
+
+{% block css %}
+{{ block.super }}
+<style>{{ question.css|safe }}</style>
+{% endblock css %}
+
+{% block content %}
+<div style="width: 600px; margin: auto;">
+  <form method="post" class="admin-form">
+    {% csrf_token %}
+    {% autoescape off %}{{ question.html }}{% endautoescape %}
+    <button type="submit" class="btn btn-success">Отправить</button>
+  </form>
+
+  {# TODO(Artem Tabolin): regenerate (with seed), ...  #}
+  <form action="{% url 'smartq:regenerate_admin_question_instance' question_short_name=question.base_question.short_name %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn">Перегенерировать вопрос</button>
+  </form>
+
+  <div>
+    {% for line in status_lines %}
+    <p>{{ line }}</p>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>{{ question.js|safe }}</script>
+<script src="{% static "vendor/admin-forms/js/jquery.validate.min.js" %}"></script>
+{# TODO(Artem Tabolin): make it a template tag? #}
+<script src="{% static "smartq/js/smartq.js" %}"></script>
+{% endblock %}

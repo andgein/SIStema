@@ -1,4 +1,7 @@
+import copy
+
 from dal.widgets import QuerySetSelectMixin
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import widgets
@@ -11,6 +14,77 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 
+class SistemaTextInput(forms.TextInput):
+    def __init__(self, fa=None, **kwargs):
+        super().__init__(**kwargs)
+        self.fa_type = fa
+
+    @property
+    def fa_type_safe(self):
+        return self.fa_type.replace(r'"', r'\"')
+
+    def render(self, name, value, attrs=None):
+        attrs = copy.deepcopy(attrs) or {}
+        attrs['class'] = attrs.get('class', '') + ' gui-input'
+
+        base_rendered = super().render(name, value, attrs=attrs)
+
+        icon_html = ('<label class="field-icon"><i class="fa fa-{}"></i>'
+                     '</label>'.format(self.fa_type) if self.fa_type else '')
+
+        label_classes = ['field']
+        if self.fa_type:
+            label_classes.append('prepend-icon')
+
+        return ('<label class="{label_classes}">{base_rendered}{icon_html}'
+                '</label>'.format(
+                    label_classes=' '.join(label_classes),
+                    base_rendered=base_rendered,
+                    icon_html=icon_html))
+
+
+# TODO(Artem Tabolin): this class duplicates the class above in everything
+#     except the base class. Can we avoid that? Maybe make some kind of mixin?
+class SistemaTextarea(forms.Textarea):
+    def __init__(self, fa=None, **kwargs):
+        super().__init__(**kwargs)
+        self.fa_type = fa
+
+    @property
+    def fa_type_safe(self):
+        return self.fa_type.replace(r'"', r'\"')
+
+    def render(self, name, value, attrs=None):
+        attrs = copy.deepcopy(attrs) or {}
+        attrs['class'] = attrs.get('class', '') + ' gui-input'
+
+        base_rendered = super().render(name, value, attrs=attrs)
+
+        icon_html = ('<label class="field-icon"><i class="fa fa-{}"></i>'
+                     '</label>'.format(self.fa_type) if self.fa_type else '')
+
+        label_classes = ['field']
+        if self.fa_type:
+            label_classes.append('prepend-icon')
+
+        return ('<label class="{label_classes}">{base_rendered}{icon_html}'
+                '</label>'.format(
+                    label_classes=' '.join(label_classes),
+                    base_rendered=base_rendered,
+                    icon_html=icon_html))
+
+
+class SistemaNumberInput(forms.NumberInput):
+    def render(self, name, value, attrs=None):
+        attrs = copy.deepcopy(attrs) or {}
+        attrs['class'] = attrs.get('class', '') + ' gui-input'
+
+        base_rendered = super().render(name, value, attrs=attrs)
+
+        return '<label class="field">{}</label>'.format(base_rendered)
+
+
+# TODO(Artem Tabolin): migrate all the usages to SistemaTextInput and remove
 class TextInputWithFaIcon(forms.TextInput):
     fa_type = None
 
@@ -34,6 +108,7 @@ class PasswordInputWithFaIcon(forms.PasswordInput, TextInputWithFaIcon):
     pass
 
 
+# TODO(Artem Tabolin): migrate all the usages to SistemaTextarea and remove
 class TextareaWithFaIcon(forms.Textarea):
     fa_type = None
 
