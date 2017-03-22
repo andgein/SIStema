@@ -43,7 +43,7 @@ class TopicQuestionnaire(models.Model):
         ).values_list('user_id', flat=True)
 
 
-class SmartqQuestionnaire(models.Model):
+class TopicCheckingQuestionnaire(models.Model):
     class Status(choices.DjangoChoices):
         IN_PROGRESS = choices.ChoiceItem(1)
         REFUSED = choices.ChoiceItem(2)
@@ -71,7 +71,7 @@ class SmartqQuestionnaire(models.Model):
         err_count = 0
         for q in self.questions.all():
             # I was counting ok_counts, but artemtab made me think in negative way
-            if q.checker_result != SmartqQuestionnaireQuestion.CheckerResult.OK:
+            if q.checker_result != TopicCheckingQuestionnaireQuestion.CheckerResult.OK:
                 err_count += 1
         return err_count
 
@@ -397,23 +397,23 @@ class ScaleInTopicIssue(models.Model):
 
 class QuestionForTopic(models.Model):
     scale_in_topic = models.ForeignKey(ScaleInTopic,
-    	related_name='smartq_mapping',
-	help_text='Question is for this topic')
+        related_name='smartq_mapping',
+    help_text='Question is for this topic')
 
     mark = models.PositiveIntegerField(
-    	help_text='Question will be asked is this mark is equal to user mark for topic')
+        help_text='Question will be asked is this mark is equal to user mark for topic')
 
     smartq_question = models.ForeignKey(
         smartq_models.Question,
         related_name='topic_mapping',
-	help_text='Base checking question without specified numbers')
+    help_text='Base checking question without specified numbers')
 
     group = models.IntegerField(
         blank=True, null=True, default=None,
-	help_text='Same group indicates similar questions, e.g. bfs/dfs, and only one of them is asked')
+    help_text='Same group indicates similar questions, e.g. bfs/dfs, and only one of them is asked')
 
 
-class TopicSmartqSettings(models.Model):
+class TopicCheckingSettings(models.Model):
     questionnaire = models.ForeignKey(TopicQuestionnaire)
 
     max_questions = models.PositiveIntegerField()
@@ -424,16 +424,16 @@ class TopicSmartqSettings(models.Model):
         return {1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 2}
 
 
-class SmartqQuestionnaireQuestion(models.Model):
+class TopicCheckingQuestionnaireQuestion(models.Model):
     # Modify together with smartq
     class CheckerResult(choices.DjangoChoices):
-    	# TODO: no doubling the Checker result from smartq
+        # TODO: no doubling the Checker result from smartq
         OK = choices.ChoiceItem(1)
         WRONG_ANSWER = choices.ChoiceItem(2)
         PRESENTATION_ERROR = choices.ChoiceItem(3)
         CHECK_FAILED = choices.ChoiceItem(4)
 
-    questionnaire = models.ForeignKey(SmartqQuestionnaire, related_name='questions')
+    questionnaire = models.ForeignKey(TopicCheckingQuestionnaire, related_name='questions')
 
     generated_question = models.ForeignKey(smartq_models.GeneratedQuestion, related_name='+')
 

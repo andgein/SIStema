@@ -160,22 +160,22 @@ class QuestionForTopicAdmin(admin.ModelAdmin):
 admin.site.register(models.QuestionForTopic, QuestionForTopicAdmin)
 
 
-class SmartqQuestionnaireAdmin(admin.ModelAdmin):
+class TopicCheckingQuestionnaireAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'topic_questionnaire', 'status')
     list_filter = ('topic_questionnaire',)
     search_fields = ('user__first_name', 'user__last_name')
 
-admin.site.register(models.SmartqQuestionnaire, SmartqQuestionnaireAdmin)
+admin.site.register(models.TopicCheckingQuestionnaire, TopicCheckingQuestionnaireAdmin)
 
 
-class SmartqQuestionnaireQuestionAdmin(admin.ModelAdmin):
+class TopicCheckingQuestionnaireQuestionAdmin(admin.ModelAdmin):
     list_display = ('id', 'questionnaire', 'generated_question', 'checker_result', 'checker_message')
     search_fields = ('=questionnaire__id',)
 
-admin.site.register(models.SmartqQuestionnaireQuestion, SmartqQuestionnaireQuestionAdmin)
+admin.site.register(models.TopicCheckingQuestionnaireQuestion, TopicCheckingQuestionnaireQuestionAdmin)
 
 
-class TopicSmartqSettingsAdmin(admin.ModelAdmin):
+class TopicCheckingSettingsAdmin(admin.ModelAdmin):
     list_display = ('id', 'questionnaire', 'max_questions')
 
-admin.site.register(models.TopicSmartqSettings, TopicSmartqSettingsAdmin)
+admin.site.register(models.TopicCheckingSettings, TopicCheckingSettingsAdmin)

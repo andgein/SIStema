@@ -36,7 +36,7 @@ def topic_questionnaire_view(view):
             return HttpResponseNotFound()
 
         request.questionnaire = get_object_or_404(models.TopicQuestionnaire, school=request.school)
-        request.smartq_q = models.SmartqQuestionnaire.get_latest(request.user, request.questionnaire)
+        request.smartq_q = models.TopicCheckingQuestionnaire.get_latest(request.user, request.questionnaire)
         return view(request, *args, **kwargs)
 
     func_wrapper.__name__ = view.__name__
@@ -237,7 +237,7 @@ def index(request):
     if request.method == 'GET':
         if user_status.status == models.UserQuestionnaireStatus.Status.CHECK_TOPICS:
             if request.questionnaire.is_closed():
-                # SmartQuestionnaire is part of TopicQuestionnaire. If topics
+                # TopicCheckingQuestionnaire is part of TopicQuestionnaire. If topics
                 # were not confirmed and school has finished, do not show
                 # questions and show the topics instead.
                 return correcting(request)
@@ -302,8 +302,8 @@ def return_to_correcting(request):
 
     smartq_q = request.smartq_q
     # User pressed "return to correcting" button, change state
-    if smartq_q.status == models.SmartqQuestionnaire.Status.IN_PROGRESS:
-        smartq_q.status = models.SmartqQuestionnaire.Status.REFUSED
+    if smartq_q.status == models.TopicCheckingQuestionnaire.Status.IN_PROGRESS:
+        smartq_q.status = models.TopicCheckingQuestionnaire.Status.REFUSED
         smartq_q.save()
 
     # In any case, user has to check his topic questionnaire again
@@ -323,7 +323,7 @@ def start_checking(request):
 
     _update_questionnaire_status(request.user, request.questionnaire, models.UserQuestionnaireStatus.Status.CHECK_TOPICS)
 
-    new_q = _create_smartq_questionnaire(request)
+    new_q = _create_topic_checking_questionnaire(request)
 
     if new_q.questions.all().count() == 0:
         return redirect('school:topics:finish', school_name=request.school.short_name)
@@ -350,7 +350,7 @@ def finish_smartq(request):
     if smartq_q is None:
         return redirect('school:topics:index', school_name=request.school.short_name)
     questions = smartq_q.questions.all()
-    allowed_errors_map = models.TopicSmartqSettings.objects.get(
+    allowed_errors_map = models.TopicCheckingSettings.objects.get(
             questionnaire=request.questionnaire).allowed_errors_map
     allowed_errors = allowed_errors_map.get(len(questions), 0)
 
@@ -362,31 +362,31 @@ def finish_smartq(request):
 
     if smartq_q.errors_count() > allowed_errors:
         # Too many mistakes
-        smartq_q.status = models.SmartqQuestionnaire.Status.FAILED
+        smartq_q.status = models.TopicCheckingQuestionnaire.Status.FAILED
         smartq_q.save()
         return redirect('school:topics:return_to_correcting', school_name=request.school.short_name)
 
-    smartq_q.status = models.SmartqQuestionnaire.Status.PASSED
+    smartq_q.status = models.TopicCheckingQuestionnaire.Status.PASSED
     smartq_q.save()
     _update_questionnaire_status(request.user, request.questionnaire, models.UserQuestionnaireStatus.Status.FINISHED)
 
     return redirect('school:topics:index', school_name=request.school.short_name)
 
 
-# TODO: Refactor, move to SmartqQuestionnaire method, _get_user_marks???
+# TODO: Refactor, move to TopicCheckingQuestionnaire method, _get_user_marks???
 @transaction.atomic
-def _create_smartq_questionnaire(request):
+def _create_topic_checking_questionnaire(request):
     topics_q = request.questionnaire
-    new_q = models.SmartqQuestionnaire.objects.create(
+    new_q = models.TopicCheckingQuestionnaire.objects.create(
             user=request.user,
             topic_questionnaire=topics_q,
-            status=models.SmartqQuestionnaire.Status.IN_PROGRESS)
+            status=models.TopicCheckingQuestionnaire.Status.IN_PROGRESS)
 
-    topics_with_marks =  _get_user_marks_by_topics(
+    topics_with_marks = _get_user_marks_by_topics(
             request.user, request.questionnaire, not_show_auto_marks=False)
     topics_with_marks = sorted(topics_with_marks, key=lambda t: t.topic.order, reverse=True)
     # Ask not more than max_questions
-    max_questions = models.TopicSmartqSettings.objects.get(
+    max_questions = models.TopicCheckingSettings.objects.get(
             questionnaire=topics_q).max_questions
 
     questions_counter = 0
@@ -402,7 +402,7 @@ def _create_smartq_questionnaire(request):
                  continue
         generated_question = mapping.smartq_question.create_instance(
                 user=request.user)
-        new_question = models.SmartqQuestionnaireQuestion.objects.create(
+        new_question = models.TopicCheckingQuestionnaireQuestion.objects.create(
                 generated_question=generated_question, questionnaire=new_q,
                 topic_mapping=mapping)
         groups.add(mapping.group)
