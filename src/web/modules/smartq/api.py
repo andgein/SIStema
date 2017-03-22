@@ -2,6 +2,15 @@ import enum
 
 class Generator:
     def generate(self):
+        """
+        The method should return a GeneratedQuestionData object. It will be
+        passed to Checker and to the html, css and js templates. You may pass
+        any keyword arguments to the constructor. They will be available as
+        attributes.
+
+        See GeneratedQuestionData's documentation for any special arguments it
+        has.
+        """
         raise NotImplementedError()
 
 
@@ -15,11 +24,25 @@ class Checker:
         CHECK_FAILED = 4
 
     def check(self, generated_question_data, answer):
+        """
+        The method should return a CheckerResult object.
+
+        :generated_question_data: GeneratedQuestionData object returned by
+            generator
+        :answer: Ordered dict with "field name" -> "user input" mapping
+        ::
+        """
         raise NotImplementedError()
 
 
 class GeneratedQuestionData:
     def __init__(self, **kwargs):
+        """
+        All the keyword arguments will be set as attributes.
+
+        :answer_fields: List of specs for answer fields as returned by
+            AnswerFieldSpec class methods. Default is a single text field.
+        """
         for name, value in kwargs.items():
             setattr(self, name, value)
 
@@ -29,12 +52,17 @@ class GeneratedQuestionData:
 
 class CheckerResult:
     def __init__(self, status, message=None, field_messages=None):
+        """
+        :status: value of Checker.Status enum
+        :self.message: message not specific to any field
+        :self.field: dict from field names to field specific messages
+        """
         self.status = status
         self.message = message or ''
         self.field_messages = field_messages or {}
 
         if not isinstance(self.status, Checker.Status):
-            raise TypeError('status should be of api.Checker.Result')
+            raise TypeError('status should be of api.Checker.Status')
 
         if not isinstance(self.message, str):
             raise TypeError('message should be an instance of str')
