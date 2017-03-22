@@ -16,11 +16,24 @@
                             <i class="fa fa-comments"></i> {{ questionnaire.title }}
                         </span>
                     </div>
-
+ 
                     <div class="panel-body p25">
+                        {% if smartq_q.get_status_display == "FAILED" %}
+                            <div class="alert alert-border-left alert-warning light text-dark">
+                                <i class="fa fa-info pr10"></i>
+                                <strong>Проверочные вопросы не пройдены!</strong>
+                                <p class="fs13">
+                                    Вы допустили слишком много ошибок при ответе на проверочные вопросы. Пожалуйста перепроверьте вашу тематическую анкету и попробуйте проверить себя ещё раз.
+                                </p>
+                                <p class="fs13">
+                                    Количество допущенных ошибок: {{ smartq_q.errors_count }}
+                                </p>
+                            </div>
+                        {% endif %}
+
                         <div class="alert alert-micro alert-default alert-border-left">
                             <h4 class="text-success">
-                                Поздравляем! Вы справились
+                                Поздравляем! Вы справились с заполнением тематической анкеты!
                             </h4>
 
                             <p class="fs13">
@@ -36,6 +49,10 @@
                             <p class="fs13">
                                 <span class="fa fa-warning"></span> Нечестное заполнение анкеты приведёт к тому,
                                 что вы получите задания, не соответствующие вашему уровню, и не сможете быть зачислены в ЛКШ.
+                            </p>
+
+                            <p class="fs13">
+                                После проверки анкеты вам будут предложены проверочные вопросы для подтверждения ваших знаний. Если вопросов не будет, ничего страшного, так тоже бывает. После ответа на них вернуться к редактированию анкеты будет нельзя.
                             </p>
                         </div>
 
@@ -70,16 +87,16 @@
                         <div class="alert alert-micro alert-border-left alert-danger light mt10 mbn">
                             <i class="fa fa-info pr10"></i>
                             <strong>Внимание!</strong>
-                            После нажатия на «Я согласен» исправить или заново заполнить анкету будет нельзя
+                            После нажатия на «Подтвердить» возможно исправить или заново заполнить анкету будет нельзя.
                         </div>
 
                     </div>
 
-                    <form method="POST" action="{% url 'school:topics:finish' request.school.short_name %}">
+                    <form method="POST" action="{% url 'school:topics:start_checking' request.school.short_name %}">
                         {% csrf_token %}
 
                         <div class="panel-footer p25 text-right">
-                            <button type="submit" class="button btn-alert">Я согласен</button>
+                            <button type="submit" class="button btn-alert">Подтвердить</button>
                         </div>
                     </form>
                 </div>
