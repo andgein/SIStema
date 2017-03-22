@@ -1,7 +1,7 @@
 from django.contrib import admin
-from polymorphic.admin.childadmin import PolymorphicChildModelAdmin
-from polymorphic.admin.filters import PolymorphicChildModelFilter
-from polymorphic.admin.parentadmin import PolymorphicParentModelAdmin
+from polymorphic.admin import (PolymorphicChildModelAdmin,
+                               PolymorphicChildModelFilter,
+                               PolymorphicParentModelAdmin)
 
 from home.admin import AbstractHomePageBlockAdmin
 from . import models
@@ -184,14 +184,31 @@ class AbstractEntranceStepAdmin(PolymorphicChildModelAdmin):
     ordering = ('school', 'order')
 
 
+def get_all_inheritors(klass):
+    """
+    Returns the list of all inheritors of the class
+    :return: list of classes
+    """
+    subclasses = set()
+    queue = [klass]
+    while queue:
+        parent = queue.pop()
+        children = {subclass
+                    for subclass in parent.__subclasses__()
+                    if subclass not in subclasses}
+        subclasses.update(children)
+        queue.extend(children)
+    return list(subclasses)
+
+
 @admin.register(models.AbstractEntranceStep)
 class EntranceStepsAdmin(PolymorphicParentModelAdmin):
     base_model = models.AbstractEntranceStep
-    child_models = (models.ConfirmProfileEntranceStep,
-                    models.FillQuestionnaireEntranceStep,
-                    models.SolveExamEntranceStep,
-                    models.ResultsEntranceStep,
-                    models.MakeUserParticipatingEntranceStep)
+    # child_models = (models.ConfirmProfileEntranceStep,
+    #                 models.FillQuestionnaireEntranceStep,
+    #                 models.SolveExamEntranceStep,
+    #                 models.ResultsEntranceStep,
+    #                 models.MakeUserParticipatingEntranceStep)
     list_display = ('id',
                     'get_class',
                     'school', 'order',
@@ -200,6 +217,9 @@ class EntranceStepsAdmin(PolymorphicParentModelAdmin):
     list_filter = (('school', admin.RelatedOnlyFieldListFilter),
                    PolymorphicChildModelFilter)
     ordering = ('school', 'order')
+
+    def get_child_models(self):
+        return get_all_inheritors(self.base_model)
 
     @staticmethod
     def get_class(obj):

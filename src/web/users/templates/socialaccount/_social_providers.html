@@ -1,32 +1,13 @@
-{% load socialaccount %}
-
-{% get_providers as socialaccount_providers %}
 <div class="panel-heading heading-border bg-white pt25">
     <div class="section row mn">
 
-    {% for provider in socialaccount_providers %}
-        {% if provider.id == "openid" %}
-            {% for brand in provider.get_brands %}
-            <div class="col-sm-6">
-                <a href="{% provider_login_url provider.id openid=brand.openid_url process=login %}"
-                   class="button btn-social {{provider.id}} {{brand.id}} span-left mr5 btn-block">
-                    <span>
-                        <i class="fa fa-{{ brand.id }}"></i>
-                    </span>{{ brand.name }}
-                </a>
-            </div>
-            {% endfor %}
-        {% endif %}
+        {% with provider_id="vk" provider_name="ВКонтакте" %}
+            {% include "socialaccount/_social_provider.html" %}
+        {% endwith %}
 
-        <div class="col-sm-6">
-            <a href="{% provider_login_url provider.id process=login scope=scope auth_params=auth_params %}"
-               class="button btn-social {{ provider.id }} span-left mr5 btn-block">
-                <span>
-                    <i class="fa fa-{{ provider.id }}"></i>
-                </span>{{ provider.name }}
-            </a>
-        </div>
-    {% endfor %}
+        {% with provider_id="twitter" provider_name="Твиттер" %}
+            {% include "socialaccount/_social_provider.html" %}
+        {% endwith %}
 
     </div>
 </div>

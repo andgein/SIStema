@@ -255,6 +255,20 @@ class SocialSignupForm(social_account_forms.SignupForm, UserProfileForm):
 
 
 class LoginForm(account_forms.LoginForm, base_forms.AccountBaseForm):
+    error_messages = {
+        'account_inactive':
+            'Ваш аккаунт выключен. Если это произошло по ошибке, напишите нам на lksh@lksh.ru',
+
+        'email_password_mismatch':
+            'Эл. почта или пароль неверны. Попробуйте ещё раз',
+
+        'username_password_mismatch':
+            'Логин или пароль неверны. Попробуйте ещё раз',
+
+        'username_email_password_mismatch':
+            'Логин или пароль неверны. Попробуйте ещё раз',
+    }
+
     def __init__(self, *args, **kwargs):
         kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.LOGIN
         super().__init__(*args, **kwargs)

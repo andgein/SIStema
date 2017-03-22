@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block not_passed_after_text %}
-    <a href="{{ entrance_block.step.questionnaire.get_absolute_url }}" class="btn btn-sm btn-default">
+    <a href="{{ entrance_block.step.questionnaire.get_absolute_url }}" class="btn btn-primary">
         {% if entrance_block.questionnaire_status == entrance_block.UserQuestionnaireStatus.STARTED %}
             Продолжить
         {% elif entrance_block.questionnaire_status == entrance_block.UserQuestionnaireStatus.CORRECTING %}

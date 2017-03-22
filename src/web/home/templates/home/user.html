@@ -24,9 +24,6 @@
 {% block content %}
     <div class="container-fluid">
         <div class="mw1200 center-block">
-            <div class="fs30 text-center text-dark pb25">
-                {{ school.full_name }}
-            </div>
 
             {% for block in blocks %}
                 {% include block.template_name with block=block %}

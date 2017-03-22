@@ -10,11 +10,11 @@
             <header class="navbar navbar-shadow">
                 <div class="navbar-branding">
                     {% if request.school %}
-                        <a class="navbar-brand" href="{% url 'school:index' request.school.short_name %}">
+                        <a class="navbar-brand" href="{% url 'school:index' request.school.short_name %}" title="На главную">
                             <b>{{ request.school.name }}</b>
                         </a>
                     {% else %}
-                        <a class="navbar-brand" href="{% url 'home' %}">
+                        <a class="navbar-brand" href="{% url 'home' %}" title="На главную">
                             <b>ЛКШ</b>
                         </a>
                     {% endif %}

@@ -1,0 +1,10 @@
+{% load socialaccount %}
+
+<div class="col-sm-6">
+    <a href="{% provider_login_url provider_id process=login scope=scope auth_params=auth_params %}"
+       class="button btn-social {{ provider_id }} span-left mr5 btn-block">
+        <span>
+            <i class="fa fa-{{ provider_id }}"></i>
+        </span> {{ provider_name }}
+    </a>
+</div>

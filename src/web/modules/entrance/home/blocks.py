@@ -68,4 +68,4 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
         if status is None or not status.is_enrolled:
             steps = steps.filter(Q(visible_only_for_enrolled=False))
 
-        return steps
+        return steps.order_by('order')
