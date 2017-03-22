@@ -3,8 +3,8 @@ $(document).ready(function() {
   function saveAnswer(url, generated_question_id) {
     var data = {};
     $('input[data-smartq-id=' + generated_question_id + ']').each(function(i) {
-      var $self = $(this);
-      data[$self.attr('name')] = $self.val();
+      var $this = $(this);
+      data[$this.attr('name')] = $this.val();
     });
     $.post(url, data)
   };
@@ -12,13 +12,13 @@ $(document).ready(function() {
   var $inputs = $('input[data-smartq-id]');
 
   $inputs.focus(function() {
-    var $self = $(this);
-    $self.data('last_focus_value', $self.val());
+    var $this = $(this);
+    $this.data('last_focus_value', $this.val());
   }).blur(function() {
-    var $self = $(this);
-    if ($self.data('last_focus_value') !== $self.val()) {
-      var url = $self.attr('data-smartq-save-url');
-      var id = $self.attr('data-smartq-id');
+    var $this = $(this);
+    if ($this.data('last_focus_value') !== $this.val()) {
+      var url = $this.attr('data-smartq-save-url');
+      var id = $this.attr('data-smartq-id');
 
       saveAnswer(url, id);
     }
@@ -37,30 +37,30 @@ $(document).ready(function() {
   );
 
   function validateForm() {
-    var $self = $(this);
+    var $this = $(this);
     var rules = {};
     var messages = {};
 
-    $self.find('input[data-smartq-id]').each(function() {
-      var $self = $(this);
-      var name = $self.attr('name');
+    $this.find('input[data-smartq-id]').each(function() {
+      var $this = $(this);
+      var name = $this.attr('name');
 
       rules[name] = rules[name] || {};
       messages[name] = messages[name] || {};
       
-      var regexp = $self.attr('data-smartq-validation-regexp');
+      var regexp = $this.attr('data-smartq-validation-regexp');
       if (regexp) {
         rules[name]['regexp'] = regexp;
       }
 
       var regexp_message =
-        $(this).attr('data-smartq-validation-regexp-message');
+        $this.attr('data-smartq-validation-regexp-message');
       if (regexp_message) {
         messages[name]['regexp'] = regexp_message;
       }
     });
 
-    $self.validate({
+    $this.validate({
       errorClass: 'state-error',
       validClass: 'state-success-do-not-highlight',
       errorElement: 'em',
