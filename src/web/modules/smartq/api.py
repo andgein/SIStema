@@ -44,6 +44,7 @@ class CheckerResult:
             raise TypeError('field_message should be a dict from field names '
                             'to messages')
 
+    @property
     def is_ok(self):
         return self.status == Checker.Result.OK
 

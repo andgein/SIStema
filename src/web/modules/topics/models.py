@@ -397,19 +397,19 @@ class ScaleInTopicIssue(models.Model):
 
 class QuestionForTopic(models.Model):
     scale_in_topic = models.ForeignKey(ScaleInTopic,
-        related_name='smartq_mapping',
+            related_name='smartq_mapping',
     help_text='Question is for this topic')
 
     mark = models.PositiveIntegerField(
-        help_text='Question will be asked is this mark is equal to user mark for topic')
+            help_text='Question will be asked is this mark is equal to user mark for topic')
 
     smartq_question = models.ForeignKey(
-        smartq_models.Question,
-        related_name='topic_mapping',
+            smartq_models.Question,
+            related_name='topic_mapping',
     help_text='Base checking question without specified numbers')
 
     group = models.IntegerField(
-        blank=True, null=True, default=None,
+            blank=True, null=True, default=None,
     help_text='Same group indicates similar questions, e.g. bfs/dfs, and only one of them is asked')
 
 
