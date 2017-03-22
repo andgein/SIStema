@@ -98,7 +98,7 @@ class AnswerFieldSpec:
         spec = cls._base(**kwargs)
 
         if not isinstance(multiline, bool):
-            raise ValueError('multiline must be either True or False')
+            raise TypeError('multiline must be either True or False')
 
         spec['multiline'] = multiline
 
