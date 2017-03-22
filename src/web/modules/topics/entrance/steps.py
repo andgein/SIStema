@@ -25,6 +25,12 @@ class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
         blank=True
     )
 
+    text_questionnaire_is_on_checking_questions = models.TextField(
+        help_text='Текст, который показывается, когда пользователь '
+                  'не ответил на проверочные вопросы. Поддерживается Markdown',
+        blank=True
+    )
+
     def save(self, *args, **kwargs):
         if (self.questionnaire_id is not None and
            self.questionnaire.school is not None and

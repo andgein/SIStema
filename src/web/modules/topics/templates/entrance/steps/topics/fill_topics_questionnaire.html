@@ -9,6 +9,8 @@
         {{ entrance_block.step.text_questionnaire_not_finished|markdown }}
     {% elif entrance_block.questionnaire_status == entrance_block.UserQuestionnaireStatus.CORRECTING %}
         {{ entrance_block.step.text_questionnaire_correcting|markdown }}
+    {% elif entrance_block.questionnaire_status == entrance_block.UserQuestionnaireStatus.CHECK_TOPICS %}
+        {{ entrance_block.step.text_questionnaire_is_on_checking_questions|markdown }}
     {% else %}
         {{ block.super }}
     {% endif %}
@@ -20,6 +22,8 @@
             Продолжить
         {% elif entrance_block.questionnaire_status == entrance_block.UserQuestionnaireStatus.CORRECTING %}
             Проверить оценки
+        {% elif entrance_block.questionnaire_status == entrance_block.UserQuestionnaireStatus.CHECK_TOPICS %}
+            Ответить на&nbsp;вопросы
         {% else %}
             Заполнить тематическую анкету
         {% endif %}
