@@ -297,7 +297,7 @@ class GeneratedQuestion(models.Model):
 
         if not self.form.is_valid():
             return api.CheckerResult(
-                status=api.Checker.Result.PresentationError)
+                status=api.Checker.Status.PRESENTATION_ERROR)
 
         answer_dict = collections.OrderedDict(
             (name, self.form.cleaned_data[name])
@@ -316,7 +316,7 @@ class GeneratedQuestion(models.Model):
             )
         except Exception:  #pylint: disable=broad-except
             result = api.CheckerResult(
-                status=api.Checker.Result.CheckFailed,
+                status=api.Checker.Status.CHECK_FAILED,
                 message="{}: [id={}, question={}] {}".format(
                     datetime.datetime.now(),
                     self.id,
@@ -325,7 +325,7 @@ class GeneratedQuestion(models.Model):
                 )
             )
 
-        if result.status == api.Checker.Result.CheckFailed:
+        if result.status == api.Checker.Status.CHECK_FAILED:
             print('{}: smartq: CheckFailed\n'
                   '  generated_question_id = {}\n'
                   '  question = {}\n'
