@@ -26,7 +26,7 @@
                                     Вы допустили слишком много ошибок при ответе на проверочные вопросы. Пожалуйста перепроверьте вашу тематическую анкету и попробуйте проверить себя ещё раз.
                                 </p>
                                 <p class="fs13">
-                                    Количество допущенных ошибок: {{ smartq_q.made_errors }}
+                                    Количество допущенных ошибок: {{ smartq_q.errors_count }}
                                 </p>
                             </div>
                         {% endif %}
@@ -87,7 +87,7 @@
                         <div class="alert alert-micro alert-border-left alert-danger light mt10 mbn">
                             <i class="fa fa-info pr10"></i>
                             <strong>Внимание!</strong>
-                            После нажатия на «Перейти к проверочным вопросам» возможно исправить или заново заполнить анкету будет нельзя.
+                            После нажатия на «Подтвердить» возможно исправить или заново заполнить анкету будет нельзя.
                         </div>
 
                     </div>
@@ -96,7 +96,7 @@
                         {% csrf_token %}
 
                         <div class="panel-footer p25 text-right">
-                            <button type="submit" class="button btn-alert">Перейти к проверочным вопросам</button>
+                            <button type="submit" class="button btn-alert">Подтвердить</button>
                         </div>
                     </form>
                 </div>

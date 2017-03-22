@@ -3,10 +3,10 @@
 {% load static %}
 
 {% block css %}
-{{ block.super }}
-{% for q in questions %}
-<style>{{ q.question.css|safe }}</style>
-{% endfor %}
+  {{ block.super }}
+  {% for q in questions %}
+    <style>{{ q.generated_question.css|safe }}</style>
+  {% endfor %}
 {% endblock css %}
 
 {% block title %}Проверочные вопросы{% endblock %}
@@ -27,18 +27,18 @@
         </div>
 
         <div class="panel-body p25">
-            <p class="fs13">
-            Здесь вы можете подтвердить свои знания по пунктам, которые вы в тематической анкете проставили как "знаете". Вы должны уметь отвечать на все вопросы.
-            </p>
-            <p class="fs13">
-            Вы можете вернуться к ответу на эти вопросы в любой момент. Все ваши ответы сохраняются. При открытии страницы заново вопросы <b>не</b> будут перегенерированы.
-            </p>
-            <p class="fs13">
-            После ответа на <b>все</b> вопросы нажмите на кнопку «Проверить». Если вы почти на все вопросы ответите правильно, вы получите вступительную работу соответственно вашему уровню. Если что-то не получилось и вы ошиблись, у вас будет возможность попробовать заново на новом наборе вопросов, и при желании исправить тематическую анкету.
-            </p>
-            <p class="fs13">
-            Если вопросы оказались слишком сложными для вас и вы не можете какой-нибудь из них решить, нажмите на кнопку в низу страницы «Редактировать оценки». Там вы сможете исправить тематическую анкету и после получить новый набор проверочных вопросов.
-            </p>
+          <p class="fs13">
+          Подтвердите свои знания по пунктам, которые вы в тематической анкете проставили как "знаете". Вы должны уметь отвечать на все вопросы.
+          </p>
+          <p class="fs13">
+          Вы можете вернуться к ответу на эти вопросы в любой момент. Все ваши ответы сохраняются. При открытии страницы заново вопросы <b>не</b> будут перегенерированы.
+          </p>
+          <p class="fs13">
+          После ответа на <b>все</b> вопросы нажмите на кнопку «Проверить». Если вы почти на все вопросы ответите правильно, вы получите вступительную работу соответственно вашему уровню. Если что-то не получилось и вы ошиблись, у вас будет возможность попробовать заново на новом наборе вопросов, и при желании исправить тематическую анкету.
+          </p>
+          <p class="fs13">
+          Если вопросы оказались слишком сложными для вас и вы не можете какой-нибудь из них решить, нажмите на кнопку в низу страницы «Редактировать оценки». Там вы сможете исправить тематическую анкету и после получить новый набор проверочных вопросов.
+          </p>
           <div class="alert alert-micro alert-border-left alert-warning light text-dark">
             <i class="fa fa-info pr10"></i>
             После успешного ответа на проверочные вопросы исправить тематическую анкету будет нельзя.
@@ -58,7 +58,7 @@
                   {{ q.topic_mapping.scale_in_topic.topic.title }}
                   </p>
                   <p class="text-alert">
-                    {% autoescape off %}{{ q.question.html }}{% endautoescape %}
+                    {% autoescape off %}{{ q.generated_question.html }}{% endautoescape %}
                   </p>
                 </div>
               </div>
@@ -85,15 +85,15 @@
 {% endblock %}
 
 {% block scripts %}
-{{ block.super }}
-{% for q in questions %}
-<script>{{ q.question.js|safe }}</script>
-{% endfor %}
-<script src="{% static "vendor/admin-forms/js/jquery.validate.min.js" %}"></script>
-<script src="{% static "smartq/js/smartq.js" %}"></script>
-<script type="text/javascript">
-  document.getElementById("return").onclick = function () {
-    location.href = "{% url 'school:topics:return_to_correcting' request.school.short_name %}";
-  };
-</script>
+  {{ block.super }}
+  {% for q in questions %}
+    <script>{{ q.generated_question.js|safe }}</script>
+  {% endfor %}
+  <script src="{% static "vendor/admin-forms/js/jquery.validate.min.js" %}"></script>
+  <script src="{% static "smartq/js/smartq.js" %}"></script>
+  <script type="text/javascript">
+    document.getElementById("return").onclick = function () {
+      location.href = "{% url 'school:topics:return_to_correcting' request.school.short_name %}";
+    };
+  </script>
 {% endblock %}

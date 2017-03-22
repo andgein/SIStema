@@ -237,6 +237,9 @@ def index(request):
     if request.method == 'GET':
         if user_status.status == models.UserQuestionnaireStatus.Status.CHECK_TOPICS:
             if request.questionnaire.is_closed():
+                # SmartQuestionnaire is part of TopicQuestionnaire. If topics
+                # were not confirmed and school has finished, do not show
+                # questions and show the topics instead.
                 return correcting(request)
             else:
                 return check_topics(request)
@@ -287,18 +290,23 @@ def finish(request):
     return redirect(request.school)
 
 
+# This method is called from both REFUSE button (from html) and FAILED (from checking)
 @login_required
 @topic_questionnaire_view
 def return_to_correcting(request):
     user_status = _get_questionnaire_status(request.user, request.questionnaire)
-    if user_status.status != models.UserQuestionnaireStatus.Status.CHECK_TOPICS:
+    # Both CHECK_TOPICS and PASSED can't happen
+    if (user_status.status != models.UserQuestionnaireStatus.Status.CHECK_TOPICS
+                or request.smartq_q is None):
         return redirect('school:topics:index', school_name=request.school.short_name)
 
     smartq_q = request.smartq_q
+    # User pressed "return to correcting" button, change state
     if smartq_q.status == models.SmartqQuestionnaire.Status.IN_PROGRESS:
         smartq_q.status = models.SmartqQuestionnaire.Status.REFUSED
         smartq_q.save()
 
+    # In any case, user has to check his topic questionnaire again
     _update_questionnaire_status(request.user, request.questionnaire, models.UserQuestionnaireStatus.Status.CORRECTING)
     return redirect('school:topics:index', school_name=request.school.short_name)
 
@@ -317,7 +325,7 @@ def start_checking(request):
 
     new_q = _create_smartq_questionnaire(request)
 
-    if len(new_q.questions.all()) == 0:
+    if new_q.questions.all().count() == 0:
         return redirect('school:topics:finish', school_name=request.school.short_name)
 
     return redirect('school:topics:check_topics', school_name=request.school.short_name)
@@ -339,18 +347,20 @@ def check_topics(request):
 @topic_questionnaire_view
 def finish_smartq(request):
     smartq_q = request.smartq_q
+    if smartq_q is None:
+        return redirect('school:topics:index', school_name=request.school.short_name)
     questions = smartq_q.questions.all()
     allowed_errors_map = models.TopicSmartqSettings.objects.get(
             questionnaire=request.questionnaire).allowed_errors_map
     allowed_errors = allowed_errors_map.get(len(questions), 0)
 
-    for q in smartq_q.questions.all():
-        result = q.question.check_answer(request.POST)
+    for q in questions:
+        result = q.generated_question.check_answer(request.POST)
         q.checker_result = result.status
         q.checker_message = result.message
         q.save()
 
-    if smartq_q.made_errors() > allowed_errors:
+    if smartq_q.errors_count() > allowed_errors:
         # Too many mistakes
         smartq_q.status = models.SmartqQuestionnaire.Status.FAILED
         smartq_q.save()
@@ -363,14 +373,16 @@ def finish_smartq(request):
     return redirect('school:topics:index', school_name=request.school.short_name)
 
 
+# TODO: Refactor, move to SmartqQuestionnaire method, _get_user_marks???
+@transaction.atomic
 def _create_smartq_questionnaire(request):
     topics_q = request.questionnaire
     new_q = models.SmartqQuestionnaire.objects.create(
             user=request.user,
-            topics=topics_q,
+            topic_questionnaire=topics_q,
             status=models.SmartqQuestionnaire.Status.IN_PROGRESS)
 
-    topics_with_marks = _get_user_marks_by_topics(
+    topics_with_marks =  _get_user_marks_by_topics(
             request.user, request.questionnaire, not_show_auto_marks=False)
     topics_with_marks = sorted(topics_with_marks, key=lambda t: t.topic.order, reverse=True)
     # Ask not more than max_questions
@@ -379,31 +391,25 @@ def _create_smartq_questionnaire(request):
 
     questions_counter = 0
     groups = set()
-    for topic_with_mark in topics_with_marks:
-        for mark in topic_with_mark.marks:
-            for mapping in mark.scale_in_topic.smartq_mapping.all():
-                # User should have the max mark for topic
-                if  mark.mark == mapping.mark:
-                    # Skip questions of the same group
-                    if mapping.group is not None and mapping.group in groups:
-                        continue
-                    gen_question = mapping.question.create_instance(
-                            user=request.user)
-                    new_question = models.SmartqQuestionnaireQuestion.objects.create(
-                            question=gen_question, questionnaire=new_q,
-                            topic_mapping=mapping)
-                    groups.add(mapping.group)
-                    questions_counter += 1
-                    if (max_questions is not None
-                            and questions_counter == max_questions):
-                        break
-            # Please tell, if you know other ways to exit nested loops
-            else:
-                continue
+    relevant_mappings = (mapping
+                     for topic_with_mark in topics_with_marks
+                     for mark in topic_with_mark.marks
+                     for mapping in mark.scale_in_topic.smartq_mapping.all()
+                     if  mark.mark == mapping.mark)
+    for mapping in relevant_mappings:
+        # Skip questions of the same group
+        if mapping.group is not None and mapping.group in groups:
+                 continue
+        generated_question = mapping.smartq_question.create_instance(
+                user=request.user)
+        new_question = models.SmartqQuestionnaireQuestion.objects.create(
+                generated_question=generated_question, questionnaire=new_q,
+                topic_mapping=mapping)
+        groups.add(mapping.group)
+        questions_counter += 1
+        if (max_questions is not None
+                and questions_counter == max_questions):
             break
-        else:
-            continue
-        break
     return new_q
 
 
