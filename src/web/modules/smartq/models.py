@@ -80,9 +80,6 @@ class Question(models.Model):
     _implementation_cache = {}
     _template_cache = {}
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def __str__(self):
         return self.short_name
 
@@ -264,7 +261,6 @@ class GeneratedQuestion(models.Model):
             if field.html_name in data
         }
         self.form = self.form_type(self.answer)
-
         self.save()
 
     def html(self):
