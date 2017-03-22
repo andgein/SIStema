@@ -15,6 +15,7 @@ import django.urls
 from constance import config
 
 from modules.smartq import api
+import frontend.forms
 import users.models
 
 # TODO(Artem Tabolin): consider replacing with
@@ -237,7 +238,7 @@ class GeneratedQuestion(models.Model):
         self.data = api.GeneratedQuestionData(**data_dict)
 
         self.form_type = _make_form_type(self.id,
-                                         self.base_question.short_name,
+                                         self._question_div_id,
                                          self.data.answer_fields)
 
         self.form = self.form_type(self.answer)
@@ -263,24 +264,33 @@ class GeneratedQuestion(models.Model):
         self.save()
 
     def html(self):
-        return (jinja2.Template(self.base_question.template_html)
-                      .render(self._template_context))
+        rendered_template = (jinja2.Template(self.base_question.template_html)
+                             .render(self._template_context))
+        return '<div id="{}" class="smartq-question">{}</div>'.format(
+            self._question_div_id, rendered_template)
 
     def css(self):
         return (jinja2.Template(self.base_question.template_css)
-                      .render(self._template_context))
+                .render(self._template_context))
 
     def js(self):
-        return (jinja2.Template(self.base_question.template_js)
-                      .render(self._template_context))
+        rendered_template = (jinja2.Template(self.base_question.template_js)
+                             .render(self._template_context))
+        return '(function() {{ {} }})();'.format(rendered_template)
 
     @property
     def _template_context(self):
         return {
             'short_name': self.base_question.short_name,
+            'question_id': self.id,
+            'question_html_id': self._question_div_id,
             'data': self.data,
             'form': self.form,
         }
+
+    @property
+    def _question_div_id(self):
+        return 'smartq-' + str(self.id)
 
     def check_answer(self, data):
         self.save_answer(data)
@@ -368,13 +378,16 @@ def _make_form_type(generated_question_id, prefix, field_specs):
         }
         if 'validation_regexp' in spec:
             attrs['data-smartq-validation-regexp'] = spec['validation_regexp']
+        if 'validation_regexp_message' in spec:
+            attrs['data-smartq-validation-regexp-message'] = (
+                spec['validation_regexp_message'])
 
         field = None
         if spec['type'] == api.AnswerFieldSpec.Type.TEXT:
             if spec['multiline']:
-                widget = forms.Textarea(attrs=attrs)
+                widget = frontend.forms.SistemaTextarea(attrs=attrs)
             else:
-                widget = forms.TextInput(attrs=attrs)
+                widget = frontend.forms.SistemaTextInput(attrs=attrs)
 
             field = forms.CharField(
                 min_length=spec.get('min_length'),
@@ -385,7 +398,7 @@ def _make_form_type(generated_question_id, prefix, field_specs):
             field = forms.IntegerField(
                 min_value=spec.get('min_value'),
                 max_value=spec.get('max_value'),
-                widget=forms.NumberInput(attrs=attrs))
+                widget=frontend.forms.SistemaNumberInput(attrs=attrs))
 
         if field is None:
             raise ValueError('Unknown field type')
