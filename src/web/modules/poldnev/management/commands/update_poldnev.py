@@ -117,7 +117,7 @@ class PoldnevUpdate:
     def _add_poldnev_sessions_to_update(cls, update, session_names,
                                         session_links):
         session_by_id = {s.poldnev_id: s for s in models.Session.objects.all()}
-        session_ids_to_delete = {s_id for s_id in session_by_id}
+        session_ids_to_delete = set(session_by_id.keys())
 
         for session_id, session_name in session_names.items():
             if session_id in session_links:
@@ -161,8 +161,8 @@ class PoldnevUpdate:
     @classmethod
     def _add_poldnev_persons_to_update(cls, update, first_names, middle_names,
                                        last_names):
-        person_by_id = {p.poldnev_id : p for p in models.Person.objects.all()}
-        person_ids_to_delete = {p_id for p_id in person_by_id}
+        person_by_id = {p.poldnev_id: p for p in models.Person.objects.all()}
+        person_ids_to_delete = set(person_by_id.keys())
 
         for person_id in range(1, len(first_names)):
             new_names = (first_names[person_id],
@@ -216,13 +216,13 @@ class PoldnevUpdate:
     def _add_poldnev_history_entries_to_update(cls, update, session_by_id,
                                                person_by_id, history):
         parallel_by_id = {p.unique_key: p for p in models.Parallel.objects.all()}
-        parallel_ids_to_delete = {p_id for p_id in parallel_by_id}
+        parallel_ids_to_delete = set(parallel_by_id.keys())
 
         study_group_by_id = {g.unique_key: g for g in models.StudyGroup.objects.all()}
-        study_group_ids_to_delete = {g_id for g_id in study_group_by_id}
+        study_group_ids_to_delete = set(study_group_by_id.keys())
 
         entry_by_id = {e.unique_key: e for e in models.HistoryEntry.objects.all()}
-        entry_ids_to_delete = {e_id for e_id in entry_by_id}
+        entry_ids_to_delete = set(entry_by_id.keys())
 
         for person_id in range(1, len(history)):
             if not history[person_id]:
@@ -235,19 +235,16 @@ class PoldnevUpdate:
                     parallel_name, study_group_name, role = parse_role(role_str)
                     parallel = None
                     if parallel_name:
-                        # sys.stderr.write('parallel %s\n' % parallel_name)
                         parallel = models.Parallel(session=session, name=parallel_name)
                         parallel = cls.create_or_update_by_unique_key(update, parallel_by_id,
                                                                       parallel_ids_to_delete, parallel)
 
                     study_group = None
                     if study_group_name:
-                        # sys.stderr.write('study_group %s\n' % study_group_name)
                         study_group = models.StudyGroup(parallel=parallel, name=study_group_name)
                         study_group = cls.create_or_update_by_unique_key(update, study_group_by_id,
                                                                          study_group_ids_to_delete, study_group)
 
-                    # sys.stderr.write('role %s\n' % role)
                     entry = models.HistoryEntry(person=person, session=session, study_group=study_group, role=role)
                     cls.create_or_update_by_unique_key(update, entry_by_id, entry_ids_to_delete, entry)
 
