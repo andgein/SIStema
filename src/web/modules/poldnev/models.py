@@ -211,7 +211,7 @@ class HistoryEntry(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return '{} ({} {})'.format(self.person, self.session, self.full_role)
+        return '{} ({}: {})'.format(self.person, self.session, self.full_role)
 
     @property
     def full_role(self):
