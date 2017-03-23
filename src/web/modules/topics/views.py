@@ -294,11 +294,16 @@ def finish(request):
 @login_required
 @topic_questionnaire_view
 def return_to_correcting(request):
+    if request.method != 'POST':
+        return redirect('school:topics:index',
+                        school_name=request.school.short_name)
+
     user_status = _get_questionnaire_status(request.user, request.questionnaire)
     # Both CHECK_TOPICS and PASSED can't happen
     if (user_status.status != models.UserQuestionnaireStatus.Status.CHECK_TOPICS
                 or request.smartq_q is None):
-        return redirect('school:topics:index', school_name=request.school.short_name)
+        return redirect('school:topics:index',
+                        school_name=request.school.short_name)
 
     smartq_q = request.smartq_q
     # User pressed "return to correcting" button, change state
@@ -314,10 +319,13 @@ def return_to_correcting(request):
 @login_required
 @topic_questionnaire_view
 def start_checking(request):
-    print('start_checking')
+    if request.method != 'POST':
+        return redirect('school:topics:index',
+                        school_name=request.school.short_name)
+
     if request.questionnaire.is_closed():
-        return redirect('school:topics:index', school_name=request.school.short_name)
-    print('start_checking')
+        return redirect('school:topics:index',
+                        school_name=request.school.short_name)
 
     user_status = _get_questionnaire_status(request.user, request.questionnaire)
     if user_status.status != models.UserQuestionnaireStatus.Status.CORRECTING:
@@ -350,6 +358,10 @@ def check_topics(request):
 @login_required
 @topic_questionnaire_view
 def finish_smartq(request):
+    if request.method != 'POST':
+        return redirect('school:topics:index',
+                        school_name=request.school.short_name)
+
     smartq_q = request.smartq_q
     if smartq_q is None:
         return redirect('school:topics:index', school_name=request.school.short_name)
@@ -368,7 +380,7 @@ def finish_smartq(request):
         # Too many mistakes
         smartq_q.status = models.TopicCheckingQuestionnaire.Status.FAILED
         smartq_q.save()
-        return redirect('school:topics:return_to_correcting', school_name=request.school.short_name)
+        return return_to_correcting(request)
 
     smartq_q.status = models.TopicCheckingQuestionnaire.Status.PASSED
     smartq_q.save()
@@ -402,7 +414,6 @@ def _create_topic_checking_questionnaire(request):
                          for mapping in mark.scale_in_topic.smartq_mapping.all()
                          if  mark.mark == mapping.mark)
     for mapping in relevant_mappings:
-        print('mapping', mapping)
         # Skip questions of the same group
         if mapping.group is not None and mapping.group in groups:
                  continue
