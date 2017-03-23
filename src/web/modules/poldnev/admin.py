@@ -50,11 +50,12 @@ class PersonAdmin(admin.ModelAdmin):
 admin.site.register(models.Person, PersonAdmin)
 
 
-class RoleAdmin(admin.ModelAdmin):
+class ParallelAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'session',
-        'poldnev_role',
+        'name',
+        'schools_parallel',
     )
 
     list_filter = (
@@ -62,21 +63,46 @@ class RoleAdmin(admin.ModelAdmin):
     )
 
     search_fields = (
-        '=poldnev_role',
+        '=name',
     )
 
     ordering = (
         'session',
-        'poldnev_role',
+        'name',
     )
 
-admin.site.register(models.Role, RoleAdmin)
+admin.site.register(models.Parallel, ParallelAdmin)
+
+
+class StudyGroupAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'parallel',
+        'name',
+    )
+
+    list_filter = (
+        'parallel__session',
+    )
+
+    search_fields = (
+        '=name',
+    )
+
+    ordering = (
+        'parallel',
+        'name',
+    )
+
+admin.site.register(models.StudyGroup, StudyGroupAdmin)
 
 
 class HistoryEntryAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'person',
+        'session',
+        'study_group',
         'role',
         'show_url',
     )
@@ -86,7 +112,7 @@ class HistoryEntryAdmin(admin.ModelAdmin):
     show_url.short_description = "URL"
 
     list_filter = (
-        'role__session',
+        'session',
     )
 
     search_fields = (
@@ -97,7 +123,7 @@ class HistoryEntryAdmin(admin.ModelAdmin):
 
     ordering = (
         'person',
-        'role__session',
+        'session',
     )
 
 admin.site.register(models.HistoryEntry, HistoryEntryAdmin)

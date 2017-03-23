@@ -34,9 +34,6 @@ class Command(management_base.BaseCommand):
         self.stdout.write('Parsing JSON...')
 
         data = json.loads(response.text)
-        for person_history in data['ghist']:
-            for history_entry in person_history:
-                history_entry[1] = parse_roles(history_entry[1])
 
         self.stdout.write('Processing data...')
         update = PoldnevUpdate.from_poldnev_data(data)
@@ -77,10 +74,16 @@ class Command(management_base.BaseCommand):
         self.describe_list(deleted, 'Deleted persons', '- ')
 
         self.stdout.write('')
-        created = update.get_changes(models.Role, Action.CREATE)
-        deleted = update.get_changes(models.Role, Action.DELETE)
-        self.describe_list(created, 'New roles', '+ ')
-        self.describe_list(deleted, 'Deleted roles', '- ')
+        created = update.get_changes(models.Parallel, Action.CREATE)
+        deleted = update.get_changes(models.Parallel, Action.DELETE)
+        self.describe_list(created, 'New parallels', '+ ')
+        self.describe_list(deleted, 'Deleted parallels', '- ')
+
+        self.stdout.write('')
+        created = update.get_changes(models.StudyGroup, Action.CREATE)
+        deleted = update.get_changes(models.StudyGroup, Action.DELETE)
+        self.describe_list(created, 'New study groups', '+ ')
+        self.describe_list(deleted, 'Deleted study groups', '- ')
 
         self.stdout.write('')
         created = update.get_changes(models.HistoryEntry, Action.CREATE)
@@ -106,16 +109,14 @@ class PoldnevUpdate:
             update, data['glname'], data['gsmlink'])
         person_by_id = cls._add_poldnev_persons_to_update(
             update, data['gname'], data['gpatr'], data['gsur'])
-        role_by_id = cls._add_poldnev_roles_to_update(
-            update, session_by_id, data['ghist'])
         cls._add_poldnev_history_entries_to_update(
-            update, person_by_id, role_by_id, data['ghist'])
+            update, session_by_id, person_by_id, data['ghist'])
         return update
 
     @classmethod
     def _add_poldnev_sessions_to_update(cls, update, session_names,
                                         session_links):
-        session_by_id = {s.poldnev_id : s for s in models.Session.objects.all()}
+        session_by_id = {s.poldnev_id: s for s in models.Session.objects.all()}
         session_ids_to_delete = {s_id for s_id in session_by_id}
 
         for session_id, session_name in session_names.items():
@@ -212,38 +213,16 @@ class PoldnevUpdate:
         return person_by_id
 
     @classmethod
-    def _add_poldnev_roles_to_update(cls, update, session_by_id, history):
-        role_by_id = {r.role_id : r for r in models.Role.objects.all()}
-        role_ids_to_delete = {r_id for r_id in role_by_id}
+    def _add_poldnev_history_entries_to_update(cls, update, session_by_id,
+                                               person_by_id, history):
+        parallel_by_id = {p.unique_key: p for p in models.Parallel.objects.all()}
+        parallel_ids_to_delete = {p_id for p_id in parallel_by_id}
 
-        for history_entries in history:
-            for session_id, roles in history_entries:
-                session = session_by_id[session_id]
-                for role_str in roles:
-                    role = models.Role(session=session, poldnev_role=role_str)
+        study_group_by_id = {g.unique_key: g for g in models.StudyGroup.objects.all()}
+        study_group_ids_to_delete = {g_id for g_id in study_group_by_id}
 
-                    if role.role_id in role_by_id:
-                        # Role already exists. Nothing to update
-                        role_ids_to_delete.discard(role.role_id)
-                        continue
-
-                    # Role is new
-                    role_by_id[role.role_id] = role
-                    update.objects_to_save.append(role)
-                    update.add_change(role.__class__, Action.CREATE, str(role))
-
-        for role_id in role_ids_to_delete:
-            role = role_by_id[role_id]
-            update.objects_to_delete.append(role)
-            update.add_change(role.__class__, Action.DELETE, str(role))
-
-        return role_by_id
-
-    @classmethod
-    def _add_poldnev_history_entries_to_update(cls, update, person_by_id,
-                                               role_by_id, history):
-        entry_by_id = {e.entry_id : e for e in models.HistoryEntry.objects.all()}
-        entry_ids_to_delete = {r_id for r_id in entry_by_id}
+        entry_by_id = {e.unique_key: e for e in models.HistoryEntry.objects.all()}
+        entry_ids_to_delete = {e_id for e_id in entry_by_id}
 
         for person_id in range(1, len(history)):
             if not history[person_id]:
@@ -251,27 +230,51 @@ class PoldnevUpdate:
 
             person = person_by_id[person_id]
             for session_id, roles in history[person_id]:
-                for role_str in roles:
-                # TODO(Artem Tabolin): don't compute id here
-                    role_id = models.Role.make_id(session_id, role_str)
-                    role = role_by_id[role_id]
-                    entry = models.HistoryEntry(person=person, role=role)
+                session = session_by_id[session_id]
+                for role_str in roles.split(', '):
+                    parallel_name, study_group_name, role = parse_role(role_str)
+                    parallel = None
+                    if parallel_name:
+                        # sys.stderr.write('parallel %s\n' % parallel_name)
+                        parallel = models.Parallel(session=session, name=parallel_name)
+                        parallel = cls.create_or_update_by_unique_key(update, parallel_by_id,
+                                                                      parallel_ids_to_delete, parallel)
 
-                    if entry.entry_id in entry_by_id:
-                        # History entry already exists. Nothing to update
-                        entry_ids_to_delete.discard(entry.entry_id)
-                        continue
+                    study_group = None
+                    if study_group_name:
+                        # sys.stderr.write('study_group %s\n' % study_group_name)
+                        study_group = models.StudyGroup(parallel=parallel, name=study_group_name)
+                        study_group = cls.create_or_update_by_unique_key(update, study_group_by_id,
+                                                                         study_group_ids_to_delete, study_group)
 
-                    # History entry is new
-                    entry_by_id[entry.entry_id] = entry
-                    update.objects_to_save.append(entry)
-                    update.add_change(
-                        entry.__class__, Action.CREATE, str(entry))
+                    # sys.stderr.write('role %s\n' % role)
+                    entry = models.HistoryEntry(person=person, session=session, study_group=study_group, role=role)
+                    cls.create_or_update_by_unique_key(update, entry_by_id, entry_ids_to_delete, entry)
 
-        for entry_id in entry_ids_to_delete:
-            entry = entry_by_id[entry_id]
-            update.objects_to_delete.append(entry)
-            update.add_change(entry.__class__, Action.DELETE, str(entry))
+        cls.delete_all(update, parallel_by_id, parallel_ids_to_delete)
+        cls.delete_all(update, study_group_by_id, study_group_ids_to_delete)
+        cls.delete_all(update, entry_by_id, entry_ids_to_delete)
+
+    @classmethod
+    def delete_all(cls, update, obj_by_id, obj_ids_to_delete):
+        for obj_id in obj_ids_to_delete:
+            obj = obj_by_id[obj_id]
+            update.objects_to_delete.append(obj)
+            update.add_change(obj.__class__, Action.DELETE, str(obj))
+
+    @classmethod
+    def create_or_update_by_unique_key(cls, update, obj_by_key, obj_keys_to_delete, obj):
+        key = obj.unique_key
+        if key in obj_by_key:
+            # Object already exists. Nothing to update
+            obj_keys_to_delete.discard(key)
+            return obj_by_key[key]
+
+        # Object is new
+        obj_by_key[key] = obj
+        update.objects_to_save.append(obj)
+        update.add_change(obj.__class__, Action.CREATE, str(obj))
+        return obj
 
     def __init__(self):
         self._diff = collections.defaultdict(list)
@@ -294,22 +297,39 @@ class PoldnevUpdate:
                 obj.delete()
 
             for obj in self.objects_to_save:
-                if isinstance(obj, models.Role):
+                if isinstance(obj, models.Parallel):
                     obj.session_id = obj.session.pk
+                if isinstance(obj, models.StudyGroup):
+                    obj.parallel_id = obj.parallel.pk
                 if isinstance(obj, models.HistoryEntry):
-                    obj.role_id = obj.role.pk
                     obj.person_id = obj.person.pk
+                    obj.session_id = obj.session.pk
+                    if obj.study_group:
+                        obj.study_group_id = obj.study_group.pk
                 obj.save()
 
 
-def parse_roles(roles_str):
-    """Parse the roles string from poldnev.ru and return the list of roles.
+def parse_role(role_str):
+    """Parse the role string from poldnev.ru and return the tuple of
+    (parallel_name, study_group_name, role).
 
     For example, for the string:
 
-    'финансовый директор, <a href=\"/lksh/2012.August/D\">D1.преп</a>'
+    'финансовый директор' returns (None, None, 'финансовый директор'),
+    '<a href="/lksh/2012.August/D">D1.преп</a>' returns ('D', 'D1', 'преп'),
+    '<a href="/lksh/2014.July/C.py">C1.py</a>' returns ('C.py', 'C1.py', ''),
+    '<a href="/lksh/2014.Winter/C.py+">C.py+.преп</a>' returns ('C.py+', 'C.py+', 'преп'),
+    '<a href="/lksh/2006/A">A1.преп-стажер</a>' returns ('A', 'A1', 'преп-стажер'),
+    '<a href="">?</a>' returns (None, None, '?')
 
-    the method returns ['финансовый директор', 'D1.преп'].
     """
-    roles_without_html = re.sub(r'<[^>]*>', '', roles_str)
-    return roles_without_html.split(', ')
+    if not role_str.startswith('<'):
+        return None, None, role_str
+    if role_str == '<a href="">?</a>':
+        return None, None, '?'
+
+    m = re.match(r'^<a.*/([^/]+)">(.+)\.(преп.*)</a>$', role_str)
+    if m:
+        return m.group(1), m.group(2), m.group(3)
+    m = re.match(r'^<a.*/([^/]+)">(.+)</a>$', role_str)
+    return m.group(1), m.group(2), ''
