@@ -156,7 +156,8 @@ def _show_or_process_topic_form(request, topic_issue):
     form_class = topic_issue.topic.get_form_class(topic_issue.scales.all())
 
     user_status = _get_questionnaire_status(request.user, request.questionnaire)
-    is_correcting = user_status.status == models.UserQuestionnaireStatus.Status.CORRECTING
+    is_correcting = (user_status.status ==
+                     models.UserQuestionnaireStatus.Status.CORRECTING)
 
     is_closed = request.questionnaire.is_closed()
 
@@ -167,10 +168,15 @@ def _show_or_process_topic_form(request, topic_issue):
         form.full_clean()
 
         if is_closed:
-            form.add_error(None, 'Вступительная работа завершена. Изменения в тематическую анкету больше не принимаются')
+            form.add_error(
+                None,
+                'Вступительная работа завершена. Изменения в тематическую '
+                'анкету больше не принимаются')
 
-        # Check that topic_id from form is equal to last issued topic, else update page for show the new question
-        if 'topic_id' in form.cleaned_data and form.cleaned_data['topic_id'] != topic_issue.topic_id:
+        # Check that topic_id from form is equal to last issued topic, else
+        # update page for show the new question
+        if ('topic_id' in form.cleaned_data and
+                form.cleaned_data['topic_id'] != topic_issue.topic_id):
             return redirect('.')
 
         if form.is_valid():
@@ -245,17 +251,26 @@ def index(request):
                 return check_topics(request)
 
         # Show correcting form if need
-        if user_status.status == models.UserQuestionnaireStatus.Status.CORRECTING:
+        if (user_status.status ==
+                models.UserQuestionnaireStatus.Status.CORRECTING):
             return correcting(request)
 
-        # If user has not filled a questionnaire et all
-        if user_status.status == models.UserQuestionnaireStatus.Status.NOT_STARTED:
+        # If user has not filled a questionnaire at all
+        if (user_status.status ==
+                models.UserQuestionnaireStatus.Status.NOT_STARTED):
             # Update his status, mark it as STARTED
             user_status.status = models.UserQuestionnaireStatus.Status.STARTED
             user_status.save()
 
+            # Update marks based on the previous year answers
+            if request.questionnaire.previous is not None:
+                guesser = mark_guesser.MarkGuesser(request.user,
+                                                   request.questionnaire)
+                guesser.update_from_previous_questionnaire()
+
             # ... and issue first topic
-            no_more_topics = not topic_issuer.find_and_issue_new_topic_for_user()
+            no_more_topics = (
+                not topic_issuer.find_and_issue_new_topic_for_user())
             if no_more_topics:
                 _update_questionnaire_status(request.user, request.questionnaire,
                                              models.UserQuestionnaireStatus.Status.CORRECTING)

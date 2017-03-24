@@ -18,6 +18,14 @@ class TopicQuestionnaire(models.Model):
 
     close_time = models.DateTimeField(blank=True, null=True, default=None)
 
+    previous = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        help_text='Её оценки используются для автоматического заполнения этой '
+                  'ТА',
+    )
+
     def __str__(self):
         return '%s. %s' % (self.school.name, self.title)
 
