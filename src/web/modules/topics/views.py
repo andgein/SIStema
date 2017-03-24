@@ -3,6 +3,7 @@ from django.core import urlresolvers
 from django.db import transaction
 from django.http.response import HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
+import django.views.decorators.http as http_decorators
 
 from . import models
 from . import issuer
@@ -293,11 +294,8 @@ def finish(request):
 # This method is called from both REFUSE button (from html) and FAILED (from checking)
 @login_required
 @topic_questionnaire_view
+@http_decorators.require_POST
 def return_to_correcting(request):
-    if request.method != 'POST':
-        return redirect('school:topics:index',
-                        school_name=request.school.short_name)
-
     user_status = _get_questionnaire_status(request.user, request.questionnaire)
     # Both CHECK_TOPICS and PASSED can't happen
     if (user_status.status != models.UserQuestionnaireStatus.Status.CHECK_TOPICS
@@ -318,11 +316,8 @@ def return_to_correcting(request):
 
 @login_required
 @topic_questionnaire_view
+@http_decorators.require_POST
 def start_checking(request):
-    if request.method != 'POST':
-        return redirect('school:topics:index',
-                        school_name=request.school.short_name)
-
     if request.questionnaire.is_closed():
         return redirect('school:topics:index',
                         school_name=request.school.short_name)
@@ -357,11 +352,8 @@ def check_topics(request):
 
 @login_required
 @topic_questionnaire_view
+@http_decorators.require_POST
 def finish_smartq(request):
-    if request.method != 'POST':
-        return redirect('school:topics:index',
-                        school_name=request.school.short_name)
-
     smartq_q = request.smartq_q
     if smartq_q is None:
         return redirect('school:topics:index', school_name=request.school.short_name)
