@@ -53,11 +53,17 @@ $(document).ready(function() {
         rules[name]['regexp'] = regexp;
       }
 
+      messages[name]['required'] = 'Это поле необходимо заполнить';
+
       var regexp_message =
         $this.attr('data-smartq-validation-regexp-message');
       if (regexp_message) {
         messages[name]['regexp'] = regexp_message;
       }
+    }).focus(function() {
+      $(this).popover('show');
+    }).blur(function() {
+      $(this).popover('hide');
     });
 
     $this.validate({
@@ -75,15 +81,20 @@ $(document).ready(function() {
       unhighlight: function(element, errorClass, validClass) {
         $(element).closest('.field').removeClass(errorClass)
                                     .addClass(validClass);
+        $(element).popover('destroy');
       },
 
       errorPlacement: function(error, element) {
-        // TODO(Artem Tabolin): show errors in popovers
-        //if (element.is(":radio") || element.is(":checkbox")) {
-          //element.closest('.option-group').after(error);
-        //} else {
-          //error.insertAfter(element.parent());
-        //}
+        var $element = $(element);
+        $element.popover('destroy').popover({
+          trigger: 'manual',
+          placement: 'top',
+          content: error,
+          html: true,
+        });
+        if ($element.is(':focus')) {
+          $element.popover('show');
+        }
       }
     });
   };
