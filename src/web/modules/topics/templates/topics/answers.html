@@ -49,6 +49,9 @@
                             </div>
                         {% endfor %}
                     </div>
+                    <div class="panel-footer p25 text-right">
+                      <a href="{% url 'school:index' request.school.short_name %}" class="button btn-primary">На главную</a>
+                    </div>
                 </div>
             </div>
         </div>
