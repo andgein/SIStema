@@ -4,6 +4,7 @@ from django.db import transaction
 from django.http.response import HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 import django.views.decorators.http as http_decorators
+import django.utils.timezone
 
 from . import models
 from . import issuer
@@ -376,8 +377,14 @@ def finish_smartq(request):
         q.checker_result = result.status
         q.checker_message = result.message
         q.save()
+ 
+    smartq_q.checked_at = django.utils.timezone.now()
+    smartq_q.save()
 
     if smartq_q.errors_count() > allowed_errors:
+        if smartq_q.has_check_failed():
+            # Show message about CHECK_FAILED
+            return redirect('school:topics:index', school_name=request.school.short_name)
         # Too many mistakes
         smartq_q.status = models.TopicCheckingQuestionnaire.Status.FAILED
         smartq_q.save()
@@ -439,6 +446,6 @@ def _create_topic_checking_questionnaire(request):
 def _show_check_topics(request):
     # show in progress
     return render(request, 'topics/check_topics.html', {
-        'questionnaire': request.questionnaire,
+        'smartq_q': request.smartq_q,
         'questions': request.smartq_q.questions.order_by('topic_mapping__scale_in_topic__topic__order').all(),
     })

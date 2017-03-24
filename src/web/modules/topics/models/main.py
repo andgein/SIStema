@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django import forms
 from django.core import validators, urlresolvers
 from django.db import models
@@ -59,6 +61,8 @@ class TopicCheckingQuestionnaire(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    checked_at = models.DateTimeField(blank=True, null=True, default=None)
+
     status = models.PositiveIntegerField(choices=Status.choices, validators=[Status.validator])
 
     @classmethod
@@ -77,6 +81,15 @@ class TopicCheckingQuestionnaire(models.Model):
             if q.checker_result != TopicCheckingQuestionnaireQuestion.CheckerResult.OK:
                 err_count += 1
         return err_count
+
+    def has_check_failed(self):
+        for q in self.questions.all():
+            if q.checker_result == TopicCheckingQuestionnaireQuestion.CheckerResult.CHECK_FAILED:
+                return True
+        return False
+
+    def is_check_failed_expired(self):
+        return django.utils.timezone.now() >= self.checked_at + timedelta(minutes=30)
 
 
 class Level(models.Model):

@@ -26,8 +26,17 @@
               <i class="fa fa-comments"></i> Проверочные вопросы
             </span>
           </div>
-
+ 
           <div class="panel-body">
+            {% if smartq_q.has_check_failed and not smartq_q.is_check_failed_expired%}
+              <div class="alert alert-border-left alert-danger light">
+                <p class="fs13">
+                  <i class="fa fa-info pr5"></i>
+                  Во время проверки что-то пошло не так! Мы уже знаем про эту проблему и решаем её. Пожалуйста, попробуйте ещё раз позже.
+                </p>
+              </div>
+            {% endif %}
+
             <p class="fs13">
               Подтвердите свои знания по&nbsp;темам, которые вы указали как знакомые.
               Ниже находится несколько проверочных вопросов. Вам нужно ответить на&nbsp;все из них.

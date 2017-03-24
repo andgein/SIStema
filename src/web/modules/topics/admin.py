@@ -166,7 +166,7 @@ admin.site.register(models.QuestionForTopic, QuestionForTopicAdmin)
 
 
 class TopicCheckingQuestionnaireAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'topic_questionnaire', 'status')
+    list_display = ('id', 'user', 'topic_questionnaire', 'status', 'checked_at')
     list_filter = ('topic_questionnaire',)
     search_fields = ('user__first_name', 'user__last_name')
 
