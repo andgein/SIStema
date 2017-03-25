@@ -95,6 +95,7 @@ class ProgramEntranceExamTask(EntranceExamTask):
 
     time_limit = models.PositiveIntegerField(help_text='В миллисекундах')
 
+    # Use FileSizeField to be able to define memory limit with units (i.e. 256M)
     memory_limit = sizefield.models.FileSizeField()
 
     input_format = models.TextField(blank=True)
