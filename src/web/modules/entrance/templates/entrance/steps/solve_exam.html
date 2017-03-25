@@ -7,9 +7,9 @@
         <div class="col-xs-12 col-sm-6 fs13">
             <h4>Уровень вступительной работы</h4>
             <p>
-                Вам выданы задания на&nbsp;параллели {{ entrance_block.level.name }}.
+                Вам выдана работа на&nbsp;параллел{% if entrance_block.level.name|length > 2 %}и{% else %}ь{% endif %} {{ entrance_block.level.name }}.
                 {% if not entrance_block.is_at_maximum_level %}
-                    Вы можете получить задания на&nbsp;следующую параллель, если решите все выданные задания.
+                    Вы можете получить задания на&nbsp;следующую параллель, если решите все предложенные.
                 {% endif %}
             </p>
         </div>
