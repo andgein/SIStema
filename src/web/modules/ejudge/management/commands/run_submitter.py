@@ -145,8 +145,11 @@ class Command(BaseCommand):
         for queue_element in not_fetched:
             try:
                 # TODO: For Django 1.9 use self.style.SUCCESS
-                self.stdout.write('Found new submit in queue to contest %d, problem %d, created at %s, file %s' % (
-                    queue_element.ejudge_contest_id, queue_element.ejudge_problem_id, queue_element.created_at,
+                self.stdout.write('Found new submit #%d in queue to contest %d, problem %d, created at %s, file %s' % (
+                    queue_element.id,
+                    queue_element.ejudge_contest_id,
+                    queue_element.ejudge_problem_id,
+                    queue_element.created_at,
                     queue_element.file_name))
 
                 try:
@@ -155,12 +158,14 @@ class Command(BaseCommand):
                                                              queue_element.language,
                                                              queue_element.file_name)
                 except CantSubmitEjudgeException as e:
+                    self.stdout.write('Can\'t submit: %s' % (e, ))
                     queue_element.status = models.QueueElement.Status.WONT_CHECK
                     queue_element.wont_check_message = str(e)
                     queue_element.save()
                     continue
 
                 with transaction.atomic():
+                    self.stdout.write('Set status for queue element %d to SUBMITTED' % (queue_element.id, ))
                     submission = models.Submission(ejudge_contest_id=queue_element.ejudge_contest_id,
                                                    ejudge_submit_id=ejudge_submit_id)
                     submission.save()
@@ -216,6 +221,7 @@ class Command(BaseCommand):
             traceback.print_exc()
 
     def handle(self, *args, **options):
+        self.stdout.write('Starting ejudge submitter')
         while True:
             self._one_step()
             time.sleep(self.TIME_INTERVAL)

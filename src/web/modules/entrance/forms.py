@@ -14,7 +14,7 @@ class TestEntranceTaskForm(EntranceTaskForm):
     task_type = 'test'
 
     solution = forms.CharField(max_length=100,
-                               label='Ответ',
+                               label='',
                                label_suffix='',
                                widget=forms.TextInput(),
                                )
@@ -25,7 +25,7 @@ class FileEntranceTaskForm(EntranceTaskForm):
 
     solution = frontend.forms.RestrictedFileField(max_upload_size=5 * 1024 * 1024,
                                                   required=True,
-                                                  label='Выберите файл с решением',
+                                                  label='',
                                                   label_suffix='')
 
 

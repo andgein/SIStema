@@ -1,8 +1,9 @@
 {% extends 'user_layout.html' %}
 
 {% load staticfiles %}
+{% load types %}
 
-{% block title %}Вступительный экзамен{% endblock %}
+{% block title %}Вступительная работа{% endblock %}
 
 {% block css %}
     <link rel="stylesheet" type="text/css" href="{% static 'entrance/css/entrance-exam.css' %}">
@@ -10,73 +11,47 @@
 
 {% block content %}
     {% if user.is_staff %}
-        Информация только для админов: определившаяся параллель {{ entrance_level }}
+        <div class="alert alert-danger alert-micro alert-border-left">
+           Определившаяся параллель {{ entrance_level }} (видно только админам)
+        </div>
     {% endif %}
 
     {% if can_upgrade %}
         {% include 'entrance/_exam_upgrade.html' %}
     {% endif %}
 
-    {% if test_tasks %}
-        <div class="fs18">Тестовые задания</div>
-        <div class="help-block mb20">
-            <p>
-                В тестовых заданиях от вас требуется ввести <strong>только ответ</strong>.
-            </p>
-
-            <p>
-                Тест проверяется автоматически, поэтому отвечайте максимально точно и перепроверяйте ваши ответы.
-                Проверяться они будут только после окончания приёма работ.
-                Для решения задач теоретического теста не требуется написание программы.
-            </p>
+    <div class="entrance-exam tab-block mb40">
+        <ul class="nav tabs-left tabs-border mb40">
+            {% for task in tasks %}
+                {% ifchanged task|get_type %}
+                    <li class="tabs-group">
+                        <a class="tabs-group">{{ task.type_title }}</a>
+                    </li>
+                {% endifchanged %}
+                <li class="{{ forloop.first|yesno:'active,' }}">
+                    <a href="#entrance-exam__tab-{{ task.id }}"
+                       data-toggle="tab"
+                       title="{{ task.title }}"
+                       class="{{ task.is_solved|yesno:'solved,not-solved' }}">
+                        {{ forloop.counter }}. {{ task.title|truncatechars:20 }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="tab-content">
+            {% for task in tasks %}
+                <div id="entrance-exam__tab-{{ task.id }}" class="entrance-exam__tab tab-pane {{ forloop.first|yesno:'active,' }}">
+                    {% include 'entrance/exam/'|add:task.template_file with index=forloop.counter task=task solution=test_task.user_solution.solution%}
+                </div>
+            {% endfor %}
         </div>
+    </div>
 
-        {% for test_task in test_tasks %}
-            {% include 'entrance/_exam_task_test.html' with index=forloop.counter task=test_task solution=test_task.user_solution.solution%}
-        {% endfor %}
-    {% endif %}
-
-    {% if file_tasks %}
-        <div class="fs18">Теоретические задачи</div>
-        <div class="help-block mb20">
-            <p>
-                В этом разделе вам нужно придумать теоретические решения для задач и отправить их в виде
-                файлов. К проверке принимаются файлы форматов txt, pdf и doc(x).
-            </p>
-            <p>
-                Старайтесь формулировать ваши мысли как можно более логично и структурированно.
-                Описанием решения задачи не является ни исходный код, ни ответ, решение должно содержать
-                последовательный ход ваших мыслей, как вы вычисляли ответ,
-                как вы получили формулу (если вы вычисляли с помощью формулы) и почему ваш ответ является ответом на данную задачу.
-            </p>
-        </div>
-
-        {% for file_task in file_tasks %}
-            {% include 'entrance/_exam_task_file.html' with index=forloop.counter task=file_task %}
-        {% endfor %}
-    {% endif %}
-
-    {% if program_tasks %}
-        <div class="fs18">Практические задачи</div>
-        <div class="help-block mb20">
-            <p>
-                В этом разделе вам нужно написать программу для решения задачи на одном из предложенных языков программирования.
-            </p>
-            <p>
-                Программы проверяются на секретном наборе тестов. Результат проверки будет известен вам сразу.
-                Если решение прошло не все тесты, можно исправить его и отправить новую версию. Учитывается лучшая из
-                ваших попыток.
-            </p>
-        </div>
-
-        {% for program_task in program_tasks %}
-            {% include 'entrance/_exam_task_program.html' with index=forloop.counter task=program_task %}
-        {% endfor %}
-    {% endif %}
-
-    {% if not is_closed %}
-        {% include 'entrance/_exam_upgrade.html' %}
-    {% endif %}
+    {% comment %}
+        {% if not is_closed %}
+            {% include 'entrance/_exam_upgrade.html' %}
+        {% endif %}
+    {% endcomment %}
 
 {% endblock %}
 

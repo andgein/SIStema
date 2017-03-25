@@ -12,6 +12,15 @@ body {
     text-decoration: none;
 }
 
+code {
+    color: #301779;
+    background-color: #e9e2e4;
+}
+
+.help-block {
+    color: #869696;
+}
+
 /* Navbar */
 .navbar {
     background-color: #fafafa;
@@ -74,3 +83,25 @@ body {
 .label-grade-5 { background-color: #dddd50; }
 .label-grade-6 { background-color: #c2d25a; }
 .label-grade-10 { background-color: #70cc70; }
+
+/* Tabs */
+.tabs-left > li > a {
+    font-weight: 400;
+}
+
+.tabs-left > li > a.tabs-group {
+    background: #fff;
+    pointer-events: none;
+    cursor: default;
+    border-left-width: 0;
+    color: black;
+    font-weight: 600;
+}
+
+.tabs-left > li:first-child > a.tabs-group {
+    border-top-width: 0;
+}
+
+.tabs-left > li:last-child > a.tabs-group {
+    border-bottom-width: 0;
+}

@@ -1,0 +1,55 @@
+{% extends 'entrance/exam/base.html' %}
+
+{% block panel_icon %}
+    <i class="fa fa-code"></i>
+{% endblock %}
+
+{% block description %}
+    <p>
+        Для решения задачи вам нужно написать программу на&nbsp;одном из предложенных языков программирования.
+    </p>
+    <p>
+        Программы проверяются на&nbsp;секретном наборе тестов. Результат проверки будет известен вам сразу.
+        Если решение прошло не все тесты, можно исправить его и отправить новую версию. Учитывается лучшая
+        из&nbsp;ваших попыток.
+    </p>
+{% endblock %}
+
+{% block statement %}
+    <div class="entrance-exam__task__program__params mb20">
+        <div>Имя входного файла: <b>{{ task.input_file_name }}</b></div>
+        <div>Имя выходного файла: <b>{{ task.output_file_name }}</b></div>
+        <div>Ограничение по времени: <b>{% widthratio task.time_limit 1000 1%} с.</b></div>
+        <div>Ограничение по памяти: <b>{{ task.memory_limit|filesizeformat }} </b></div>
+    </div>
+
+    <a href="/static/upload/entrance-exam-pdfs/{{ task.id }}.pdf" target="_blank">Читать условие задачи</a>
+{% endblock %}
+
+{% block answer_form %}
+    <div class="row">
+        {% if not is_closed %}
+            <div class="col-sm-12 col-md-6 mw400">
+                <form method="POST" action="" enctype="multipart/form-data">
+                    <h3 class="mt10">Отправить решение</h3>
+                    {{ task.form.as_p }}
+                    {% if task.help_text %}
+                        <span class="help-block mbn">
+                            {{ task.help_text }}
+                        </span>
+                    {% endif %}
+                    {% if not is_closed %}
+                        <button class="entrance-exam__task__program__submit btn btn-info btn-small mt10">Отправить решение</button>
+                    {% endif %}
+                    <div>
+                        <em class="status"></em>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+
+        <div class="entrance-exam__task__program__submits col-sm-12 col-md-5 col-md-offset-1">
+            {% include 'entrance/exam/_program_solutions.html' with task=task solutions=task.user_solutions %}
+        </div>
+    </div>
+{% endblock %}

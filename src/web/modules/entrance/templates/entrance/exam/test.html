@@ -1,0 +1,32 @@
+{% extends 'entrance/exam/base.html' %}
+
+{% block panel_icon %}
+    <i class="fa fa-bolt"></i>
+{% endblock %}
+
+{% block description %}
+    <p>
+        В тестовом задании требуется ввести <strong>только ответ</strong>.
+        Для его получения не&nbsp;требуется писать программу.
+    </p>
+
+    <p>
+        После ввода ответа вы не&nbsp;узнаете, правильный ли он &mdash; мы
+        проверим его только после окончания вступительной работы.
+        Будьте внимательны: ответы проверятся автоматически.
+        Отвечайте максимально точно и перепроверяйте ваши ответы.
+    </p>
+{% endblock %}
+
+{% block answer_form %}
+    <div class="mw400">
+        <h3 class="mb10">Ответ</h3>
+        {{ task.form }}
+        {% if task.help_text %}
+            <span class="help-block mbn">
+                {{ task.help_text }}
+            </span>
+        {% endif %}
+        <em class="status"></em>
+    </div>
+{% endblock %}

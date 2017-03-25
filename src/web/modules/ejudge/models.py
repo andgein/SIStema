@@ -36,6 +36,23 @@ class CheckingResult(models.Model):
         SKIPPED = djchoices.ChoiceItem(18, label='Skipped')
         UNKNOWN = djchoices.ChoiceItem(100, label='Unknown result')
 
+        russian_labels = {
+            0: 'Задача решена',
+            1: 'Ошибка компиляции',
+            2: 'Ошибка во время выполнения',
+            3: 'Превышено максимальное время работы',
+            4: 'Неправильный формат вывода',
+            5: 'Неправильный ответ',
+            6: 'Ошибка проверяющей программы',
+            7: 'Частичное решение',
+            12: 'Превышено максимальный размер памяти',
+            13: 'Ошибка безопасности',
+            14: 'Нарушение правил оформления программы',
+            15: 'Превышено максимальное время работы',
+            18: 'Пропущено',
+            100: 'Неизвестный результат',
+        }
+
         @classmethod
         def from_ejudge_status(cls, ejudge_status):
             for val, label in cls.values.items():
@@ -54,7 +71,7 @@ class CheckingResult(models.Model):
     memory_consumed = models.PositiveIntegerField(help_text='В байтах', default=0)
 
     def __str__(self):
-        return CheckingResult.Result.values[self.result]
+        return CheckingResult.Result.russian_labels[self.result]
 
     @property
     def is_success(self):
@@ -72,9 +89,8 @@ class SolutionCheckingResult(CheckingResult):
         if self.failed_test is None:
             return super_str
         if self.score is not None:
-            return 'Score: %d' % self.score
-        return '%s on test %d' % (super_str, self.failed_test)
-
+            return 'Баллов: %d' % self.score
+        return '%s на тесте №%d' % (super_str, self.failed_test)
 
 
 class TestCheckingResult(CheckingResult):

@@ -7,7 +7,7 @@
 {% block content_wrapper %}
     <div>
         {% if user.is_authenticated %}
-            <header class="navbar navbar-shadow">
+            <header class="navbar navbar-shadow navbar-fixed-top">
                 <div class="navbar-branding">
                     {% if request.school %}
                         <a class="navbar-brand" href="{% url 'school:index' request.school.short_name %}" title="На главную">

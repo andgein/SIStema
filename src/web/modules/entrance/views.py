@@ -107,28 +107,29 @@ class EntrancedUsersTable(staff_views.EnrollingUsersTable):
 
 @login_required
 def exam(request):
-    entrance_exam = get_object_or_404(models.EntranceExam, school=request.school)
+    entrance_exam = get_object_or_404(
+        models.EntranceExam,
+        school=request.school
+    )
     is_closed = entrance_exam.is_closed()
 
     base_level = upgrades.get_base_entrance_level(request.school, request.user)
     tasks = upgrades.get_entrance_tasks(request.school, request.user, base_level)
 
     for task in tasks:
-        qs = task.entranceexamtasksolution_set.filter(user=request.user).order_by('-created_at')
-        if qs.exists():
-            task.user_solution = qs.first()
-        else:
-            task.user_solution = None
+        task.user_solutions = list(
+            task.solutions.filter(user=request.user).order_by('-created_at')
+        )
+        task.is_solved = len(task.user_solutions) > 0
 
-    # TODO: refactor this
-    test_tasks = list(filter(lambda t: hasattr(t, 'testentranceexamtask'), tasks))
-    file_tasks = list(filter(lambda t: hasattr(t, 'fileentranceexamtask'), tasks))
-    program_tasks = list(filter(lambda t: hasattr(t, 'programentranceexamtask'), tasks))
+    test_tasks = [t for t in tasks if type(t) is models.TestEntranceExamTask]
+    file_tasks = [t for t in tasks if type(t) is models.FileEntranceExamTask]
+    program_tasks = [t for t in tasks if type(t) is models.ProgramEntranceExamTask]
 
     for test_task in test_tasks:
         initial = {}
-        if test_task.user_solution is not None:
-            initial['solution'] = test_task.user_solution.solution
+        if len(test_task.user_solutions) > 0:
+            initial['solution'] = test_task.user_solutions[0].solution
         test_task.form = forms.TestEntranceTaskForm(test_task, initial=initial)
         if is_closed:
             test_task.form['solution'].field.widget.attrs['readonly'] = True
@@ -136,18 +137,19 @@ def exam(request):
         file_task.form = forms.FileEntranceTaskForm(file_task)
     for program_task in program_tasks:
         program_task.form = forms.ProgramEntranceTaskForm(program_task)
-        program_task.user_solutions = [s.programentranceexamtasksolution for s in
-                                       program_task.entranceexamtasksolution_set.filter(user=request.user).order_by(
-                                           '-created_at')]
+        task.is_solved = any(s.result is not None and s.result.is_success
+                             for s in task.user_solutions)
 
     return render(request, 'entrance/exam.html', {
         'is_closed': is_closed,
         'entrance_level': base_level,
         'school': request.school,
-        'test_tasks': test_tasks,
-        'file_tasks': file_tasks,
-        'program_tasks': program_tasks,
-        'is_user_at_maximum_level': upgrades.is_user_at_maximum_level(request.school, request.user, base_level),
+        'tasks': test_tasks + file_tasks + program_tasks,
+        'is_user_at_maximum_level': upgrades.is_user_at_maximum_level(
+            request.school,
+            request.user,
+            base_level
+        ),
         'can_upgrade': upgrades.can_user_upgrade(request.school, request.user),
     })
 
@@ -159,65 +161,79 @@ def submit(request, task_id):
     is_closed = entrance_exam.is_closed()
 
     task = get_object_or_404(models.EntranceExamTask, pk=task_id)
-    if task.exam.school != request.school:
+    if task.exam_id != entrance_exam.id:
         return HttpResponseNotFound()
 
-    child_task = task.get_child_object()
     ip = ipware.ip.get_ip(request) or ''
 
-    if isinstance(child_task, models.TestEntranceExamTask):
+    # TODO (andgein): extract this login to models
+    if type(task) is models.TestEntranceExamTask:
         form = forms.TestEntranceTaskForm(task, request.POST)
         if is_closed:
             form.add_error('solution', 'Вступительная работа завершена. Решения больше не принимаются')
         elif form.is_valid():
             solution_text = form.cleaned_data['solution']
-            solution = models.EntranceExamTaskSolution(user=request.user,
-                                                       task=task,
-                                                       solution=solution_text,
-                                                       ip=ip)
+            solution = models.TestEntranceExamTaskSolution(
+                user=request.user,
+                task=task,
+                solution=solution_text,
+                ip=ip
+            )
             solution.save()
 
             return JsonResponse({'status': 'ok', 'solution_id': solution.id})
 
         return JsonResponse({'status': 'error', 'errors': form.errors})
 
-    if isinstance(child_task, models.FileEntranceExamTask):
+    if type(task) is models.FileEntranceExamTask:
         form = forms.FileEntranceTaskForm(task, request.POST, request.FILES)
         if is_closed:
             form.add_error('solution', 'Вступительная работа завершена. Решения больше не принимаются')
         elif form.is_valid():
             form_file = form.cleaned_data['solution']
-            solution_file = sistema.uploads.save_file(form_file, 'entrance-exam-files-solutions')
+            solution_file = sistema.uploads.save_file(
+                form_file,
+                'entrance-exam-files-solutions'
+            )
 
-            solution = models.FileEntranceExamTaskSolution(user=request.user,
-                                                           task=task,
-                                                           solution=solution_file,
-                                                           original_filename=form_file.name,
-                                                           ip=ip)
+            solution = models.FileEntranceExamTaskSolution(
+                user=request.user,
+                task=task,
+                solution=solution_file,
+                original_filename=form_file.name,
+                ip=ip
+            )
             solution.save()
             return JsonResponse({'status': 'ok', 'solution_id': solution.id})
 
         return JsonResponse({'status': 'error', 'errors': form.errors})
 
-    if isinstance(child_task, models.ProgramEntranceExamTask):
+    if type(task) is models.ProgramEntranceExamTask:
         form = forms.ProgramEntranceTaskForm(task, request.POST, request.FILES)
         if is_closed:
             form.add_error('solution', 'Вступительная работа завершена. Решения больше не принимаются')
         elif form.is_valid():
-            solution_file = sistema.uploads.save_file(form.cleaned_data['solution'], 'entrance-exam-programs-solutions')
+            solution_file = sistema.uploads.save_file(
+                form.cleaned_data['solution'],
+                'entrance-exam-programs-solutions'
+            )
 
             with transaction.atomic():
-                ejudge_queue_element = modules.ejudge.queue.add_from_file(child_task.ejudge_contest_id,
-                                                                          child_task.ejudge_problem_id,
-                                                                          form.cleaned_data['language'],
-                                                                          solution_file)
+                ejudge_queue_element = modules.ejudge.queue.add_from_file(
+                    task.ejudge_contest_id,
+                    task.ejudge_problem_id,
+                    form.cleaned_data['language'],
+                    solution_file
+                )
 
-                solution = models.ProgramEntranceExamTaskSolution(user=request.user,
-                                                                  task=task,
-                                                                  solution=solution_file,
-                                                                  language=form.cleaned_data['language'],
-                                                                  ejudge_queue_element=ejudge_queue_element,
-                                                                  ip=ip)
+                solution = models.ProgramEntranceExamTaskSolution(
+                    user=request.user,
+                    task=task,
+                    solution=solution_file,
+                    language=form.cleaned_data['language'],
+                    ejudge_queue_element=ejudge_queue_element,
+                    ip=ip
+                )
                 solution.save()
             return JsonResponse({'status': 'ok', 'solution_id': solution.id})
 
@@ -225,16 +241,29 @@ def submit(request, task_id):
 
 
 @login_required
+def program_solutions(request, task_id):
+    task = get_object_or_404(models.ProgramEntranceExamTask, id=task_id)
+    solutions = task.solutions.filter(user=request.user).order_by('-created_at')
+    is_checking = any(s.result is None for s in solutions)
+
+    return render(request, 'entrance/exam/_program_solutions.html', {
+        'task': task,
+        'solutions': solutions,
+        'is_checking': is_checking
+    })
+
+
+@login_required
 def solution(request, solution_id):
-    solution = get_object_or_404(models.EntranceExamTaskSolution, id=solution_id)
+    solution = get_object_or_404(models.FileEntranceExamTaskSolution,
+                                 id=solution_id)
 
     if solution.user != request.user and not request.user.is_staff:
         return HttpResponseForbidden()
-    if not hasattr(solution, 'fileentranceexamtasksolution'):
-        return HttpResponseNotFound()
 
-    return sistema.helpers.respond_as_attachment(request, solution.solution,
-                                                 solution.fileentranceexamtasksolution.original_filename)
+    return sistema.helpers.respond_as_attachment(request,
+                                                 solution.solution,
+                                                 solution.original_filename)
 
 
 @require_POST
@@ -246,19 +275,31 @@ def upgrade(request):
 
     # Not allow to upgrade if exam has been finished already
     if is_closed:
-        return redirect('school:entrance:exam', school_name=request.school.short_name)
+        return redirect(entrance_exam.get_absolute_url())
 
     base_level = upgrades.get_base_entrance_level(request.school, request.user)
 
     # We may need to upgrade several times because there are levels with
     # the same sets of tasks
     while upgrades.can_user_upgrade(request.school, request.user):
-        maximum_level = upgrades.get_maximum_issued_entrance_level(request.school, request.user, base_level)
-        next_level = models.EntranceLevel.objects.filter(order__gt=maximum_level.order).order_by('order').first()
+        maximum_level = upgrades.get_maximum_issued_entrance_level(
+            request.school,
+            request.user,
+            base_level
+        )
+        next_level = models.EntranceLevel.objects.filter(
+            order__gt=maximum_level.order
+        ).order_by('order').first()
 
-        models.EntranceLevelUpgrade(user=request.user, upgraded_to=next_level).save()
+        models.EntranceLevelUpgrade(
+            user=request.user,
+            upgraded_to=next_level
+        ).save()
 
-    return redirect('school:entrance:exam', school_name=request.school.short_name)
+    return redirect(
+        'school:entrance:exam',
+        school_name=request.school.short_name
+    )
 
 
 def results(request):

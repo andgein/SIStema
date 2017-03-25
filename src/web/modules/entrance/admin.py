@@ -3,25 +3,31 @@ from polymorphic.admin import (PolymorphicChildModelAdmin,
                                PolymorphicChildModelFilter,
                                PolymorphicParentModelAdmin)
 
+import sistema.polymorphic
 from home.admin import AbstractHomePageBlockAdmin
 from . import models
 
 import users.models
 
 
-class EntranceExamTaskAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'exam', 'order')
-    list_filter = ('exam',)
+@admin.register(models.EntranceExamTask)
+class EntranceExamTaskAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
+    base_model = models.EntranceExamTask
+    list_display = ('id', 'get_class', 'title', 'exam', 'order')
+    list_filter = ('exam', PolymorphicChildModelFilter)
     ordering = ('exam', 'order')
 
 
-admin.site.register(models.TestEntranceExamTask, EntranceExamTaskAdmin)
-admin.site.register(models.FileEntranceExamTask, EntranceExamTaskAdmin)
-admin.site.register(models.ProgramEntranceExamTask, EntranceExamTaskAdmin)
+@admin.register(models.TestEntranceExamTask)
+@admin.register(models.ProgramEntranceExamTask)
+@admin.register(models.FileEntranceExamTask)
+class EntranceExamTaskChildAdmin(PolymorphicChildModelAdmin):
+    base_model = models.EntranceExamTask
 
 admin.site.register(models.EntranceExam)
 
 
+@admin.register(models.EntranceLevel)
 class EntranceLevelAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -31,12 +37,14 @@ class EntranceLevelAdmin(admin.ModelAdmin):
         'school',
     )
 
-admin.site.register(models.EntranceLevel, EntranceLevelAdmin)
 
-
-class EntranceExamTaskSolutionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'task', 'user', 'ip')
-    list_filter = ('task',)
+@admin.register(models.EntranceExamTaskSolution)
+class EntranceExamTaskSolutionAdmin(
+    sistema.polymorphic.PolymorphicParentModelAdmin
+):
+    base_model = models.EntranceExamTaskSolution
+    list_display = ('id', 'get_class', 'task', 'user', 'ip')
+    list_filter = ('task', PolymorphicChildModelFilter)
     search_fields = (
         '=user__username',
         '=user__email',
@@ -45,22 +53,15 @@ class EntranceExamTaskSolutionAdmin(admin.ModelAdmin):
         '=ip',
     )
 
-admin.site.register(models.EntranceExamTaskSolution, EntranceExamTaskSolutionAdmin)
+
+@admin.register(models.TestEntranceExamTaskSolution)
+@admin.register(models.ProgramEntranceExamTaskSolution)
+@admin.register(models.FileEntranceExamTaskSolution)
+class EntranceExamTaskSolutionChildAdmin(PolymorphicChildModelAdmin):
+    base_model = models.EntranceExamTaskSolution
 
 
-class ProgramEntranceExamTaskSolutionAdmin(EntranceExamTaskSolutionAdmin):
-    list_display = EntranceExamTaskSolutionAdmin.list_display + (
-        'language',
-        'ejudge_queue_element',
-    )
-
-    list_filter = EntranceExamTaskSolutionAdmin.list_filter + (
-        'language',
-    )
-
-admin.site.register(models.ProgramEntranceExamTaskSolution, ProgramEntranceExamTaskSolutionAdmin)
-
-
+@admin.register(models.EntranceLevelUpgrade)
 class EntranceLevelUpgradeAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -81,75 +82,86 @@ class EntranceLevelUpgradeAdmin(admin.ModelAdmin):
     def get_school(self, obj):
         return obj.upgraded_to.school
 
-admin.site.register(models.EntranceLevelUpgrade, EntranceLevelUpgradeAdmin)
+
+@admin.register(models.EntranceLevelUpgradeRequirement)
+class EntranceLevelUpgradeRequirementAdmin(
+    sistema.polymorphic.PolymorphicParentModelAdmin
+):
+    base_model = models.EntranceLevelUpgradeRequirement
+    list_display = ('id', 'get_class', 'base_level')
+    list_filter = ('base_level', PolymorphicChildModelFilter)
 
 
-class SolveTaskEntranceLevelUpgradeRequirementAdmin(admin.ModelAdmin):
-    list_display = ('id', 'base_level', 'task')
-    list_filter = ('base_level', 'task')
-
-admin.site.register(models.SolveTaskEntranceLevelUpgradeRequirement,
-                    SolveTaskEntranceLevelUpgradeRequirementAdmin)
+@admin.register(models.SolveTaskEntranceLevelUpgradeRequirement)
+class EntranceLevelUpgradeRequirementChildAdmin(PolymorphicChildModelAdmin):
+    base_model = models.EntranceLevelUpgradeRequirement
 
 
+@admin.register(models.CheckingGroup)
 class CheckingGroupAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'short_name', 'name')
     list_filter = ('school', )
 
-admin.site.register(models.CheckingGroup, CheckingGroupAdmin)
 
-
+@admin.register(models.UserInCheckingGroup)
 class UserInCheckingGroupAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'group', 'is_actual')
     list_filter = ('group', 'is_actual')
 
-admin.site.register(models.UserInCheckingGroup, UserInCheckingGroupAdmin)
 
-
+@admin.register(models.CheckingLock)
 class CheckingLockAdmin(admin.ModelAdmin):
     list_display = ('id', 'locked_user', 'locked_by', 'locked_until')
     list_filter = (('locked_by', admin.RelatedOnlyFieldListFilter), )
 
-admin.site.register(models.CheckingLock, CheckingLockAdmin)
 
-
+@admin.register(models.SolutionScore)
 class SolutionScoreAdmin(admin.ModelAdmin):
     list_display = ('id', 'solution', 'scored_by', 'score', 'created_at')
     list_filter = (('scored_by', admin.RelatedOnlyFieldListFilter), )
 
-admin.site.register(models.SolutionScore, SolutionScoreAdmin)
 
-
+@admin.register(models.CheckingComment)
 class CheckingCommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'user', 'commented_by', 'comment', 'created_at')
     list_filter = ('school', ('commented_by', admin.RelatedOnlyFieldListFilter))
     search_fields = ('user__first_name', 'user__last_name', 'user__username')
 
-admin.site.register(models.CheckingComment, CheckingCommentAdmin)
 
-
+@admin.register(models.EntranceRecommendation)
 class EntranceRecommendationAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'user', 'checked_by', 'parallel', 'created_at', 'score')
     list_filter = ('school', ('checked_by', admin.RelatedOnlyFieldListFilter))
     search_fields = ('user__first_name', 'user__last_name', 'user__username')
 
-admin.site.register(models.EntranceRecommendation, EntranceRecommendationAdmin)
 
-
+@admin.register(models.EntranceStatus)
 class EntranceStatusAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'user', 'created_by', 'public_comment', 'is_status_visible', 'status', 'session', 'parallel', 'created_at', 'updated_at')
-    list_filter = ('school', 'status', 'session', 'parallel', ('created_by', admin.RelatedOnlyFieldListFilter))
+    list_filter = (('school', admin.RelatedOnlyFieldListFilter), 'status', 'session', 'parallel', ('created_by', admin.RelatedOnlyFieldListFilter))
     search_fields = ('user__first_name', 'user__last_name', 'user__username', 'public_comment')
 
-admin.site.register(models.EntranceStatus, EntranceStatusAdmin)
 
-
-class AbstractAbsenceReasonAdmin(admin.ModelAdmin):
-    list_display = ('id', 'school', 'user', 'created_by', 'public_comment',
+@admin.register(models.AbstractAbsenceReason)
+class AbstractAbsenceReasonAdmin(
+    sistema.polymorphic.PolymorphicParentModelAdmin
+):
+    base_model = models.AbstractAbsenceReason
+    list_display = ('id', 'get_class', 'school', 'user', 'created_by', 'public_comment',
                     'private_comment', 'created_at')
-    list_filter = ('school', ('created_by', admin.RelatedOnlyFieldListFilter))
-    search_fields = ('user__first_name', 'user__last_name', 'user__username',
+    list_filter = (('school', admin.RelatedOnlyFieldListFilter),
+                   ('created_by', admin.RelatedOnlyFieldListFilter),
+                   PolymorphicChildModelFilter)
+    search_fields = ('user__first_name',
+                     'user__last_name',
+                     'user__username',
                      'public_comment')
+
+
+@admin.register(models.RejectionAbsenceReason)
+@admin.register(models.NotConfirmedAbsenceReason)
+class AbsenceReasonChildAdmin(PolymorphicChildModelAdmin):
+    base_model = models.RejectionAbsenceReason
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'user':
@@ -163,11 +175,6 @@ class AbstractAbsenceReasonAdmin(admin.ModelAdmin):
                     is_staff=1
                 ).order_by('last_name', 'first_name'))
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-admin.site.register(models.RejectionAbsenceReason,
-                    AbstractAbsenceReasonAdmin)
-admin.site.register(models.NotConfirmedAbsenceReason,
-                    AbstractAbsenceReasonAdmin)
 
 
 admin.site.register(models.EntranceStepsHomePageBlock,
@@ -184,41 +191,18 @@ class AbstractEntranceStepAdmin(PolymorphicChildModelAdmin):
     ordering = ('school', 'order')
 
 
-def get_all_inheritors(klass):
-    """
-    Returns the list of all inheritors of the class
-    :return: list of classes
-    """
-    subclasses = set()
-    queue = [klass]
-    while queue:
-        parent = queue.pop()
-        children = {subclass
-                    for subclass in parent.__subclasses__()
-                    if subclass not in subclasses}
-        subclasses.update(children)
-        queue.extend(children)
-    return list(subclasses)
-
-
 @admin.register(models.AbstractEntranceStep)
-class EntranceStepsAdmin(PolymorphicParentModelAdmin):
+class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.AbstractEntranceStep
     list_display = ('id',
                     'get_class',
                     'school', 'order',
-                    'available_from_time', 'available_to_time',
+                    'available_from_time',
+                    'available_to_time',
                     'available_after_step')
     list_filter = (('school', admin.RelatedOnlyFieldListFilter),
-                   PolymorphicChildModelFilter)
+                   )
     ordering = ('school', 'order')
-
-    def get_child_models(self):
-        return get_all_inheritors(self.base_model)
-
-    def get_class(self, obj):
-        return obj.get_real_instance_class().__name__
-    get_class.short_description = 'Type'
 
 
 @admin.register(models.ConfirmProfileEntranceStep)

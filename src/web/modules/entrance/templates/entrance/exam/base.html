@@ -1,0 +1,27 @@
+{% load markdown_deux_tags %}
+{% load staticfiles %}
+
+<h3>
+    {% block panel_icon %}
+    {% endblock %}
+    {{ index }}. {{ task.title }}
+</h3>
+
+<div class="mw800 help-block mb20">
+    {% block description %}
+    {% endblock %}
+</div>
+
+<div class="entrance-exam__task__statement mw800">
+    {% block statement %}
+        {{ task.text|markdown }}
+    {% endblock %}
+</div>
+
+<div class="entrance-exam__task entrance-exam__task__{{ task.form.task_type }} form-group has-inf mt30"
+     data-submit-url="{% url 'school:entrance:submit' task.exam.school.short_name task.id %}"
+     data-program-solutions-url="{% url 'school:entrance:program_solutions' task.exam.school.short_name task.id %}">
+    {% block answer_form %}
+        Произошла какая-то ошибка, обновите страницу или напишите <a href="{{ settings.SISTEMA_CONTACT_US_EMAIL }}">нам</a>.
+    {% endblock %}
+</div>

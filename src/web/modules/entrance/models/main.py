@@ -7,13 +7,14 @@ from django.core import urlresolvers
 from django.conf import settings
 from django.db import models, transaction
 import django.utils.timezone
+import sizefield.models
 
 import schools.models
 import modules.ejudge.models
 import users.models
 
 
-class EntranceExamTask(models.Model):
+class EntranceExamTask(polymorphic.models.PolymorphicModel):
     title = models.CharField(max_length=100, help_text='Название')
 
     text = models.TextField(help_text='Формулировка задания')
@@ -32,21 +33,29 @@ class EntranceExamTask(models.Model):
     def __str__(self):
         return self.title
 
-    def get_child_object(self):
-        child = [TestEntranceExamTask, FileEntranceExamTask, ProgramEntranceExamTask]
-        for children in child:
-            class_name = children.__name__.lower()
-            if hasattr(self, class_name):
-                return getattr(self, class_name)
-
-        return None
-
     def is_solved_by_user(self, user):
         # Always not solved by default. Override when subclassing.
         return False
 
+    @property
+    def template_file(self):
+        """
+        Returns template file name in folder templates/entrance/exam/
+        """
+        raise NotImplementedError('Child should define property template_file')
+
+    @property
+    def type_title(self):
+        """
+        Returns title of blocks with these tasks
+        """
+        raise NotImplementedError('Child should define property type_title')
+
 
 class TestEntranceExamTask(EntranceExamTask):
+    template_file = 'test.html'
+    type_title = 'Тестовые задания'
+
     correct_answer_re = models.CharField(max_length=100, help_text='Правильный ответ (регулярное выражение)')
 
     validation_re = models.CharField(max_length=100,
@@ -58,32 +67,43 @@ class TestEntranceExamTask(EntranceExamTask):
 
 
 class FileEntranceExamTask(EntranceExamTask):
-    pass
+    template_file = 'file.html'
+    type_title = 'Теоретические задачи'
 
 
 class ProgramEntranceExamTask(EntranceExamTask):
-    ejudge_contest_id = models.PositiveIntegerField(help_text='ID контеста в еджадже')
+    template_file = 'program.html'
+    type_title = 'Практические задачи'
 
-    ejudge_problem_id = models.PositiveIntegerField(help_text='ID задачи в еджадже')
+    ejudge_contest_id = models.PositiveIntegerField(
+        help_text='ID контеста в еджадже'
+    )
+
+    ejudge_problem_id = models.PositiveIntegerField(
+        help_text='ID задачи в еджадже'
+    )
 
     input_file_name = models.CharField(max_length=100, blank=True)
 
     output_file_name = models.CharField(max_length=100, blank=True)
 
-    time_limit = models.PositiveIntegerField()
+    time_limit = models.PositiveIntegerField(help_text='В миллисекундах')
 
-    memory_limit = models.PositiveIntegerField()
+    memory_limit = sizefield.models.FileSizeField()
 
     input_format = models.TextField(blank=True)
 
     output_format = models.TextField(blank=True)
 
     def is_solved_by_user(self, user):
-        related_field = 'programentranceexamtasksolution__ejudge_queue_element__submission__result'
-        user_solutions = [s.programentranceexamtasksolution
-                          for s in self.entranceexamtasksolution_set.filter(user=user)
-                                       .select_related(related_field)]
-        task_has_ok = any(filter(lambda s: s.is_checked and s.result.is_success, user_solutions))
+        user_solutions = ProgramEntranceExamTaskSolution.objects.filter(
+            user=user,
+            task=self
+        ).select_related('ejudge_queue_element__submission__result')
+        task_has_ok = any(filter(
+            lambda s: s.is_checked and s.result.is_success,
+            user_solutions
+        ))
         return task_has_ok
 
 
@@ -96,23 +116,29 @@ class EntranceExam(models.Model):
         return 'Вступительная работа для %s' % self.school
 
     def is_closed(self):
-        return self.close_time is not None and django.utils.timezone.now() >= self.close_time
+        return (self.close_time is not None and
+                django.utils.timezone.now() >= self.close_time)
 
     def get_absolute_url(self):
-        return urlresolvers.reverse('school:entrance:exam', kwargs={ 'school_name': self.school.short_name})
+        return urlresolvers.reverse('school:entrance:exam', kwargs={
+            'school_name': self.school.short_name
+        })
 
 
 class EntranceLevel(models.Model):
     """
     Уровень вступительной работы.
     Для каждой задачи могут быть указаны уровни, для которых она предназначена.
-    Уровень школьника определяется с помощью EntranceLevelLimiter'ов (например, на основе тематической анкеты
-    из модуля topics или прошлой учёбы в других параллелях)
+    Уровень школьника определяется с помощью EntranceLevelLimiter'ов (например,
+    на основе тематической анкеты из модуля topics, класса в школе
+    или учёбы в других параллелях в прошлые годы)
     """
     school = models.ForeignKey(schools.models.School)
 
-    short_name = models.CharField(max_length=100,
-                                  help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием')
+    short_name = models.CharField(
+        max_length=100,
+        help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием'
+    )
 
     name = models.CharField(max_length=100)
 
@@ -139,16 +165,24 @@ class EntranceLevel(models.Model):
         ordering = ('school_id', 'order')
 
 
-class EntranceExamTaskSolution(models.Model):
-    task = models.ForeignKey(EntranceExamTask)
+class EntranceExamTaskSolution(polymorphic.models.PolymorphicModel):
+    task = models.ForeignKey(
+        EntranceExamTask,
+        related_name='solutions'
+    )
 
-    user = models.ForeignKey(users.models.User)
+    user = models.ForeignKey(
+        users.models.User,
+        related_name='entrance_exam_solutions'
+    )
 
     solution = models.TextField()
 
-    ip = models.CharField(max_length=50,
-                          help_text='IP-адрес, с которого было отправлено решение',
-                          default='')
+    ip = models.CharField(
+        max_length=50,
+        help_text='IP-адрес, с которого было отправлено решение',
+        default=''
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -157,8 +191,11 @@ class EntranceExamTaskSolution(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-
         index_together = ('task', 'user')
+
+
+class TestEntranceExamTaskSolution(EntranceExamTaskSolution):
+    pass
 
 
 class FileEntranceExamTaskSolution(EntranceExamTaskSolution):
@@ -172,12 +209,11 @@ class ProgramEntranceExamTaskSolution(EntranceExamTaskSolution):
 
     @property
     def is_checked(self):
-        return self.ejudge_queue_element.status == modules.ejudge.models.QueueElement.Status.CHECKED
+        return (self.ejudge_queue_element.status ==
+                modules.ejudge.models.QueueElement.Status.CHECKED)
 
     @property
     def result(self):
-        if not self.is_checked:
-            return None
         return self.ejudge_queue_element.get_result()
 
 
@@ -189,19 +225,10 @@ class EntranceLevelUpgrade(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class EntranceLevelUpgradeRequirement(models.Model):
+class EntranceLevelUpgradeRequirement(polymorphic.models.PolymorphicModel):
     base_level = models.ForeignKey(EntranceLevel, related_name='+')
 
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def get_child_object(self):
-        child = [SolveTaskEntranceLevelUpgradeRequirement]
-        for children in child:
-            class_name = children.__name__.lower()
-            if hasattr(self, class_name):
-                return getattr(self, class_name)
-
-        return None
 
     def is_met_by_user(self, user):
         # Always met by default. Override when subclassing.
@@ -212,7 +239,7 @@ class SolveTaskEntranceLevelUpgradeRequirement(EntranceLevelUpgradeRequirement):
     task = models.ForeignKey(EntranceExamTask, related_name='+')
 
     def is_met_by_user(self, user):
-        return self.task.get_child_object().is_solved_by_user(user)
+        return self.task.is_solved_by_user(user)
 
 
 class CheckingGroup(models.Model):

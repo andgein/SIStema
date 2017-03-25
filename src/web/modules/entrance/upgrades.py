@@ -43,10 +43,11 @@ def can_user_upgrade(school, user):
     if is_user_at_maximum_level(school, user, base_level):
         return False
 
-    requirements = models.EntranceLevelUpgradeRequirement.objects.filter(base_level=issued_level)
+    requirements = models.EntranceLevelUpgradeRequirement.objects.filter(
+        base_level=issued_level
+    )
 
-    return all(requirement.get_child_object().is_met_by_user(user)
-               for requirement in requirements)
+    return all(requirement.is_met_by_user(user) for requirement in requirements)
 
 
 def get_entrance_tasks(school, user, base_level):
@@ -57,7 +58,7 @@ def get_entrance_tasks(school, user, base_level):
 
     issued_tasks = set()
     for level in issued_levels:
-        for task in level.tasks.all().order_by('order'):
+        for task in level.tasks.order_by('order'):
             issued_tasks.add(task)
 
     return list(issued_tasks)
