@@ -292,6 +292,50 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
     def is_passed(self, user):
         return False
 
+    @staticmethod
+    def _get_solved_count(tasks):
+        return len(list(filter(lambda t: t.is_solved, tasks)))
+
+    def build(self, user):
+        # It's here to avoid cyclic imports
+        import modules.entrance.views as entrance_views
+        import modules.entrance.models as entrance_models
+        import modules.entrance.upgrades as entrance_upgrades
+
+        block = super().build(user)
+        base_level, tasks = entrance_views.get_entrance_level_and_tasks(self.school, user)
+
+        for task in tasks:
+            task.is_solved = task.is_solved_by_user(user)
+
+        test_tasks = [t for t in tasks
+                      if type(t) is entrance_models.TestEntranceExamTask]
+        file_tasks = [t for t in tasks
+                      if type(t) is entrance_models.FileEntranceExamTask]
+        program_tasks = [t for t in tasks
+                         if type(t) is entrance_models.ProgramEntranceExamTask]
+
+        block.test_tasks_count = len(test_tasks)
+        block.file_tasks_count = len(file_tasks)
+        block.program_tasks_count = len(program_tasks)
+
+        block.test_tasks_solved_count = self._get_solved_count(test_tasks)
+        block.file_tasks_solved_count = self._get_solved_count(file_tasks)
+        block.program_tasks_solved_count = self._get_solved_count(program_tasks)
+
+        block.level = entrance_upgrades.get_maximum_issued_entrance_level(
+            self.school,
+            user,
+            base_level
+        )
+        block.is_at_maximum_level = entrance_upgrades.is_user_at_maximum_level(
+            self.school,
+            user,
+            base_level
+        )
+
+        return block
+
     def __str__(self):
         return 'Шаг вступительной работы %s для %s' % (str(self.exam),
                                                        str(self.school))

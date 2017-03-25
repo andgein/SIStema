@@ -4,7 +4,7 @@
 {% load markdown_deux_tags %}
 
 {% block _block_css_classes %}
-    {% if entrance_block.state == EntranceStepState.NOT_OPENED or entrance_block.state == EntranceStepState.WAITING_FOR_OTHER_STEP %}
+    {% if entrance_block.state == EntranceStepState.NOT_OPENED or entrance_block.state == EntranceStepState.WAITING_FOR_OTHER_STEP or entrance_block.state == EntranceStepState.CLOSED %}
         not-available
     {% elif entrance_block.state == EntranceStepState.PASSED %}
         done

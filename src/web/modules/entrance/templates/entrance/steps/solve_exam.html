@@ -3,5 +3,42 @@
 {% block title %}Вступительная работа{% endblock %}
 
 {% block not_passed_after_text %}
+    <div class="row mt20 mb20">
+        <div class="col-xs-12 col-sm-6 fs13">
+            <h4>Уровень вступительной работы</h4>
+            <p>
+                Вам выданы задания на&nbsp;параллели {{ entrance_block.level.name }}.
+                {% if not entrance_block.is_at_maximum_level %}
+                    Вы можете получить задания на&nbsp;следующую параллель, если решите все выданные задания.
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="col-xs-12 col-sm-6 fs13">
+            <h4>Статистика</h4>
+            {% if entrance_block.test_tasks_count %}
+                <span class="{{ entrance_block.test_tasks_solved_count|yesno:',text-danger' }}">
+                    Тестовые задания:
+                    <b>отправлено {{ entrance_block.test_tasks_solved_count }} из {{ entrance_block.test_tasks_count }}</b>
+                    <br />
+                </span>
+            {% endif %}
+            {% if entrance_block.file_tasks_count %}
+                <span class="{{ entrance_block.file_tasks_solved_count|yesno:',text-danger' }}">
+                    Теоретические задачи:
+                    <b>отправлено {{ entrance_block.file_tasks_solved_count }} из {{ entrance_block.file_tasks_count }}</b>
+                    <br />
+                </span>
+            {% endif %}
+            {% if entrance_block.program_tasks_count %}
+                <span class="{{ entrance_block.program_tasks_solved_count|yesno:',text-danger' }}">
+                    Практические задачи:
+                    <b>сдано {{ entrance_block.program_tasks_solved_count }} из {{ entrance_block.program_tasks_count }}</b>
+                    <br />
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
     <a href="{{ entrance_block.step.exam.get_absolute_url }}" class="btn btn-primary">Решить задачи</a>
 {% endblock %}

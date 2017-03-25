@@ -22,6 +22,6 @@
      data-submit-url="{% url 'school:entrance:submit' task.exam.school.short_name task.id %}"
      data-program-solutions-url="{% url 'school:entrance:program_solutions' task.exam.school.short_name task.id %}">
     {% block answer_form %}
-        Произошла какая-то ошибка, обновите страницу или напишите <a href="{{ settings.SISTEMA_CONTACT_US_EMAIL }}">нам</a>.
+        Произошла какая-то ошибка, обновите страницу или напишите <a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}">нам</a>.
     {% endblock %}
 </div>

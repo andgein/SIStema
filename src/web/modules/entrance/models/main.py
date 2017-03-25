@@ -65,10 +65,16 @@ class TestEntranceExamTask(EntranceExamTask):
     def check_solution(self, solution):
         return re.fullmatch(self.correct_answer_re, solution) is not None
 
+    def is_solved_by_user(self, user):
+        return self.solutions.filter(user=user).exists()
+
 
 class FileEntranceExamTask(EntranceExamTask):
     template_file = 'file.html'
     type_title = 'Теоретические задачи'
+
+    def is_solved_by_user(self, user):
+        return self.solutions.filter(user=user).exists()
 
 
 class ProgramEntranceExamTask(EntranceExamTask):

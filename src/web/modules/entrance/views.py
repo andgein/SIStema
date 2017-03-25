@@ -21,6 +21,12 @@ import frontend.table
 import frontend.icons
 
 
+def get_entrance_level_and_tasks(school, user):
+    base_level = upgrades.get_base_entrance_level(school, user)
+    tasks = upgrades.get_entrance_tasks(school, user, base_level)
+    return base_level, tasks
+
+
 # TODO: Inherit of staff_views.EnrollingUsersTable seems to be a bad architecture idea
 class EntrancedUsersTable(staff_views.EnrollingUsersTable):
     icon = frontend.icons.FaIcon('check')
@@ -113,14 +119,13 @@ def exam(request):
     )
     is_closed = entrance_exam.is_closed()
 
-    base_level = upgrades.get_base_entrance_level(request.school, request.user)
-    tasks = upgrades.get_entrance_tasks(request.school, request.user, base_level)
+    base_level, tasks = get_entrance_level_and_tasks(request.school, request.user)
 
     for task in tasks:
         task.user_solutions = list(
             task.solutions.filter(user=request.user).order_by('-created_at')
         )
-        task.is_solved = len(task.user_solutions) > 0
+        task.is_solved = task.is_solved_by_user(request.user)
 
     test_tasks = [t for t in tasks if type(t) is models.TestEntranceExamTask]
     file_tasks = [t for t in tasks if type(t) is models.FileEntranceExamTask]
@@ -137,8 +142,6 @@ def exam(request):
         file_task.form = forms.FileEntranceTaskForm(file_task)
     for program_task in program_tasks:
         program_task.form = forms.ProgramEntranceTaskForm(program_task)
-        task.is_solved = any(s.result is not None and s.result.is_success
-                             for s in task.user_solutions)
 
     return render(request, 'entrance/exam.html', {
         'is_closed': is_closed,
@@ -166,7 +169,7 @@ def submit(request, task_id):
 
     ip = ipware.ip.get_ip(request) or ''
 
-    # TODO (andgein): extract this login to models
+    # TODO (andgein): extract this logic to models
     if type(task) is models.TestEntranceExamTask:
         form = forms.TestEntranceTaskForm(task, request.POST)
         if is_closed:
@@ -296,10 +299,7 @@ def upgrade(request):
             upgraded_to=next_level
         ).save()
 
-    return redirect(
-        'school:entrance:exam',
-        school_name=request.school.short_name
-    )
+    return redirect(entrance_exam.get_absolute_url())
 
 
 def results(request):
