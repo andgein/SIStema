@@ -21,7 +21,7 @@
     {% block collapse_icon %}
         {% if not entrance_block.step.always_expanded %}
             <div class="collapse-icon">
-                {% if entrance_block.state == EntranceStepState.NOT_PASSED or entrance_block.state == EntranceStepState.CLOSED %}
+                {% if entrance_block.state == EntranceStepState.NOT_PASSED %}
                     <span class="fa fa-chevron-up"></span>
                 {% else %}
                     <span class="fa fa-chevron-down"></span>
