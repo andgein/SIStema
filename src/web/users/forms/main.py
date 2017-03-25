@@ -6,7 +6,7 @@ from allauth.socialaccount import forms as social_account_forms
 
 from django.core import exceptions as django_exceptions
 from django.utils.translation import ugettext_lazy as _
-from frontend.forms import TextInputWithFaIcon, PasswordInputWithFaIcon,\
+from frontend.forms import TextInputWithFaIcon, PasswordInputWithFaIcon, \
     SistemaRadioSelect
 
 from users import models
@@ -91,7 +91,7 @@ class UserProfileForm(forms.Form):
     )
 
     middle_name = forms.CharField(
-        required=True,
+        required=False,
         label='Отчество',
         help_text='Как в паспорте или свидетельстве о рождении',
         widget=TextInputWithFaIcon(attrs={
@@ -113,13 +113,13 @@ class UserProfileForm(forms.Form):
         required=True,
         label='Дата рождения',
         widget=forms.DateInput(attrs={
-                'class': 'gui-input datetimepicker',
-                'data-format': 'DD.MM.YYYY',
-                'data-view-mode': 'years',
-                'data-pick-time': 'false',
-                'placeholder': 'дд.мм.гггг',
-            })
-    )  # TODO widget=forms.SelectDateWidget(years=_get_allowed_birth_years()))
+            'class': 'gui-input datetimepicker',
+            'data-format': 'DD.MM.YYYY',
+            'data-view-mode': 'years',
+            'data-pick-time': 'false',
+            'placeholder': 'дд.мм.гггг',
+        })
+    )
 
     current_class = forms.IntegerField(
         required=True,
@@ -192,7 +192,7 @@ class UserProfileForm(forms.Form):
     )
     citizenship_other = forms.CharField(
         label='Другое гражданство',
-        #TODO hide this field, if citizenship != Citizenship.OTHER
+        # TODO hide this field, if citizenship != Citizenship.OTHER
         help_text='Если вы указали «Другое», укажите здесь своё гражданство (или несколько через запятую)',
         required=False,
         widget=TextInputWithFaIcon(attrs={
@@ -243,6 +243,13 @@ class SignupForm(account_forms.SignupForm, UserProfileForm):
         kwargs['active_tab'] = base_forms.AccountBaseForm.Tab.SIGNUP
         super().__init__(*args, **kwargs)
         _customize_widgets(self)
+
+        exceptions_list = ['middle_name', 'poldnev_person']
+        field_names_to_drop = [field_name
+                               for field_name, field in self.fields.items()
+                               if not field.required and field_name not in exceptions_list]
+        for field_name in field_names_to_drop:
+            del self.fields[field_name]
 
 
 class SocialSignupForm(social_account_forms.SignupForm, UserProfileForm):

@@ -86,26 +86,22 @@
                                         {% endif %}
                                         {% for field_name in form.fields %}
                                             {% with field=form|get_item:field_name %}
-                                                {# TODO(eugene): fix this hack #}
-                                                {% if field.field.required or field_name == 'poldnev_person' %}
-                                                    <div class="section mb20">
-                                                        <div class="{{ field.errors|yesno:'state-error,' }}">
-                                                            <label for="{{ field.id_for_label }}" class="field-label fs16">{{ field.label }}</label>
-                                                            <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
-                                                                {{ field }}
-                                                            </label>
-                                                            <p class="help-block">
-                                                                {{ field.help_text }}
-                                                            </p>
-                                                        </div>
-                                                        {% if field.errors %}
-                                                            {% for error in field.errors %}
-                                                                <em>{{ error }}</em>
-                                                            {% endfor %}
-                                                        {% endif %}
+                                                <div class="section mb20">
+                                                    <div class="{{ field.errors|yesno:'state-error,' }}">
+                                                        <label for="{{ field.id_for_label }}" class="field-label fs16">{{ field.label }}</label>
+                                                        <label for="{{ field.id_for_label }}" class="field {{ field.field.widget.fa_type|yesno:"prepend-icon,," }}">
+                                                            {{ field }}
+                                                        </label>
+                                                        <p class="help-block">
+                                                            {{ field.help_text }}
+                                                        </p>
                                                     </div>
-
-                                                {% endif %}
+                                                    {% if field.errors %}
+                                                        {% for error in field.errors %}
+                                                            <em>{{ error }}</em>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </div>
                                             {% endwith %}
                                         {% endfor %}
                                     {% endif %}
