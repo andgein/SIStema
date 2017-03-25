@@ -32,16 +32,19 @@ class AlreadyWasEntranceLevelLimiter(EntranceLevelLimiter):
     question_short_name = 'previous_parallels'
 
     def get_limit(self, user):
-        qs = QuestionnaireAnswer.objects.filter(questionnaire__school=self.school,
-                                                user=user,
-                                                question_short_name=self.question_short_name)
+        qs = QuestionnaireAnswer.objects.filter(
+            questionnaire__school=self.school,
+            user=user,
+            question_short_name=self.question_short_name
+        )
         if not qs.exists():
             return EntranceLevelLimit(self._find_minimal_level())
 
         answers = list(qs)
-        variants = list(
-            ChoiceQuestionnaireQuestionVariant.objects.filter(question__questionnaire__school=self.school,
-                                                              question__short_name=self.question_short_name))
+        variants = list(ChoiceQuestionnaireQuestionVariant.objects.filter(
+                question__questionnaire__school=self.school,
+                question__short_name=self.question_short_name
+        ))
         answers = [a.answer for a in answers]
         variants = [v.text for v in variants if str(v.id) in answers]
 
@@ -63,29 +66,22 @@ class AlreadyWasEntranceLevelLimiter(EntranceLevelLimiter):
 
 
 class AgeEntranceLevelLimiter(EntranceLevelLimiter):
-    # TODO: move it to settings?
-    question_short_name = 'class'
-
     def get_limit(self, user):
-        qs = QuestionnaireAnswer.objects.filter(questionnaire__school=self.school,
-                                                user=user,
-                                                question_short_name=self.question_short_name)
-        if not qs.exists():
+        if not hasattr(user, 'user_profile'):
             return EntranceLevelLimit(self._find_minimal_level())
 
-        answer = qs.first()
-        try:
-            _class = int(answer.answer)
-        except ValueError:
+        current_class = user.user_profile.current_class
+        if current_class is None:
             return EntranceLevelLimit(self._find_minimal_level())
 
         levels = models.EntranceLevel.objects.filter(school=self.school)
 
-        if _class >= 10:
+        if current_class >= 10:
             return EntranceLevelLimit(levels.filter(short_name='b_prime').get())
-        if _class == 9:
+        if current_class == 9:
             return EntranceLevelLimit(levels.filter(short_name='c').get())
-        if _class == 8:
+        if current_class == 8:
             return EntranceLevelLimit(levels.filter(short_name='c_prime').get())
 
         return EntranceLevelLimit(self._find_minimal_level())
+
