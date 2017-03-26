@@ -34,20 +34,17 @@
                     {{ task.help_text }}
                 </span>
             {% endif %}
-            <em class="status"></em>
+            <div class="mv20">
+                <em class="status"></em>
+            </div>
         </form>
 
-        {% if task.user_solutions %}
-            {% with last_solution=task.user_solutions.0 %}
-                <div class="mt20">
-                    <p>
-                        Вы отправили файл <b>{{ last_solution.original_filename }}</b> {{ last_solution.created_at }}.
-                    </p>
-                    <p>
-                        Решение будет проверено только после окончания вступительной работы.
-                    </p>
-                </div>
-            {% endwith %}
-        {% endif %}
+        <div class="entrance-exam__task__file__submits">
+            {% if task.user_solutions %}
+                {% with last_solution=task.user_solutions.0 %}
+                    {% include 'entrance/exam/_file_solutions.html' with solution=last_solution %}
+                {% endwith %}
+            {% endif %}
+        </div>
     </div>
 {% endblock %}

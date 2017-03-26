@@ -38,8 +38,9 @@ def is_user_at_maximum_level(school, user, base_level):
 
 # User can upgrade if he hasn't reached the maximum level yet and solved all
 # the required tasks.
-def can_user_upgrade(school, user):
-    base_level = get_base_entrance_level(school, user)
+def can_user_upgrade(school, user, base_level=None):
+    if base_level is None:
+        base_level = get_base_entrance_level(school, user)
     issued_level = get_maximum_issued_entrance_level(school, user, base_level)
 
     if is_user_at_maximum_level(school, user, base_level):

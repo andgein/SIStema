@@ -112,7 +112,7 @@ class EntrancedUsersTable(staff_views.EnrollingUsersTable):
 
 
 @login_required
-def exam(request):
+def exam(request, selected_task_id=None):
     entrance_exam = get_object_or_404(
         models.EntranceExam,
         school=request.school
@@ -143,18 +143,36 @@ def exam(request):
     for program_task in program_tasks:
         program_task.form = forms.ProgramEntranceTaskForm(program_task)
 
+    all_tasks = test_tasks + file_tasks + program_tasks
+    if selected_task_id is None and len(all_tasks) > 0:
+        selected_task_id = all_tasks[0].id
+    try:
+        selected_task_id = int(selected_task_id)
+    except ValueError:
+        selected_task_id = None
+
     return render(request, 'entrance/exam.html', {
         'is_closed': is_closed,
         'entrance_level': base_level,
         'school': request.school,
-        'tasks': test_tasks + file_tasks + program_tasks,
+        'tasks': all_tasks,
         'is_user_at_maximum_level': upgrades.is_user_at_maximum_level(
             request.school,
             request.user,
             base_level
         ),
-        'can_upgrade': upgrades.can_user_upgrade(request.school, request.user),
+        'can_upgrade': upgrades.can_user_upgrade(
+            request.school,
+            request.user,
+            base_level
+        ),
+        'selected_task_id': selected_task_id
     })
+
+
+@login_required
+def task(request, task_id):
+    return exam(request, task_id)
 
 
 @login_required
@@ -244,15 +262,45 @@ def submit(request, task_id):
 
 
 @login_required
-def program_solutions(request, task_id):
-    task = get_object_or_404(models.ProgramEntranceExamTask, id=task_id)
+def task_solutions(request, task_id):
+    task = get_object_or_404(models.EntranceExamTask, id=task_id)
     solutions = task.solutions.filter(user=request.user).order_by('-created_at')
-    is_checking = any(s.result is None for s in solutions)
 
-    return render(request, 'entrance/exam/_program_solutions.html', {
-        'task': task,
-        'solutions': solutions,
-        'is_checking': is_checking
+    if type(task) is models.ProgramEntranceExamTask:
+        is_checking = any(s.result is None for s in solutions)
+        is_passed = any(s.is_checked and s.result.is_success for s in solutions)
+
+        return render(request, 'entrance/exam/_program_solutions.html', {
+            'task': task,
+            'solutions': solutions,
+            'is_checking': is_checking,
+            'is_passed': is_passed
+        })
+
+    if type(task) is models.FileEntranceExamTask:
+        return render(request, 'entrance/exam/_file_solutions.html', {
+            'task': task,
+            'solution': solutions.first()
+        })
+
+    return HttpResponseNotFound()
+
+
+@login_required
+def upgrade_panel(request):
+    base_level, _ = get_entrance_level_and_tasks(request.school, request.user)
+
+    return render(request, 'entrance/_exam_upgrade.html', {
+        'is_user_at_maximum_level': upgrades.is_user_at_maximum_level(
+            request.school,
+            request.user,
+            base_level
+        ),
+        'can_upgrade': upgrades.can_user_upgrade(
+            request.school,
+            request.user,
+            base_level
+        ),
     })
 
 

@@ -6,52 +6,29 @@
 {% block title %}Вступительная работа{% endblock %}
 
 {% block css %}
-    <link rel="stylesheet" type="text/css" href="{% static 'entrance/css/entrance-exam.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'entrance/css/exam.css' %}">
 {% endblock %}
 
 {% block content %}
-    {% if user.is_staff %}
-        <div class="alert alert-danger alert-micro alert-border-left">
-           Определившаяся параллель {{ entrance_level }} (видно только админам)
-        </div>
-    {% endif %}
 
-    {% if can_upgrade %}
+    <h1 class="mt10 mb30 text-dark fw400 text-center">Вступительная работа</h1>
+
+    <div class="entrance-exam__upgrade-panel" data-update-url="{% url 'school:entrance:upgrade_panel' request.school.short_name %}">
         {% include 'entrance/_exam_upgrade.html' %}
-    {% endif %}
+    </div>
 
     <div class="entrance-exam tab-block mb40">
         <ul class="nav tabs-left tabs-border mb40">
-            {% for task in tasks %}
-                {% ifchanged task|get_type %}
-                    <li class="tabs-group">
-                        <a class="tabs-group">{{ task.type_title }}</a>
-                    </li>
-                {% endifchanged %}
-                <li class="{{ forloop.first|yesno:'active,' }}">
-                    <a href="#entrance-exam__tab-{{ task.id }}"
-                       data-toggle="tab"
-                       title="{{ task.title }}"
-                       class="{{ task.is_solved|yesno:'solved,not-solved' }}">
-                        {{ forloop.counter }}. {{ task.title|truncatechars:20 }}
-                    </a>
-                </li>
-            {% endfor %}
+            {% include 'entrance/_exam_tasks_navigation.html' %}
         </ul>
         <div class="tab-content">
             {% for task in tasks %}
-                <div id="entrance-exam__tab-{{ task.id }}" class="entrance-exam__tab tab-pane {{ forloop.first|yesno:'active,' }}">
+                <div class="entrance-exam__tab tab-pane {% ifequal task.id selected_task_id %}active{% endifequal %}" data-task-id="{{ task.id }}">
                     {% include 'entrance/exam/'|add:task.template_file with index=forloop.counter task=task solution=test_task.user_solution.solution%}
                 </div>
             {% endfor %}
         </div>
     </div>
-
-    {% comment %}
-        {% if not is_closed %}
-            {% include 'entrance/_exam_upgrade.html' %}
-        {% endif %}
-    {% endcomment %}
 
 {% endblock %}
 

@@ -1,14 +1,15 @@
 <h3 class="mt10">Ваши решения</h3>
 
 <input type="hidden" name="is_checking" value="{{ is_checking|yesno:'true,false' }}">
+<input type="hidden" name="is_passed" value="{{ is_passed|yesno:'true,false' }}">
 
 {% if solutions %}
     <div class="submit header">
-        <div class="counter"></div>
-        <div class="language">
+        <div class="submit__counter"></div>
+        <div class="submit__language">
             Язык
         </div>
-        <div class="status">
+        <div class="submit__status">
             Статус
         </div>
     </div>
@@ -16,15 +17,15 @@
 
 {% for solution in solutions %}
     {% with solution.ejudge_queue_element.get_result as result %}
-        <div class="submit {{ result.is_success|yesno:'text-success,text-danger,'}}">
-            <div class="counter"> {{ forloop.revcounter }}.</div>
-            <div class="language">{{ solution.language }}</div>
+        <div class="submit {% if result %}{{ result.is_success|yesno:'text-success,text-danger,'}}{% endif %}">
+            <div class="submit__counter"> {{ forloop.revcounter }}.</div>
+            <div class="submit__language">{{ solution.language }}</div>
 
-            <div class="result">
+            <div class="submit__result">
                 {% if result %}
                     {{ result }}
                 {% else %}
-                    Проверяется...
+                    Проверяется... <i class="fa fa-spin fa-spinner"></i>
                 {% endif %}
             </div>
         </div>

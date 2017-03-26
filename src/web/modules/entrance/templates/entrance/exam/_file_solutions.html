@@ -1,0 +1,10 @@
+{% if solution %}
+    <div class="mt20">
+        <p>
+            Вы отправили файл <b>{{ solution.original_filename }}</b> {{ solution.created_at }}.
+        </p>
+        <p>
+            Решение будет проверено только после окончания вступительной работы.
+        </p>
+    </div>
+{% endif %}

@@ -237,34 +237,36 @@ class UserSummary:
 def check_user(request, user_for_checking, checking_group=None):
     entrance_exam = models.EntranceExam.objects.filter(school=request.school).first()
     base_entrance_level = upgrades.get_base_entrance_level(request.school, user_for_checking)
-    level_upgrades = models.EntranceLevelUpgrade.objects.filter(upgraded_to__school=request.school,
-                                                                user=user_for_checking)
-    tasks = upgrades.get_entrance_tasks(request.school, user_for_checking, base_entrance_level)
+    level_upgrades = models.EntranceLevelUpgrade.objects.filter(
+        upgraded_to__school=request.school,
+        user=user_for_checking
+    )
+    tasks = upgrades.get_entrance_tasks(
+        request.school,
+        user_for_checking,
+        base_entrance_level
+    )
     tasks_solutions = group_by(
-            models.EntranceExamTaskSolution.objects.filter(task__exam=entrance_exam, user=user_for_checking).order_by(
-                    '-created_at'),
-            operator.attrgetter('task_id')
+        user_for_checking.entrance_exam_solutions.filter(task__exam=entrance_exam).order_by('-created_at'),
+        operator.attrgetter('task_id')
     )
     for task in tasks:
         task.user_solutions = tasks_solutions[task.id]
-        if hasattr(task, 'testentranceexamtask'):
+        if type(task) is models.TestEntranceExamTask:
             for solution in task.user_solutions:
-                solution.is_correct = task.testentranceexamtask.check_solution(solution.solution)
-            task.is_solved = any([s.is_correct for s in task.user_solutions])
+                solution.is_correct = task.check_solution(solution.solution)
+            task.is_solved = any(s.is_correct for s in task.user_solutions)
             task.last_try = task.user_solutions[0].solution if len(task.user_solutions) > 0 else None
             task.is_last_correct = len(task.user_solutions) > 0 and task.user_solutions[0].is_correct
-        if hasattr(task, 'programentranceexamtask'):
-            task.user_solutions = [s.programentranceexamtasksolution for s in task.user_solutions]
-            task.is_solved = any(
-                    [isinstance(s.result, SolutionCheckingResult) and s.result.is_success for s in task.user_solutions])
-        if hasattr(task, 'fileentranceexamtask'):
-            task.user_solutions = [s.fileentranceexamtasksolution for s in task.user_solutions]
+        if type(task) is models.ProgramEntranceExamTask:
+            task.is_solved = any(s.is_checked and s.result.is_success for s in task.user_solutions)
+        if type(task) is models.FileEntranceExamTask:
             task.last_solution = task.user_solutions[0] if len(task.user_solutions) else None
             task.mark_field_id = 'tasks__file__mark_%d' % task.id
 
-    test_tasks = list(filter(lambda t: hasattr(t, 'testentranceexamtask'), tasks))
-    file_tasks = list(filter(lambda t: hasattr(t, 'fileentranceexamtask'), tasks))
-    program_tasks = list(filter(lambda t: hasattr(t, 'programentranceexamtask'), tasks))
+    test_tasks = list(filter(lambda t: type(t) is models.TestEntranceExamTask, tasks))
+    file_tasks = list(filter(lambda t: type(t) is models.FileEntranceExamTask, tasks))
+    program_tasks = list(filter(lambda t: type(t) is models.ProgramEntranceExamTask, tasks))
 
     if request.method == 'POST':
         file_tasks_mark_form = forms.FileEntranceExamTasksMarkForm(file_tasks, data=request.POST)
@@ -276,7 +278,9 @@ def check_user(request, user_for_checking, checking_group=None):
             for field_id, field in file_tasks_mark_form.fields.items():
                 if field.task_id in file_tasks_ids:
                     task_score = file_tasks_mark_form.cleaned_data[field_id]
-                    last_solution = user_for_checking.entranceexamtasksolution_set.filter(task_id=field.task_id).order_by('-created_at').first()
+                    last_solution = user_for_checking.entrance_exam_solutions.filter(
+                        task_id=field.task_id
+                    ).order_by('-created_at').first()
                     if task_score is not None and last_solution is not None:
                         models.SolutionScore(
                             solution=last_solution,
@@ -313,30 +317,40 @@ def check_user(request, user_for_checking, checking_group=None):
         file_tasks_mark_form = forms.FileEntranceExamTasksMarkForm(file_tasks)
         recommendation_form = forms.EntranceRecommendationForm(request.school)
 
-        last_recommendation = user_for_checking.entrance_recommendations.filter(school=request.school).order_by('-created_at').first()
+        last_recommendation = user_for_checking.entrance_recommendations.filter(
+            school=request.school
+        ).order_by('-created_at').first()
+
         if last_recommendation:
-            recommendation_form.fields['score'].initial = last_recommendation.score
-            recommendation_form.fields['recommended_parallel'].initial = last_recommendation.parallel_id
+            recommendation_form.fields['score'].initial = \
+                last_recommendation.score
+            recommendation_form.fields['recommended_parallel'].initial = \
+                last_recommendation.parallel_id
 
         for file_task in file_tasks:
             if file_task.last_solution is not None:
-                last_score = file_task.last_solution.scores.order_by('-created_at').first()
+                last_score = file_task.last_solution.scores.order_by(
+                    '-created_at'
+                ).first()
                 if last_score:
                     file_task.last_mark = last_score.score
-                    file_tasks_mark_form.set_initial_mark(file_task.id, last_score.score)
+                    file_tasks_mark_form.set_initial_mark(
+                        file_task.id,
+                        last_score.score
+                    )
 
     put_into_checking_group_form = forms.PutIntoCheckingGroupForm(request.school)
 
     checking_comments = user_for_checking.checking_comments.filter(school=request.school).order_by('created_at')
 
     scores = None
-    try:
-        import modules.exam_scorer_2016.models as scorer_models
-        scorers = scorer_models.EntranceExamScorer.objects.all()
-        scores = [(scorer.name, scorer.get_score(request.school, user_for_checking, tasks))
-                  for scorer in scorers]
-    except ImportError:
-        pass
+    #     try:
+    #         import modules.exam_scorer_2016.models as scorer_models
+    #        scorers = scorer_models.EntranceExamScorer.objects.all()
+    #        scores = [(scorer.name, scorer.get_score(request.school, user_for_checking, tasks))
+    #                  for scorer in scorers]
+    #    except ImportError:
+    #        pass
 
     return render(request, 'entrance/staff/check_user.html', {
         'checking_group': checking_group,
