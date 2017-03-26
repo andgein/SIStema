@@ -10,7 +10,7 @@
     </p>
     <p>
         Программы проверяются на&nbsp;секретном наборе тестов. Результат проверки будет известен вам сразу.
-        Если решение прошло не все тесты, можно исправить его и отправить новую версию. Учитывается лучшая
+        Если решение прошло не&nbsp;все тесты, можно исправить его и отправить новую версию. Учитывается лучшая
         из&nbsp;ваших попыток.
     </p>
 {% endblock %}
@@ -23,7 +23,9 @@
         <div>Ограничение по памяти: <b>{{ task.memory_limit|filesizeformat }} </b></div>
     </div>
 
-    <a href="/static/upload/entrance-exam-pdfs/{{ task.id }}.pdf" target="_blank">Читать условие задачи</a>
+    <a href="/static/upload/entrance-exam-pdfs/{{ task.id }}.pdf" target="_blank" class="fs18 non-underlined-link">
+        <span class="underlined-link">Читать условие задачи</span>&nbsp;<span class="fa fa-external-link fs14"></span>
+    </a>
 {% endblock %}
 
 {% block answer_form %}

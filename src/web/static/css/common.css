@@ -21,6 +21,19 @@ code {
     color: #869696;
 }
 
+/* Links */
+a.non-underlined-link:focus,
+a.non-underlined-link:hover,
+a.non-underlined-link:active {
+    text-decoration: none;
+}
+
+a.non-underlined-link:focus .underlined-link,
+a.non-underlined-link:hover .underlined-link,
+a.non-underlined-link:active  .underlined-link {
+    text-decoration: underline;
+}
+
 /* Navbar */
 .navbar {
     background-color: #fafafa;
