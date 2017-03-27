@@ -9,6 +9,7 @@ import types
 
 from django import forms
 from django.db import models
+import django.core.mail
 import django.urls
 
 from cached_property import cached_property
@@ -105,13 +106,14 @@ class Question(models.Model):
 
                 self._implementation_cache[name] = module
             except Exception:
-                print('{}: smartq: failed running quesiton code\n'
-                      '  question = {}\n'
-                      '{}\n'.format(datetime.datetime.now(),
-                                    self,
-                                    traceback.format_exc()))
-
-                # TODO(Artem Tabolin): notify admin
+                message = ('{}: smartq: failed running quesiton code\n'
+                           '  question = {}\n'
+                           '{}\n'.format(datetime.datetime.now(),
+                                         self,
+                                         traceback.format_exc()))
+                print(message)
+                django.core.mail.mail_admins(
+                    'smartq: failed running question code', message)
 
                 # TODO(Artem Tabolin): fail in a more graceful way. It should be
                 #     easy for the code using smartq to show some kind of
@@ -177,17 +179,19 @@ class Question(models.Model):
                 timeout=config.SMARTQ_GENERATOR_TIMEOUT,
             )
         except Exception:
-            print('{}: smartq: failed while generating quesiton\n'
-                  '  question = {}\n'
-                  '  user = {}\n'
-                  '  seed = {}\n'
-                  '{}\n'.format(datetime.datetime.now(),
-                                self,
-                                user,
-                                seed,
-                                traceback.format_exc()))
+            message = ('{}: smartq: failed while generating quesiton\n'
+                       '  question = {}\n'
+                       '  user = {}\n'
+                       '  seed = {}\n'
+                       '{}\n'.format(datetime.datetime.now(),
+                                     self,
+                                     user,
+                                     seed,
+                                     traceback.format_exc()))
 
-            # TODO(Artem Tabolin): notify admin
+            print(message)
+            django.core.mail.mail_admins(
+                'smartq: failed while generating question', message)
 
             # TODO(Artem Tabolin): fail in a more graceful way. It should be
             #     easy for the code using smartq to show some kind of
@@ -339,14 +343,15 @@ class GeneratedQuestion(models.Model):
             )
 
         if result.status == api.Checker.Status.CHECK_FAILED:
-            print('{}: smartq: CheckFailed\n'
-                  '  generated_question_id = {}\n'
-                  '  question = {}\n'
-                  '{}\n'.format(datetime.datetime.now(),
-                                self.id,
-                                self,
-                                result.message))
-            # TODO(Artem Tabolin): send email to admin
+            message = ('{}: smartq: CheckFailed\n'
+                       '  generated_question_id = {}\n'
+                       '  question = {}\n'
+                       '{}\n'.format(datetime.datetime.now(),
+                                     self.id,
+                                     self,
+                                     result.message))
+            print(message)
+            django.core.mail.mail_admins('smartq: CheckFailed', message)
 
         return result
 
