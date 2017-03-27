@@ -106,7 +106,7 @@ class Question(models.Model):
 
                 self._implementation_cache[name] = module
             except Exception:
-                message = ('{}: smartq: failed running quesiton code\n'
+                message = ('{}: smartq: failed running question code\n'
                            '  question = {}\n'
                            '{}\n'.format(datetime.datetime.now(),
                                          self,
