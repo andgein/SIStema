@@ -197,10 +197,10 @@ def _show_or_process_topic_form(request, topic_issue):
                 if is_correcting:
                     backup_user_marks(request.user, scale_in_topic)
 
-                user_mark = models.UserMark(user=request.user,
-                                            scale_in_topic=scale_in_topic,
-                                            mark=field_value)
-                user_mark.save()
+                models.UserMark.objects.get_or_create(
+                    user=request.user,
+                    scale_in_topic=scale_in_topic,
+                    mark=field_value)
 
             # Guess some marks automatically
             guesser.update_automatically_marks()
