@@ -343,15 +343,6 @@ def check_user(request, user_for_checking, checking_group=None):
 
     checking_comments = user_for_checking.checking_comments.filter(school=request.school).order_by('created_at')
 
-    scores = None
-    #     try:
-    #         import modules.exam_scorer_2016.models as scorer_models
-    #        scorers = scorer_models.EntranceExamScorer.objects.all()
-    #        scores = [(scorer.name, scorer.get_score(request.school, user_for_checking, tasks))
-    #                  for scorer in scorers]
-    #    except ImportError:
-    #        pass
-
     return render(request, 'entrance/staff/check_user.html', {
         'checking_group': checking_group,
         'user_for_checking': user_for_checking,
@@ -367,7 +358,6 @@ def check_user(request, user_for_checking, checking_group=None):
         'recommendation_form': recommendation_form,
         'put_into_checking_group_form': put_into_checking_group_form,
 
-        'scores': scores,
         'user_summary': UserSummary.summary_for_user(user_for_checking),
     })
 
