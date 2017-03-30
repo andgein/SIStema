@@ -193,6 +193,9 @@ DATE_INPUT_FORMATS = (
 
 DATE_FORMAT = 'd.m.Y'
 
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+NOSE_ARGS = ['--rednose']
+
 SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT = '%d.%m.%Y'
 
 SISTEMA_UPLOAD_FILES_DIR = os.path.join(BASE_DIR, 'uploads')

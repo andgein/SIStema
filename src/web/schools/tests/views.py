@@ -36,15 +36,6 @@ class ViewsTestCase(django.test.TestCase):
         views.index(request)
         user_view_mock.assert_called_once_with(request)
 
-    @unittest.mock.patch('schools.views.staff')
-    def test_index_for_teacher(self, staff_view_mock):
-        """Index returns correct page for student"""
-        request = self.request_factory.get('/sis-100500/')
-        request.user = self.teacher
-        request.school = self.school
-        views.index(request)
-        staff_view_mock.assert_called_once_with(request)
-
     @unittest.mock.patch('django.shortcuts.redirect')
     def test_staff(self, redirect_mock):
         """Staff view makes correct redirect"""

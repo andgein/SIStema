@@ -20,4 +20,4 @@ class PersonTestCase(django.test.TestCase):
 
     def test_str(self):
         """Person's string representation should be correct."""
-        self.assertEqual(str(self.person), 'Виктор Александрович Матюхин')
+        self.assertEqual(str(self.person), 'Матюхин Виктор Александрович')

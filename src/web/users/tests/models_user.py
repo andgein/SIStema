@@ -12,6 +12,7 @@ from users.models import User
 class UserTestCase(TestCase):
     def setUp(self):
         User.objects.create(
+            id=1,
             username='test_user_1',
             first_name='Семён',
             last_name='Печкин-Лавочкин',
@@ -74,5 +75,5 @@ class UserTestCase(TestCase):
         """String representation should be 'first_name last_name (email)'."""
         user = User.objects.get(username='test_user_1')
         self.assertEqual(
-            str(user), 'Печкин-Лавочкин Семён (semen@pechkin-lavochkin.org)')
+            str(user), '1 Семён Печкин-Лавочкин (semen@pechkin-lavochkin.org)')
 

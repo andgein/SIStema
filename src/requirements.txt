@@ -22,6 +22,7 @@ django-htmlmin==0.10.0
 django-ipware==1.1.6
 django-jinja==2.2.2
 django-markdown-deux==1.0.5
+django-nose==1.4.4
 django-polymorphic==1.1
 django-relativefilepathfield==1.0.3
 django-reversion==2.0.8
@@ -42,6 +43,7 @@ pyparsing==2.1.10
 python-postmark==0.4.12
 python-social-auth==0.3.6
 python3-openid==3.0.10
+rednose==1.2.2
 reportlab==3.3.0
 requests==2.13.0
 requests-oauthlib==0.7.0

@@ -16,9 +16,13 @@ class HistoryEntryTestCase(django.test.TestCase):
             poldnev_id='0871',
             name='2008.Кострома')
 
-        self.role = models.Role.objects.create(
+        self.parallel = models.Parallel.objects.create(
             session=self.session,
-            poldnev_role='C3.преп')
+            name='C')
+
+        self.study_group = models.StudyGroup.objects.create(
+            parallel=self.parallel,
+            name='C3')
 
         self.person = models.Person.objects.create(
             poldnev_id='1',
@@ -28,7 +32,9 @@ class HistoryEntryTestCase(django.test.TestCase):
 
         self.history_entry = models.HistoryEntry.objects.create(
             person=self.person,
-            role=self.role)
+            session=self.session,
+            study_group=self.study_group,
+            role='преп')
 
     def test_str(self):
         """History entry's string representation should be correct."""
