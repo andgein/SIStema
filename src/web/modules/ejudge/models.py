@@ -3,9 +3,11 @@ from django.db import models
 
 
 class ProgrammingLanguage(models.Model):
-    short_name = models.CharField(max_length=100,
-                                  help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием',
-                                  unique=True)
+    short_name = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text='Используется в урлах. Лучше обойтись латинскими буквами, '
+                  'цифрами и подчёркиванием')
 
     name = models.CharField(max_length=100)
 
@@ -29,10 +31,12 @@ class CheckingResult(models.Model):
         WRONG_ANSWER_ERROR = djchoices.ChoiceItem(5, label='Wrong answer')
         CHECK_FAILED_ERROR = djchoices.ChoiceItem(6, label='Check failed')
         PARTIAL_SOLUTION = djchoices.ChoiceItem(7, label='Partial solution')
-        MEMORY_LIMIT_ERROR = djchoices.ChoiceItem(12, label='Memory limit exceeded')
+        MEMORY_LIMIT_ERROR = djchoices.ChoiceItem(12,
+            label='Memory limit exceeded')
         SECURITY_ERROR = djchoices.ChoiceItem(13, label='Security violation')
         STYLE_ERROR = djchoices.ChoiceItem(14, label='Coding style violation')
-        WALL_TIME_LIMIT_ERROR = djchoices.ChoiceItem(15, label='Wall time-limit exceeded')
+        WALL_TIME_LIMIT_ERROR = djchoices.ChoiceItem(15,
+            label='Wall time-limit exceeded')
         SKIPPED = djchoices.ChoiceItem(18, label='Skipped')
         UNKNOWN = djchoices.ChoiceItem(100, label='Unknown result')
 
@@ -60,7 +64,8 @@ class CheckingResult(models.Model):
                     return val
             return cls.UNKNOWN
 
-    result = models.PositiveIntegerField(choices=Result.choices, validators=[Result.validator], db_index=True)
+    result = models.PositiveIntegerField(
+        choices=Result.choices, validators=[Result.validator], db_index=True)
 
     score = models.PositiveIntegerField(default=None, blank=True, null=True)
 
@@ -68,8 +73,10 @@ class CheckingResult(models.Model):
 
     time_elapsed = models.FloatField(default=0)
 
-    memory_consumed = models.PositiveIntegerField(help_text='В байтах', default=0)
+    memory_consumed = models.PositiveIntegerField(help_text='В байтах',
+                                                  default=0)
 
+    # TODO(artemtab): Add id if it's not user facing
     def __str__(self):
         return CheckingResult.Result.russian_labels[self.result]
 
@@ -82,7 +89,8 @@ class CheckingResult(models.Model):
 
 
 class SolutionCheckingResult(CheckingResult):
-    failed_test = models.PositiveIntegerField(blank=True, null=True, default=None)
+    failed_test = models.PositiveIntegerField(
+        blank=True, null=True, default=None)
 
     def __str__(self):
         super_str = super().__str__()
@@ -94,7 +102,8 @@ class SolutionCheckingResult(CheckingResult):
 
 
 class TestCheckingResult(CheckingResult):
-    solution_checking_result = models.ForeignKey(SolutionCheckingResult, related_name='tests')
+    solution_checking_result = models.ForeignKey(SolutionCheckingResult,
+                                                 related_name='tests')
 
 
 class Submission(models.Model):
@@ -102,7 +111,8 @@ class Submission(models.Model):
 
     ejudge_submit_id = models.PositiveIntegerField()
 
-    result = models.ForeignKey(SolutionCheckingResult, blank=True, null=True, default=None)
+    result = models.ForeignKey(
+        SolutionCheckingResult, blank=True, null=True, default=None)
 
     # TODO: make ModelsWithCreatedAndUpdatedStamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -122,13 +132,15 @@ class QueueElement(models.Model):
         CHECKED = djchoices.ChoiceItem(3)
         WONT_CHECK = djchoices.ChoiceItem(4)
 
-    submission = models.ForeignKey(Submission, blank=True, null=True, default=None)
+    submission = models.ForeignKey(
+        Submission, blank=True, null=True, default=None)
 
     ejudge_contest_id = models.PositiveIntegerField()
 
     ejudge_problem_id = models.PositiveIntegerField()
 
-    language = models.ForeignKey(ProgrammingLanguage, null=True, on_delete=models.SET_NULL)
+    language = models.ForeignKey(
+        ProgrammingLanguage, null=True, on_delete=models.SET_NULL)
 
     file_name = models.TextField()
 
@@ -143,8 +155,11 @@ class QueueElement(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        if self.status == QueueElement.Status.CHECKED and self.submission is None:
-            raise ValueError('modules.ejudge.models.QueueElement: submission can\'t be None if status is CHECKED')
+        if (self.status == QueueElement.Status.CHECKED and
+                self.submission is None):
+            raise ValueError(
+                'modules.ejudge.models.QueueElement: submission can\'t be None '
+                'if status is CHECKED')
 
         super().save(*args, **kwargs)
 
