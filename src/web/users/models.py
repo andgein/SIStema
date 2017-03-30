@@ -8,10 +8,6 @@ from djchoices import choices
 import datetime
 
 
-def generate_random_secret_string():
-    return crypto.get_random_string(length=32)
-
-
 class UserManager(auth_models.UserManager):
     pass
 
