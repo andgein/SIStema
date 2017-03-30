@@ -16,14 +16,12 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
         'is_active',
         'is_superuser',
         'is_staff',
-        'is_email_confirmed',
         'hijack_field',
     )
 
     list_filter = (
         'is_superuser',
         'is_staff',
-        'is_email_confirmed',
         'is_active',
     )
 
@@ -48,6 +46,7 @@ class UserProfileAdmin(VersionAdmin):
         '=middle_name',
         '=last_name',
     )
+
 
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.UserProfile, UserProfileAdmin)

@@ -55,13 +55,6 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     )
     date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
 
-    # Sistema custom fields
-    email_confirmation_token = models.CharField(
-        default=generate_random_secret_string, max_length=32)
-
-    is_email_confirmed = models.BooleanField(default=True)
-    # End of Sistema custom fields
-
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
@@ -94,19 +87,6 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
 
     def __str__(self):
         return '%d %s (%s)' % (self.id, self.get_full_name(), self.email)
-
-
-class UserPasswordRecovery(models.Model):
-    user = models.ForeignKey(User)
-
-    recovery_token = models.CharField(default=generate_random_secret_string,
-                                      max_length=32)
-
-    is_used = models.BooleanField(default=False)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    updated_at = models.DateTimeField(auto_now=True)
 
 
 class UserProfile(models.Model):
