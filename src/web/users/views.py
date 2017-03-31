@@ -1,10 +1,17 @@
-from django.views.decorators import http as http_decorators
 from django import shortcuts
 from django.contrib.auth import decorators as auth_decorators
-from sistema import decorators as sistema_decorators
-from users import forms, models, search_utils
+from django.db.models import Q
 from django.template.loader import render_to_string
+from django.views.decorators import http as http_decorators
+import django.contrib.admin.views.decorators as admin_decorators
 import django.http
+import django.utils.decorators as utils_decorators
+
+from dal import autocomplete
+
+from users import forms
+from users import models
+from users import search_utils
 
 
 @auth_decorators.login_required()
@@ -49,3 +56,25 @@ def profile_for_user(request, user):
 @auth_decorators.login_required()
 def profile(request):
     return profile_for_user(request, request.user)
+
+
+@utils_decorators.method_decorator(admin_decorators.staff_member_required,
+                                   name='dispatch')
+class UserAutocomplete(autocomplete.Select2QuerySetView):
+    def __init__(self, **kwargs):
+        super().__init__(model=models.User, **kwargs)
+
+    def get_queryset(self):
+        qs = models.User.objects.all()
+
+        if self.q.isdigit():
+            qs = qs.filter(id=int(self.q))
+        elif self.q:
+            for token in self.q.strip().split(' '):
+                qs = qs.filter(Q(first_name__icontains=token) |
+                               Q(last_name__icontains=token) |
+                               Q(user_profile__first_name__icontains=token) |
+                               Q(user_profile__middle_name__icontains=token) |
+                               Q(user_profile__last_name__icontains=token))
+
+        return qs

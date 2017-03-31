@@ -1,7 +1,12 @@
 from django.contrib import admin
+import django.forms
+
+from dal import autocomplete
 
 from modules.smartq import models
 
+
+@admin.register(models.Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = (
         'short_name',
@@ -9,9 +14,22 @@ class QuestionAdmin(admin.ModelAdmin):
         'modified_date',
     )
 
-admin.site.register(models.Question, QuestionAdmin)
 
+class GeneratedQuestionAdminForm(django.forms.ModelForm):
+    class Meta:
+        model = models.GeneratedQuestion
+        fields = ('__all__')
+        widgets = {
+            'user': autocomplete.ModelSelect2(
+                url='users_admin:user-autocomplete')
+        }
+
+
+@admin.register(models.GeneratedQuestion)
+@admin.register(models.StaffGeneratedQuestion)
 class GeneratedQuestionAdmin(admin.ModelAdmin):
+    form = GeneratedQuestionAdminForm
+
     list_display = (
         'base_question',
         'seed',
@@ -29,6 +47,3 @@ class GeneratedQuestionAdmin(admin.ModelAdmin):
         'user__profile__middle_name',
         'user__profile__last_name',
     )
-
-admin.site.register(models.GeneratedQuestion, GeneratedQuestionAdmin)
-admin.site.register(models.StaffGeneratedQuestion, GeneratedQuestionAdmin)
