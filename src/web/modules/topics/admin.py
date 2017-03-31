@@ -106,7 +106,11 @@ admin.site.register(models.Tag, TagAdmin)
 class UserQuestionnaireStatusAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'questionnaire', 'status')
     list_filter = ('status', 'questionnaire')
-    search_fields = ('=user__username', '=user__email', 'user__last_name')
+    search_fields = (
+        '=user__username',
+        '=user__email',
+        'user__last_name',
+        'user__user_profile__last_name')
 
 admin.site.register(models.UserQuestionnaireStatus, UserQuestionnaireStatusAdmin)
 
@@ -168,7 +172,7 @@ admin.site.register(models.QuestionForTopic, QuestionForTopicAdmin)
 class TopicCheckingQuestionnaireAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'topic_questionnaire', 'status', 'checked_at')
     list_filter = ('topic_questionnaire',)
-    search_fields = ('user__first_name', 'user__last_name')
+    search_fields = ('user__user_profile__first_name', 'user__user_profile__last_name')
 
 admin.site.register(models.TopicCheckingQuestionnaire, TopicCheckingQuestionnaireAdmin)
 

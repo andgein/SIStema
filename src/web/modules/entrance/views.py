@@ -47,7 +47,8 @@ class EntrancedUsersTable(staff_views.EnrollingUsersTable):
                       user_id__in=users_ids,
                       is_status_visible=True)
                   .select_related('session', 'parallel')
-                  .order_by('user__last_name', 'user__first_name'))
+                  .order_by('user__user_profile__last_name',
+                      'user__user_profile__first_name'))
         self.status_by_user = sistema.helpers.group_by(entrance_statuses,
                                                        operator.attrgetter('user_id'))
 

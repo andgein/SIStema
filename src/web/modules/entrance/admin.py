@@ -48,8 +48,8 @@ class EntranceExamTaskSolutionAdmin(
     search_fields = (
         '=user__username',
         '=user__email',
-        '=user__first_name',
-        '=user__last_name',
+        '=user__user_profile__first_name',
+        '=user__user_profile__last_name',
         '=ip',
     )
 
@@ -75,8 +75,8 @@ class EntranceLevelUpgradeAdmin(admin.ModelAdmin):
     search_fields = (
         '=user__username',
         '=user__email',
-        '=user__first_name',
-        '=user__last_name',
+        '=user__user_profile__first_name',
+        '=user__user_profile__last_name',
     )
 
     def get_school(self, obj):
@@ -125,21 +125,31 @@ class SolutionScoreAdmin(admin.ModelAdmin):
 class CheckingCommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'user', 'commented_by', 'comment', 'created_at')
     list_filter = ('school', ('commented_by', admin.RelatedOnlyFieldListFilter))
-    search_fields = ('user__first_name', 'user__last_name', 'user__username')
+    search_fields = (
+        'user__user_profile__first_name', 
+        'user__user_profile__last_name',
+        'user__username')
 
 
 @admin.register(models.EntranceRecommendation)
 class EntranceRecommendationAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'user', 'checked_by', 'parallel', 'created_at', 'score')
     list_filter = ('school', ('checked_by', admin.RelatedOnlyFieldListFilter))
-    search_fields = ('user__first_name', 'user__last_name', 'user__username')
+    search_fields = (
+        'user__user_profile__first_name',
+        'user__user_profile__last_name',
+        'user__username')
 
 
 @admin.register(models.EntranceStatus)
 class EntranceStatusAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'user', 'created_by', 'public_comment', 'is_status_visible', 'status', 'session', 'parallel', 'created_at', 'updated_at')
     list_filter = (('school', admin.RelatedOnlyFieldListFilter), 'status', 'session', 'parallel', ('created_by', admin.RelatedOnlyFieldListFilter))
-    search_fields = ('user__first_name', 'user__last_name', 'user__username', 'public_comment')
+    search_fields = (
+        'user__user_profile__first_name',
+        'user__user_profile__last_name',
+        'user__username',
+        'public_comment')
 
 
 @admin.register(models.AbstractAbsenceReason)
@@ -152,8 +162,8 @@ class AbstractAbsenceReasonAdmin(
     list_filter = (('school', admin.RelatedOnlyFieldListFilter),
                    ('created_by', admin.RelatedOnlyFieldListFilter),
                    PolymorphicChildModelFilter)
-    search_fields = ('user__first_name',
-                     'user__last_name',
+    search_fields = ('user__user_profile__first_name',
+                     'user__user_profile__last_name',
                      'user__username',
                      'public_comment')
 
@@ -168,12 +178,12 @@ class AbsenceReasonChildAdmin(PolymorphicChildModelAdmin):
             kwargs['queryset'] = (
                 users.models.User.objects.filter(
                     entrance_statuses__status=models.EntranceStatus.Status.ENROLLED
-                ).distinct().order_by('last_name', 'first_name'))
+                ).distinct().order_by('user_profile__last_name', 'user_profile__first_name'))
         if db_field.name == 'created_by':
             kwargs['queryset'] = (
                 users.models.User.objects.filter(
                     is_staff=1
-                ).order_by('last_name', 'first_name'))
+                ).order_by('user_profile__last_name', 'user_profile__first_name'))
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
