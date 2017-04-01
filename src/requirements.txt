@@ -29,6 +29,7 @@ django-reversion==2.0.8
 django-ses==0.8.1
 django-settings-export==1.2.1
 django-solo==1.1.2
+django-tables2==1.4.2
 html5lib==0.9999999
 Jinja2==2.9.5
 Markdown==2.6.8

@@ -1,25 +1,29 @@
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http.response import HttpResponseNotFound, JsonResponse, HttpResponseForbidden
+from django.db.models import Prefetch
+from django.http.response import (HttpResponseNotFound,
+                                  JsonResponse,
+                                  HttpResponseForbidden)
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST
+import django.urls
 
 import ipware.ip
-import operator
 
-import questionnaire.models
-import sistema.uploads
-import sistema.helpers
-import modules.topics.entrance.levels
+from frontend.table.utils import DataTablesJsonView
+import frontend.icons
+import frontend.table
 import modules.ejudge.queue
-from modules.entrance import forms
 import modules.entrance.levels
-import modules.entrance.staff.views as staff_views
+import modules.topics.entrance.levels
+import questionnaire.models
+import sistema.helpers
+import sistema.uploads
+import users.models
+
 from . import models
 from . import upgrades
-import frontend.table
-import frontend.icons
-
 
 def get_entrance_level_and_tasks(school, user):
     base_level = upgrades.get_base_entrance_level(school, user)
@@ -27,89 +31,109 @@ def get_entrance_level_and_tasks(school, user):
     return base_level, tasks
 
 
-# TODO: Inherit of staff_views.EnrollingUsersTable seems to be a bad architecture idea
-class EntrancedUsersTable(staff_views.EnrollingUsersTable):
-    icon = frontend.icons.FaIcon('check')
+class EntrancedUsersTable(frontend.table.Table):
+    index = frontend.table.IndexColumn(
+        verbose_name='')
 
-    search_enabled = False
+    name = frontend.table.Column(
+        accessor='get_full_name',
+        verbose_name='Имя',
+        order_by=('profile.last_name',
+                  'profile.first_name'),
+        search_in=('profile.first_name',
+                   'profile.last_name'))
 
-    # Unlimited page
-    page_size = None
+    city = frontend.table.Column(
+        accessor='profile.city',
+        orderable=True,
+        searchable=True,
+        verbose_name='Город')
 
-    def __init__(self, school, users_ids):
-        super().__init__(school, users_ids)
-        self.title = 'Поступившие в ' + school.name
+    school_and_class = frontend.table.Column(
+        accessor='profile',
+        search_in='profile.school_name',
+        verbose_name='Школа и класс')
 
-        entrance_statuses = (
-            models.EntranceStatus.objects
-                  .filter(
-                      school=school,
-                      user_id__in=users_ids,
-                      is_status_visible=True)
-                  .select_related('session', 'parallel')
-                  .order_by('user__profile__last_name',
-                      'user__profile__first_name'))
-        self.status_by_user = sistema.helpers.group_by(entrance_statuses,
-                                                       operator.attrgetter('user_id'))
+    session = frontend.table.Column(
+        accessor='entrance_statuses',
+        verbose_name='Смена')
 
-        absence_reasons = (
-            models.AbstractAbsenceReason.objects
-                  .filter(school=school, user_id__in=users_ids))
-        self.absence_reason_by_user_id = sistema.helpers.group_by(
-            absence_reasons,
-            operator.attrgetter('user_id')
+    parallel = frontend.table.Column(
+        accessor='entrance_statuses',
+        verbose_name='Параллель')
+
+    enrolled_status = frontend.table.Column(
+        empty_values=(),
+        verbose_name='Статус')
+
+    class Meta:
+        icon = frontend.icons.FaIcon('check')
+        # TODO: title depending on school
+        title = 'Поступившие'
+        pagination = False
+
+    def __init__(self, school, *args, **kwargs):
+        enrolled_questionnaire = (
+            questionnaire.models.Questionnaire.objects
+            .filter(short_name='enrolled', school=school)
+            .first())
+
+        qs = users.models.User.objects.filter(
+            entrance_statuses__school=school,
+            entrance_statuses__status=models.EntranceStatus.Status.ENROLLED,
+            entrance_statuses__is_status_visible=True,
+        ).order_by(
+            'profile__last_name',
+            'profile__first_name',
+        ).select_related('profile').prefetch_related(
+            Prefetch(
+                'entrance_statuses',
+                models.EntranceStatus.objects.filter(school=school)),
+            Prefetch(
+                'absence_reasons',
+                models.AbstractAbsenceReason.objects.filter(school=school)),
+            Prefetch(
+                'questionnaire_answers',
+                questionnaire.models.QuestionnaireAnswer.objects.filter(
+                    questionnaire=enrolled_questionnaire)),
         )
 
-        enrolled_questionnaire = (questionnaire.models.Questionnaire.objects
-                                               .filter(short_name='enrolled')
-                                               .first())
-        self.enrolled_questionnaire_answers_by_user_id = sistema.helpers.group_by(
-            questionnaire.models.QuestionnaireAnswer.objects
-                         .filter(questionnaire=enrolled_questionnaire,
-                                 user__in=users_ids),
-            operator.attrgetter('user_id')
-        )
+        super().__init__(
+            qs,
+            django.urls.reverse('school:entrance:results_json',
+                                args=[school.short_name]),
+            *args, **kwargs)
 
-        index_column = frontend.table.IndexColumn()
-        name_column = frontend.table.SimplePropertyColumn('get_full_name', 'Имя Фамилия')
-        session_column = frontend.table.SimpleFuncColumn(self.get_session, 'Смена')
-        parallel_column = frontend.table.SimpleFuncColumn(self.get_parallel, 'Параллель')
-        enrolled_status_column = frontend.table.SimpleFuncColumn(self.get_enrolled_status,
-                                                                 'Статус')
-        self.columns = ((index_column, name_column) +
-                        self.columns[2:] +
-                        (session_column, parallel_column, enrolled_status_column))
+    def render_school_and_class(self, value):
+        parts = []
+        if value.school_name:
+            parts.append(value.school_name)
+        if value.current_class is not None:
+            parts.append(str(value.current_class) + ' класс')
+        return ', '.join(parts)
 
-    @classmethod
-    def create(cls, school):
-        entranced_users = models.EntranceStatus.objects.filter(
-            school=school,
-            status=models.EntranceStatus.Status.ENROLLED,
-            is_status_visible=True,
-        ).order_by('parallel', 'session')
-        entranced_users_ids = entranced_users.values_list('user_id', flat=True)
+    def render_session(self, value):
+        # TODO: will it be filtered?
+        # return value.first().session.name
+        return value.all()[0].session.name
 
-        table = cls(school, entranced_users_ids)
-        table.after_filter_applying()
-        return table
+    def render_parallel(self, value):
+        # TODO: will it be filtered?
+        # return value.first().parallel.name
+        return value.all()[0].parallel.name
 
-    def get_session(self, user):
-        if user.id not in self.status_by_user:
-            return ''
-        return self.status_by_user[user.id][0].session.name
-
-    def get_parallel(self, user):
-        if user.id not in self.status_by_user:
-            return ''
-        return self.status_by_user[user.id][0].parallel.name
-
-    def get_enrolled_status(self, user):
-        if user.id not in self.absence_reason_by_user_id:
-            if user.id in self.enrolled_questionnaire_answers_by_user_id:
+    def render_enrolled_status(self, record):
+        # absence_reason = record.absence_reasons.first()
+        absence_reasons = record.absence_reasons.all()
+        absence_reason = absence_reasons[0] if absence_reasons else None
+        if absence_reason is None:
+            # TODO: check for participation confirmation. Another invisible
+            #       step?
+            if record.questionnaire_answers.all():
                 return ''
             else:
                 return 'Участие не подтверждено'
-        return str(self.absence_reason_by_user_id[user.id][0])
+        return str(absence_reason)
 
 
 @login_required
@@ -346,10 +370,19 @@ def upgrade(request):
     return redirect(entrance_exam.get_absolute_url())
 
 
+@cache_page(5 * 60)
 def results(request):
-    table = EntrancedUsersTable.create(request.school)
-
+    table = EntrancedUsersTable(request.school)
+    frontend.table.RequestConfig(request).configure(table)
     return render(request, 'entrance/results.html', {
         'table': table,
         'school': request.school,
     })
+
+
+@cache_page(5 * 60)
+def results_json(request):
+    table = EntrancedUsersTable(request.school)
+    frontend.table.RequestConfig(request).configure(table)
+    # TODO: cache for short time
+    return JsonResponse(DataTablesJsonView(table).get_response_object(request))

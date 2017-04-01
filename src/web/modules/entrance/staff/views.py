@@ -3,19 +3,22 @@ import operator
 import random
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.db.models import F
 from django.http.response import HttpResponseNotFound, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+import django.urls
 
+from frontend.table.utils import A, DataTablesJsonView
+from modules.ejudge.models import CheckingResult
+from sistema.helpers import group_by, respond_as_attachment, nested_query_list
 import frontend.icons
 import frontend.table
 import modules.topics.views as topics_views
 import questionnaire.models
 import questionnaire.views
-import schools.models
 import sistema.staff
 import users.models
 import users.views
@@ -28,106 +31,63 @@ from users import search_utils
 
 
 class EnrollingUsersTable(frontend.table.Table):
-    icon = frontend.icons.FaIcon('envelope-o')
+    name = frontend.table.LinkColumn(
+        accessor='get_full_name',
+        verbose_name='Имя',
+        order_by=('profile.last_name',
+                  'profile.first_name',
+                  'profile.middle_name'),
+        search_in=('profile.first_name',
+                   'profile.middle_name',
+                   'profile.last_name'),
+        viewname='school:entrance:enrolling_user',
+        args=[A('school_short_name'), A('id')])
 
-    title = 'Подавшие заявку'
+    email = frontend.table.EmailColumn(
+        accessor='email',
+        orderable=True,
+        searchable=True,
+        verbose_name='Почта')
 
-    def __init__(self, school, users_ids):
-        super().__init__(users.models.User, users.models.User.objects.filter(id__in=users_ids))
-        self.school = school
-        self.identifiers = {'school_name': school.short_name}
+    city = frontend.table.Column(
+        accessor='profile.city',
+        orderable=True,
+        searchable=True,
+        verbose_name='Город')
 
-        self.about_questionnaire = questionnaire.models.Questionnaire.objects.filter(short_name='about').first()
+    school_and_class = frontend.table.Column(
+        accessor='profile',
+        search_in='profile.school_name',
+        verbose_name='Школа и класс')
 
-        self.enrollee_questionnaire = questionnaire.models.Questionnaire.objects.filter(
-                school=self.school,
-                short_name='enrollee'
-        ).first()
+    class Meta:
+        icon = frontend.icons.FaIcon('envelope-o')
+        title = 'Подавшие заявку'
 
-        name_column = frontend.table.SimplePropertyColumn(
-                'get_full_name', 'Имя',
-                search_attrs=['profile__first_name', 'profile__last_name'])
-        name_column.data_type = frontend.table.LinkDataType(
-                frontend.table.StringDataType(),
-                lambda user: reverse('school:entrance:enrolling_user', args=(self.school.short_name, user.id))
-        )
+    def __init__(self, school, *args, **kwargs):
+        qs = (users.models.User.objects
+              .filter(entrance_statuses__school=school)
+              .exclude(entrance_statuses__status=
+                       models.EntranceStatus.Status.NOT_PARTICIPATED)
+              .annotate(school_short_name=F('entrance_statuses__school'
+                                            '__short_name'))
+              .select_related('profile'))
+        super().__init__(
+            qs,
+            django.urls.reverse('school:entrance:enrolling_json',
+                                args=[school.short_name]),
+            *args, **kwargs)
 
-        email_column = frontend.table.SimplePropertyColumn('email', 'Почта')
-        email_column.data_type = frontend.table.LinkDataType(
-                frontend.table.StringDataType(),
-                lambda user: 'mailto:%s' % user.email
-        )
+    def render_school_and_class(self, value):
+        parts = []
+        if value.school_name:
+            parts.append(value.school_name)
+        if value.current_class is not None:
+            parts.append(str(value.current_class) + ' класс')
+        return ', '.join(parts)
 
-        self.columns = (name_column,
-                        email_column,
-                        frontend.table.SimpleFuncColumn(self.city, 'Город'),
-                        frontend.table.SimpleFuncColumn(self.school_and_class, 'Школа и класс')
-                        )
-
-    # TODO: bad architecture :(
-    # We need to define create for calling .after_filter_applying() without any filter.
-    # Need refactoring
-    @classmethod
-    def create(cls, school):
-        users_ids = get_enrolling_users_ids(school)
-        table = cls(school, users_ids)
-        table.after_filter_applying()
-        return table
-
-    def after_filter_applying(self):
-        # TODO: use only id's via .values_list('id', flat=True)?
-        filtered_users = list(self.paged_queryset)
-
-        self.about_questionnaire_answers = group_by(
-                questionnaire.models.QuestionnaireAnswer.objects.filter(
-                        questionnaire=self.about_questionnaire,
-                        user__in=filtered_users
-                ),
-                operator.attrgetter('user_id')
-        )
-        self.enrollee_questionnaire_answers = group_by(
-                questionnaire.models.QuestionnaireAnswer.objects.filter(
-                        questionnaire=self.enrollee_questionnaire,
-                        user__in=filtered_users
-                ),
-                operator.attrgetter('user_id')
-        )
-
-    def get_header(self):
+    def search_column_name(self, qs, query):
         pass
-
-    @classmethod
-    def restore(cls, identifiers):
-        school_name = identifiers['school_name'][0]
-        school_qs = schools.models.School.objects.filter(short_name=school_name)
-        if not school_qs.exists():
-            raise NameError('Bad school name')
-        _school = school_qs.first()
-        users_ids = get_enrolling_users_ids(_school)
-        return cls(_school, users_ids)
-
-    @staticmethod
-    def _get_questionnaire_answer(questionnaire_answers, field):
-        for answer in questionnaire_answers:
-            if answer.question_short_name == field:
-                return answer.answer
-        return ''
-
-    def _get_user_about_field(self, user, field):
-        return self._get_questionnaire_answer(self.about_questionnaire_answers[user.id], field)
-
-    def _get_user_enrollee_field(self, user, field):
-        return self._get_questionnaire_answer(self.enrollee_questionnaire_answers[user.id], field)
-
-    def city(self, user):
-        return user.profile.city if hasattr(user, 'profile') else self._get_user_about_field(user, 'city')
-
-    def school_and_class(self, user):
-        user_school = user.profile.school_name if hasattr(user, 'profile') else self._get_user_about_field(user, 'school')
-        user_class = user.profile.current_class if hasattr(user, 'profile') else self._get_user_enrollee_field(user, 'class')
-        if user_school == '':
-            return '%s класс' % user_class
-        return '%s, %s класс' % (user_school, user_class)
 
 
 def get_enrolling_users_ids(school):
@@ -140,8 +100,18 @@ def get_enrolling_users_ids(school):
 
 @sistema.staff.only_staff
 def enrolling(request):
-    users_table = EnrollingUsersTable.create(request.school)
-    return render(request, 'entrance/staff/enrolling.html', {'users_table': users_table})
+    users_table = EnrollingUsersTable(request.school)
+    frontend.table.RequestConfig(request).configure(users_table)
+    return render(
+        request, 'entrance/staff/enrolling.html', {'users_table': users_table})
+
+
+@sistema.staff.only_staff
+def enrolling_json(request):
+    users_table = EnrollingUsersTable(request.school)
+    frontend.table.RequestConfig(request).configure(users_table)
+    return JsonResponse(
+        DataTablesJsonView(users_table).get_response_object(request))
 
 
 @sistema.staff.only_staff

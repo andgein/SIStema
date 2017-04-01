@@ -284,9 +284,10 @@ class Questionnaire(models.Model):
 
 
 class QuestionnaireAnswer(models.Model):
-    questionnaire = models.ForeignKey(Questionnaire)
+    questionnaire = models.ForeignKey(Questionnaire, related_name='answers')
 
-    user = models.ForeignKey(users.models.User)
+    user = models.ForeignKey(users.models.User,
+                             related_name='questionnaire_answers')
 
     # TODO: may be ForeignKey is better?
     question_short_name = models.CharField(max_length=100)

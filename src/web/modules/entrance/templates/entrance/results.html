@@ -1,6 +1,12 @@
 {% extends 'user_layout.html' %}
 
+{% load staticfiles %}
+
 {% block title %}Поступившие в {{ school.name }}{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'frontend/js/table.js' %}"></script>
+{% endblock %}
 
 {% block content %}
     {% include 'frontend/table.html' with table=table %}

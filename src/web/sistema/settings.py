@@ -58,6 +58,7 @@ INSTALLED_APPS = (
     'polymorphic',
     'constance',
     'constance.backends.database',
+    'django_tables2',
 
     # Sistema core
     'sistema',

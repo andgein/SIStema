@@ -384,10 +384,10 @@ class SolveTaskEntranceLevelUpgradeRequirement(EntranceLevelUpgradeRequirement):
 class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
     school = models.ForeignKey(
         schools.models.School,
-        related_name='absences_reasons'
+        related_name='absence_reasons'
     )
 
-    user = models.ForeignKey(users.models.User, related_name='absences_reasons')
+    user = models.ForeignKey(users.models.User, related_name='absence_reasons')
 
     private_comment = models.TextField(
         blank=True,

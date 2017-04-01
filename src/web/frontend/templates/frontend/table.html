@@ -1,54 +1,61 @@
-<div class="table-panel panel" data-table-name='{{ table.table_name }}' data-table-identifiers='{{ table.table_identifiers_json }}'>
-    <div class="panel-heading">
-        <div class="panel-title">
-            {% if table.icon %}
-                <span class="{{ table.icon }}"></span>
-            {% endif %}
-            <span>{{ table.title }}</span>
-            <!--
-            <span class="pull-right ml10">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-default btn-sm fs12 fw500 dropdown-toggle ph10" data-toggle="dropdown">
-                        Действия
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu pull-right" role="menu">
-                        <li>
-                            <a href="#">Расширенный поиск</a>
-                        </li>
-                        <li>
-                            <a href="#">Выбрать столбцы</a>
-                        </li>
-                        <li>
-                            <a href="#">Развернуть</a>
-                        </li>
-                    </ul>
-                </div>
-            </span>
-            -->
-            {% if table.search_enabled %}
-                <span class="pull-right">
-                    <span class="input-group ib va-m">
-                        <input type="text" placeholder="Поиск по школьникам" class="table-filter form-control w200 onfocus-w400 h-30">
-                    </span>
-                </span>
-            {% endif %}
+{% load django_tables2 %}
+{% load i18n %}
+{% load staticfiles %}
+
+<div class="panel panel-visible sistema-frontend-table"
+    data-url="{{ table.data_url }}"
+    {% if table.prefix %}data-prefix="{{ table.prefix }}"{% endif %}
+    data-pagination="{{ table.pagination_options_string }}"
+    data-localization-url="{% static "vendor/plugins/datatables/extensions/Plugins/i18n/Russian.lang" %}">
+  <div class="panel-heading">
+    <div class="panel-title">
+      {% if table.icon %}
+      <span class="{{ table.icon }}"></span>
+      {% endif %}
+      <span>{{ table.title }}</span>
+      {% comment %}
+        <span class="pull-right ml10">
+          <div class="btn-group">
+            <button type="button" class="btn btn-default btn-sm fs12 fw500 dropdown-toggle ph10" data-toggle="dropdown">
+              Действия
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu pull-right" role="menu">
+              <li>
+                <a href="#">Расширенный поиск</a>
+              </li>
+              <li>
+                <a href="#">Выбрать столбцы</a>
+              </li>
+              <li>
+                <a href="#">Развернуть</a>
+              </li>
+            </ul>
+          </div>
+        </span>
+      {% if table.search_enabled %}
+        <div class="dataTables_filter">
+          <span class="input-group ib va-m">
+            <input type="search" placeholder="Поиск по школьникам" class="table-filter form-control input-sm w200 onfocus-w400 h-30" aria-controls="datatable2" data-query-arg="{{ table.search_arg }}">
+          </span>
         </div>
+      {% endif %}
+      {% endcomment %}
     </div>
-    <div class="panel-body pn">
-        <table class="table table-hover">
-            <tr>
-                {% for column in table.columns %}
-                    <th>{{ column.title }}</th>
-                {% endfor %}
-            </tr>
-            {% for row in table.rows %}
-                <tr>
-                    {% for column in row %}
-                        <td>{{ column }}</td>
-                    {% endfor %}
-                </tr>
-            {% endfor %}
-        </table>
-    </div>
+  </div>
+  <div class="panel-body pn">
+    <table class="table table-striped table-hover"{% if table.dt2_table.attrs %} {{ table.dt2_table.attrs.as_html }}{% endif %}>
+      <thead>
+        <tr>
+          {% for column_name, column in table.columns.items %}
+          <th {% if column.dt2_column %}{{ column.dt2_column.attrs.th.as_html }}{% endif %}
+                data-name="{{ column_name }}"
+                data-orderable="{% if column.orderable %}true{% else %}false{% endif %}"
+            >{{ column.header }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
