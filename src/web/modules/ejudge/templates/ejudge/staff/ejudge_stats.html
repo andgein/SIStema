@@ -1,0 +1,55 @@
+{% extends 'staff_layout.html' %}
+
+{% load staticfiles %}
+
+{% block title %}Статистика по задачам{% endblock %}
+
+{% block topbar %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="panel-title">Статистика по задачам</span>
+                </div>
+                <div class="panel-body">
+                    <h3> Результаты посылок </h3>
+                    <table class="table">
+                        <tr>
+                            <th> Задача </th>
+                            {% for result in results %}
+                                <th> {{ result }} </th>
+                            {% endfor %}
+                        </tr>
+                        {% for row in submission_stats %}
+                            <tr>
+                                <td> {{ row.task }} </td>
+                                {% for count in row.counts %}
+                                    <td> {{ count }} </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                    <h3> Статусы попыток отправки </h3>
+                    <table class="table">
+                        <tr>
+                            <th> Задача </th>
+                            {% for status in statuses %}
+                                <th> {{ status }} </th>
+                            {% endfor %}
+                        </tr>
+                        {% for row in queue_stats %}
+                            <tr>
+                                <td> {{ row.task }} </td>
+                                {% for count in row.counts %}
+                                    <td> {{ count }} </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

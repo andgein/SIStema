@@ -39,12 +39,19 @@ class EntranceStaffInterface(sistema.staff.StaffInterface):
             frontend.icons.GlyphIcon('equalizer')
         )
 
+        ejudge_stats = sistema.staff.MenuItem(
+            self.request,
+            'Статистика по практике',
+            'school:ejudge:show_ejudge_stats',
+            frontend.icons.GlyphIcon('equalizer')
+        )
+
         exam = sistema.staff.MenuItem(
             self.request,
             'Вступительная',
             '',
             frontend.icons.FaIcon('columns'),
-            child=[exam_tasks, exam_checking, exam_results]
+            child=[exam_tasks, exam_checking, ejudge_stats, exam_results]
         )
 
         return [filled_an_application, exam]
