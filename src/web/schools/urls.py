@@ -17,7 +17,7 @@ urlpatterns = [
         url(r'^finance/', include('modules.finance.urls', namespace='finance')),
         url(r'^study-results/', include('modules.study_results.school_urls',
                                         namespace='study_results')),
-        url(r'^ejudge/', include('modules.ejudge.urls',
+        url(r'^ejudge/', include('modules.ejudge.school_urls',
                                  namespace='ejudge')),
     ])),
 ]
