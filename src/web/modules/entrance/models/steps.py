@@ -240,7 +240,7 @@ class ConfirmProfileEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
     template_file = 'confirm_profile.html'
 
     def is_passed(self, user):
-        return super().is_passed(user) and user.user_profile.updated_at >= self.available_from_time
+        return super().is_passed(user) and user.profile.updated_at >= self.available_from_time
 
     def __str__(self):
         return 'Шаг подтверждения профиля для %s' % (str(self.school),)

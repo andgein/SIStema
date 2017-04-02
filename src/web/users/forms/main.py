@@ -240,8 +240,8 @@ class UserProfileForm(forms.Form):
     def fill_user_profile(self, user):
         if not user.is_authenticated:
             user_profile = models.UserProfile()
-        elif hasattr(user, 'user_profile'):
-            user_profile = user.user_profile
+        elif hasattr(user, 'profile'):
+            user_profile = user.profile
         else:
             user_profile = models.UserProfile(user=user)
         for field_name in user_profile.get_field_names():

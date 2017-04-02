@@ -11,8 +11,8 @@ class PaymentAmountAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'user', 'amount')
     list_filter = ('school',)
     search_fields = (
-        'user__user_profile__first_name',
-        'user__user_profile__last_name',
+        'user__profile__first_name',
+        'user__profile__last_name',
         'user__username')
 
 admin.site.register(models.PaymentAmount, PaymentAmountAdmin)
@@ -23,8 +23,8 @@ class DiscountAdmin(admin.ModelAdmin):
                     'public_comment')
     list_filter = ('school', 'type')
     search_fields = (
-        'user__user_profile__first_name',
-        'user__user_profile__last_name',
+        'user__profile__first_name',
+        'user__profile__last_name',
         'user__username',
         'private_comment',
         'public_comment')
@@ -35,8 +35,8 @@ class DiscountAdmin(admin.ModelAdmin):
                 users.models.User.objects.filter(
                     entrance_statuses__status=modules.entrance.models.EntranceStatus.Status.ENROLLED
                 ).distinct().order_by(
-                    'user_profile__last_name',
-                    'user_profile__first_name'))
+                    'profile__last_name',
+                    'profile__first_name'))
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 admin.site.register(models.Discount, DiscountAdmin)
@@ -58,8 +58,8 @@ admin.site.register(models.DocumentType, DocumentTypeAdmin)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'type', '_users_list', 'created_at')
     search_fields = (
-        'users__user_profile__first_name',
-        'users__user_profile__last_name',
+        'users__profile__first_name',
+        'users__profile__last_name',
         'users__email')
     list_filter = ('school', 'type')
 

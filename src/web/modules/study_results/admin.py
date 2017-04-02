@@ -15,8 +15,8 @@ class StudyResultAdmin(admin.ModelAdmin):
         'practice',
     )
     search_fields = (
-        'school_participant__user__user_profile__first_name',
-        'school_participant__user__user_profile__last_name',
+        'school_participant__user__profile__first_name',
+        'school_participant__user__profile__last_name',
         'school_participant__user__first_name',
         'school_participant__user__last_name',
         'school_participant__user__username',

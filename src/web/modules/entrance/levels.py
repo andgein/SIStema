@@ -67,10 +67,10 @@ class AlreadyWasEntranceLevelLimiter(EntranceLevelLimiter):
 
 class AgeEntranceLevelLimiter(EntranceLevelLimiter):
     def get_limit(self, user):
-        if not hasattr(user, 'user_profile'):
+        if not hasattr(user, 'profile'):
             return EntranceLevelLimit(self._find_minimal_level())
 
-        current_class = user.user_profile.current_class
+        current_class = user.profile.current_class
         if current_class is None:
             return EntranceLevelLimit(self._find_minimal_level())
 

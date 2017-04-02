@@ -48,8 +48,8 @@ class UserQuestionnaireStatusAdmin(admin.ModelAdmin):
         '=user__email',
         '=user__first_name',
         '=user__last_name',
-        'user__user_profile__first_name',
-        'user__user_profile__last_name',
+        'user__profile__first_name',
+        'user__profile__last_name',
     )
 
 
@@ -64,8 +64,8 @@ class QuestionnaireAnswerAdmin(admin.ModelAdmin):
         '=user__email',
         '=user__first_name',
         '=user__last_name',
-        'user__user_profile__first_name',
-        'user__user_profile__last_name',
+        'user__profile__first_name',
+        'user__profile__last_name',
     )
 
 

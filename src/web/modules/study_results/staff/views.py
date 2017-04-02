@@ -25,7 +25,7 @@ class StudyResultsTable(frontend.table.Table):
             study_results_models.StudyResult.objects.filter(
                 id__in=study_result_ids).prefetch_related('comments').order_by(
                     'school_participant__parallel__name',
-                    'school_participant__user__user_profile__last_name')
+                    'school_participant__user__profile__last_name')
         )
         self.school = school
         self.identifiers = {'school_name': school.short_name}
@@ -42,8 +42,8 @@ class StudyResultsTable(frontend.table.Table):
         name_column = frontend.table.SimpleFuncColumn(
             lambda study_result: study_result.school_participant.user
                 .get_full_name(), 'Имя', search_attrs=[
-                    'school_participant__user__user_profile__last_name',
-                    'school_participant__user__user_profile__first_name'])
+                    'school_participant__user__profile__last_name',
+                    'school_participant__user__profile__first_name'])
         name_column.data_type = frontend.table.LinkDataType(
             frontend.table.StringDataType(),
             lambda study_result: urlresolvers.reverse(

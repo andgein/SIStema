@@ -62,17 +62,17 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     def get_full_name(self):
         """Returns the first_name plus the last_name, with a space in between.
         """
-        if hasattr(self, 'user_profile'):
-            full_name = '%s %s' % (self.user_profile.first_name,
-                                   self.user_profile.last_name)
+        if hasattr(self, 'profile'):
+            full_name = '%s %s' % (self.profile.first_name,
+                                   self.profile.last_name)
         else:
             full_name = '%s %s' % (self.first_name, self.last_name)
         return full_name.strip()
 
     def get_short_name(self):
         """Returns the short name for the user."""
-        if hasattr(self, 'user_profile'):
-            return self.user_profile.first_name
+        if hasattr(self, 'profile'):
+            return self.profile.first_name
         return self.first_name
 
     def email_user(self, subject, message, from_email=None, **kwargs):
@@ -102,7 +102,7 @@ class UserProfile(models.Model):
         TAJIKISTAN = choices.ChoiceItem(4, 'Таджикистан')
         OTHER = choices.ChoiceItem(-1, 'Другое')
 
-    user = models.OneToOneField(User, related_name='user_profile')
+    user = models.OneToOneField(User, related_name='profile')
     updated_at = models.DateTimeField(auto_now=True)
 
     first_name = models.CharField('Имя', max_length=100, blank=True, default='')

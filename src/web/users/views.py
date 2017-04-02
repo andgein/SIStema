@@ -32,17 +32,17 @@ def profile_for_user(request, user):
             return shortcuts.redirect('home')
         return shortcuts.render(request, 'users/profile.html', {'form': form})
     else:
-        if hasattr(user, 'user_profile'):
+        if hasattr(user, 'profile'):
             initial_data = {}
             for field_name in models.UserProfile.get_field_names():
-                initial_data[field_name] = getattr(user.user_profile, field_name)
+                initial_data[field_name] = getattr(user.profile, field_name)
         else:
             initial_data = {'first_name': user.first_name,
                             'last_name': user.last_name}
         form = forms.UserProfileForm(initial=initial_data)
         return shortcuts.render(request, 'users/profile.html',
                                 {'form': form,
-                                 'is_creating': not hasattr(user, 'user_profile'),
+                                 'is_creating': not hasattr(user, 'profile'),
                                  'is_confirming': request.GET.get('confirm', False)})
 
 

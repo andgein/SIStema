@@ -15,11 +15,6 @@ class DocumentGenerator:
             short_name='payment'
         ).first()
 
-        self.enrolled_questionnaire = questionnaire.models.Questionnaire.objects.filter(
-            school=self.school,
-            short_name='enrolled'
-        ).first()
-
         self.payment_questions = questionnaire.models.AbstractQuestionnaireQuestion.objects.filter(
             questionnaire=self.payment_questionnaire
         )
@@ -76,7 +71,7 @@ class DocumentGenerator:
         return g.generate({
             'school': self.school,
             'session': session,
-            'student': user.user_profile,
+            'student': user.profile,
             'contract': {
                 'id': user.id,
                 'created_at': datetime.date.today()

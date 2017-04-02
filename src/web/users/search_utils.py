@@ -193,11 +193,11 @@ class SimilarAccountSearcher(object):
         first_name = self._new_user_profile.first_name
         birth_date = self._new_user_profile.birth_date
 
-        expr = Q(last_name=last_name) | Q(user_profile__last_name=last_name) | Q(poldnev_person__last_name=last_name)
+        expr = Q(last_name=last_name) | Q(profile__last_name=last_name) | Q(poldnev_person__last_name=last_name)
         if birth_date:
-            expr |= Q(user_profile__birth_date=birth_date)
+            expr |= Q(profile__birth_date=birth_date)
         self._candidates = list(models.User.objects
-                                .select_related('user_profile', 'poldnev_person')
+                                .select_related('profile', 'poldnev_person')
                                 .filter(is_active=True)
                                 .filter(expr)
                                 .all())
@@ -218,14 +218,14 @@ class SimilarAccountSearcher(object):
 
     def _sex_matched_or_null(self, user):
         sex = self._new_user_profile.sex
-        if sex and hasattr(user, 'user_profile') and user.user_profile.sex:
-            return sex == user.user_profile.sex
+        if sex and hasattr(user, 'profile') and user.profile.sex:
+            return sex == user.profile.sex
         return True
 
     def _birth_date_matched(self, user):
         birth_date = self._new_user_profile.birth_date
-        if birth_date and hasattr(user, 'user_profile') and user.user_profile.birth_date:
-            return birth_date == user.user_profile.birth_date
+        if birth_date and hasattr(user, 'profile') and user.profile.birth_date:
+            return birth_date == user.profile.birth_date
         return False
 
     def _last_name_matched(self, user):
@@ -233,8 +233,8 @@ class SimilarAccountSearcher(object):
         ok = False
         if hasattr(user, 'poldnev_person'):
             ok |= match_last_names(last_name, user.poldnev_person.last_name)
-        if hasattr(user, 'user_profile'):
-            ok |= match_last_names(last_name, user.user_profile.last_name)
+        if hasattr(user, 'profile'):
+            ok |= match_last_names(last_name, user.profile.last_name)
         ok |= match_last_names(last_name, user.last_name)
         return ok
 
@@ -254,10 +254,10 @@ class SimilarAccountSearcher(object):
             ok |= (match_last_names(last_name, user.poldnev_person.last_name)
                    and match_first_names(first_name, user.poldnev_person.first_name)
                    and match_middle_names(middle_name, user.poldnev_person.middle_name))
-        if hasattr(user, 'user_profile'):
-            ok |= (match_last_names(last_name, user.user_profile.last_name)
-                   and match_first_names(first_name, user.user_profile.first_name)
-                   and match_middle_names(middle_name, user.user_profile.middle_name))
+        if hasattr(user, 'profile'):
+            ok |= (match_last_names(last_name, user.profile.last_name)
+                   and match_first_names(first_name, user.profile.first_name)
+                   and match_middle_names(middle_name, user.profile.middle_name))
         ok |= (match_last_names(last_name, user.last_name)
                and match_first_names(first_name, user.first_name))
         return ok

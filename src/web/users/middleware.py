@@ -5,7 +5,7 @@ class UserProfileMiddleware(object):
     def process_view(self, request, view_func, view_args, view_kwargs):
         request.user_profile = None
         if request.user.is_authenticated:
-            if not hasattr(request.user, 'user_profile'):
+            if not hasattr(request.user, 'profile'):
                 # It's here to avoid infinity redirects. Only school's views
                 # are redirecting to user's profile.
                 if hasattr(request, 'school'):

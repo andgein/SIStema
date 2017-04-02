@@ -43,7 +43,7 @@ class EnrollingUsersTable(frontend.table.Table):
 
         name_column = frontend.table.SimplePropertyColumn(
                 'get_full_name', 'Имя',
-                search_attrs=['user_profile__first_name', 'user_profile__last_name'])
+                search_attrs=['profile__first_name', 'profile__last_name'])
         name_column.data_type = frontend.table.LinkDataType(
                 frontend.table.StringDataType(),
                 lambda user: reverse('school:entrance:enrolling_user', args=(self.school.short_name, user.id))
