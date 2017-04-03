@@ -30,9 +30,9 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
         'username',
         'first_name',
         'last_name',
-        'user_profile__first_name',
-        'user_profile__middle_name',
-        'user_profile__last_name',
+        'profile__first_name',
+        'profile__middle_name',
+        'profile__last_name',
         'email',
     )
 

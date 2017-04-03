@@ -71,10 +71,8 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(id=int(self.q))
         elif self.q:
             for token in self.q.strip().split(' '):
-                qs = qs.filter(Q(first_name__icontains=token) |
-                               Q(last_name__icontains=token) |
-                               Q(user_profile__first_name__icontains=token) |
-                               Q(user_profile__middle_name__icontains=token) |
-                               Q(user_profile__last_name__icontains=token))
+                qs = qs.filter(Q(profile__first_name__icontains=token) |
+                               Q(profile__middle_name__icontains=token) |
+                               Q(profile__last_name__icontains=token))
 
         return qs
