@@ -12,7 +12,7 @@ import sizefield.models
 import schools.models
 import modules.ejudge.models
 import users.models
-import modules.entrance.forms as forms
+from modules.entrance import forms
 
 
 class EntranceExamTask(polymorphic.models.PolymorphicModel):

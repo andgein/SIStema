@@ -216,8 +216,7 @@ def submit(request, task_id):
 
         return JsonResponse({'status': 'error', 'errors': form.errors})
 
-    if (type(task) is models.ProgramEntranceExamTask or
-       type(task) is models.OutputOnlyEntranceExamTask):
+    if isinstance(task, models.EjudgeEntranceExamTask):
         if is_closed:
             form.add_error('solution', 'Вступительная работа завершена. Решения больше не принимаются')
         elif form.is_valid():
@@ -260,8 +259,7 @@ def task_solutions(request, task_id):
     task = get_object_or_404(models.EntranceExamTask, id=task_id)
     solutions = task.solutions.filter(user=request.user).order_by('-created_at')
 
-    if (type(task) is models.ProgramEntranceExamTask or
-       type(task) is models.OutputOnlyEntranceExamTask):
+    if isinstance(task, models.EjudgeEntranceExamTask):
         is_checking = any(s.result is None for s in solutions)
         is_passed = any(s.is_checked and s.result.is_success for s in solutions)
 
