@@ -312,16 +312,16 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
                       if type(t) is entrance_models.TestEntranceExamTask]
         file_tasks = [t for t in tasks
                       if type(t) is entrance_models.FileEntranceExamTask]
-        program_tasks = [t for t in tasks
-                         if type(t) is entrance_models.ProgramEntranceExamTask]
+        practice_tasks = [t for t in tasks
+                          if isinstance(t, entrance_models.EjudgeEntranceExamTask)]
 
         block.test_tasks_count = len(test_tasks)
         block.file_tasks_count = len(file_tasks)
-        block.program_tasks_count = len(program_tasks)
+        block.practice_tasks_count = len(practice_tasks)
 
         block.test_tasks_solved_count = self._get_solved_count(test_tasks)
         block.file_tasks_solved_count = self._get_solved_count(file_tasks)
-        block.program_tasks_solved_count = self._get_solved_count(program_tasks)
+        block.practice_tasks_solved_count = self._get_solved_count(practice_tasks)
 
         block.level = entrance_upgrades.get_maximum_issued_entrance_level(
             self.school,

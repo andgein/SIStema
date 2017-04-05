@@ -30,10 +30,10 @@
                     <br />
                 </span>
             {% endif %}
-            {% if entrance_block.program_tasks_count %}
-                <span class="{{ entrance_block.program_tasks_solved_count|yesno:',text-danger' }}">
+            {% if entrance_block.practice_tasks_count %}
+                <span class="{{ entrance_block.practice_tasks_solved_count|yesno:',text-danger' }}">
                     Практические задачи:
-                    <b>сдано {{ entrance_block.program_tasks_solved_count }} из {{ entrance_block.program_tasks_count }}</b>
+                    <b>сдано {{ entrance_block.practice_tasks_solved_count }} из {{ entrance_block.practice_tasks_count }}</b>
                     <br />
                 </span>
             {% endif %}

@@ -1,0 +1,14 @@
+{% extends 'entrance/exam/_ejudge_problem_base.html' %}
+
+{% block description %}
+    <p>
+        В&nbsp;этой задаче вам нужно отправить <b>только ответ</b>. Неважно, как вы его получите &mdash;
+        вы можете использовать для этого любые инструменты и языки программирования.
+    </p>
+{% endblock %}
+
+{% block statement %}
+    <a href="/static/upload/entrance-exam-pdfs/{{ task.id }}.pdf" target="_blank" class="fs18 non-underlined-link">
+        <span class="underlined-link">Читать условие задачи</span>&nbsp;<span class="fa fa-external-link fs14"></span>
+    </a>
+{% endblock %}

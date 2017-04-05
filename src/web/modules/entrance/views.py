@@ -122,31 +122,17 @@ def exam(request, selected_task_id=None):
 
     base_level, tasks = get_entrance_level_and_tasks(request.school, request.user)
 
+    # Order task by type and order
+    tasks = sorted(tasks, key=lambda t: (t.type_title, t.order))
     for task in tasks:
         task.user_solutions = list(
             task.solutions.filter(user=request.user).order_by('-created_at')
         )
         task.is_solved = task.is_solved_by_user(request.user)
+        task.form = task.get_form(task.user_solutions)
 
-    test_tasks = [t for t in tasks if type(t) is models.TestEntranceExamTask]
-    file_tasks = [t for t in tasks if type(t) is models.FileEntranceExamTask]
-    program_tasks = [t for t in tasks if type(t) is models.ProgramEntranceExamTask]
-
-    for test_task in test_tasks:
-        initial = {}
-        if len(test_task.user_solutions) > 0:
-            initial['solution'] = test_task.user_solutions[0].solution
-        test_task.form = forms.TestEntranceTaskForm(test_task, initial=initial)
-        if is_closed:
-            test_task.form['solution'].field.widget.attrs['readonly'] = True
-    for file_task in file_tasks:
-        file_task.form = forms.FileEntranceTaskForm(file_task)
-    for program_task in program_tasks:
-        program_task.form = forms.ProgramEntranceTaskForm(program_task)
-
-    all_tasks = test_tasks + file_tasks + program_tasks
-    if selected_task_id is None and len(all_tasks) > 0:
-        selected_task_id = all_tasks[0].id
+    if selected_task_id is None and len(tasks) > 0:
+        selected_task_id = tasks[0].id
     try:
         selected_task_id = int(selected_task_id)
     except ValueError:
@@ -156,7 +142,7 @@ def exam(request, selected_task_id=None):
         'is_closed': is_closed,
         'entrance_level': base_level,
         'school': request.school,
-        'tasks': all_tasks,
+        'tasks': tasks,
         'is_user_at_maximum_level': upgrades.is_user_at_maximum_level(
             request.school,
             request.user,
@@ -188,9 +174,10 @@ def submit(request, task_id):
 
     ip = ipware.ip.get_ip(request) or ''
 
+    form = task.get_form([], data=request.POST, files=request.FILES)
+
     # TODO (andgein): extract this logic to models
     if type(task) is models.TestEntranceExamTask:
-        form = forms.TestEntranceTaskForm(task, request.POST)
         if is_closed:
             form.add_error('solution', 'Вступительная работа завершена. Решения больше не принимаются')
         elif form.is_valid():
@@ -208,7 +195,6 @@ def submit(request, task_id):
         return JsonResponse({'status': 'error', 'errors': form.errors})
 
     if type(task) is models.FileEntranceExamTask:
-        form = forms.FileEntranceTaskForm(task, request.POST, request.FILES)
         if is_closed:
             form.add_error('solution', 'Вступительная работа завершена. Решения больше не принимаются')
         elif form.is_valid():
@@ -230,8 +216,8 @@ def submit(request, task_id):
 
         return JsonResponse({'status': 'error', 'errors': form.errors})
 
-    if type(task) is models.ProgramEntranceExamTask:
-        form = forms.ProgramEntranceTaskForm(task, request.POST, request.FILES)
+    if (type(task) is models.ProgramEntranceExamTask or
+       type(task) is models.OutputOnlyEntranceExamTask):
         if is_closed:
             form.add_error('solution', 'Вступительная работа завершена. Решения больше не принимаются')
         elif form.is_valid():
@@ -241,11 +227,12 @@ def submit(request, task_id):
             )
 
             with transaction.atomic():
-                if (task.problem_type ==
-                   models.ProgramEntranceExamTask.ProblemType.STANDARD):
+                if type(task) is models.ProgramEntranceExamTask:
                     language = form.cleaned_data['language']
+                    solution_kwargs = {'language': language}
                 else:
                     language = None
+                    solution_kwargs = {}
 
                 ejudge_queue_element = modules.ejudge.queue.add_from_file(
                     task.ejudge_contest_id,
@@ -254,13 +241,13 @@ def submit(request, task_id):
                     solution_file
                 )
 
-                solution = models.ProgramEntranceExamTaskSolution(
+                solution = task.solution_class(
                     user=request.user,
                     task=task,
                     solution=solution_file,
-                    language=language,
                     ejudge_queue_element=ejudge_queue_element,
-                    ip=ip
+                    ip=ip,
+                    **solution_kwargs
                 )
                 solution.save()
             return JsonResponse({'status': 'ok', 'solution_id': solution.id})
@@ -273,11 +260,14 @@ def task_solutions(request, task_id):
     task = get_object_or_404(models.EntranceExamTask, id=task_id)
     solutions = task.solutions.filter(user=request.user).order_by('-created_at')
 
-    if type(task) is models.ProgramEntranceExamTask:
+    if (type(task) is models.ProgramEntranceExamTask or
+       type(task) is models.OutputOnlyEntranceExamTask):
         is_checking = any(s.result is None for s in solutions)
         is_passed = any(s.is_checked and s.result.is_success for s in solutions)
 
-        return render(request, 'entrance/exam/_program_solutions.html', {
+        template_name = task.solutions_template_file
+
+        return render(request, 'entrance/exam/' + template_name, {
             'task': task,
             'solutions': solutions,
             'is_checking': is_checking,

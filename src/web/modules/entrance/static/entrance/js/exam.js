@@ -148,7 +148,9 @@ $(document).ready(function(){
             });
         });
 
-        $('.entrance-exam__task.entrance-exam__task__program').each(function () {
+        $('.entrance-exam__task.entrance-exam__task__program')
+            .add('.entrance-exam__task.entrance-exam__task__output-only')
+            .each(function () {
             var $this = $(this);
             var $status = $this.find('.status');
             var $form = $this.find('form');

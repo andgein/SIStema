@@ -19,8 +19,9 @@ class EntranceExamTaskAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 
 
 @admin.register(models.TestEntranceExamTask)
-@admin.register(models.ProgramEntranceExamTask)
 @admin.register(models.FileEntranceExamTask)
+@admin.register(models.ProgramEntranceExamTask)
+@admin.register(models.OutputOnlyEntranceExamTask)
 class EntranceExamTaskChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.EntranceExamTask
 
@@ -55,8 +56,9 @@ class EntranceExamTaskSolutionAdmin(
 
 
 @admin.register(models.TestEntranceExamTaskSolution)
-@admin.register(models.ProgramEntranceExamTaskSolution)
 @admin.register(models.FileEntranceExamTaskSolution)
+@admin.register(models.ProgramEntranceExamTaskSolution)
+@admin.register(models.OutputOnlyEntranceExamTaskSolution)
 class EntranceExamTaskSolutionChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.EntranceExamTaskSolution
 

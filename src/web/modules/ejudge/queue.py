@@ -2,7 +2,7 @@ from . import models
 
 
 def add_from_file(ejudge_contest_id, ejudge_problem_id,
-                  language: models.ProgrammingLanguage, file_name):
+                  language, file_name):
     element = models.QueueElement(
         ejudge_contest_id=ejudge_contest_id,
         ejudge_problem_id=ejudge_problem_id,

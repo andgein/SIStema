@@ -425,7 +425,7 @@ def initial_auto_reject(request):
         users_ids = list(users_ids)
 
     program_solutions = group_by(
-            models.ProgramEntranceExamTaskSolution.objects.filter(
+            models.EjudgeEntranceExamTaskSolution.objects.filter(
                     task__exam__school=request.school,
                     user_id__in=users_ids,
                     ejudge_queue_element__submission__result__result=CheckingResult.Result.OK

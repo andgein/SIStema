@@ -71,8 +71,23 @@ class ProgramEntranceTaskForm(EntranceTaskForm):
         )
     )
 
-    def __init__(self, task, *args, **kwargs):
-        super().__init__(task, *args, **kwargs)
-        if task.problem_type == task.ProblemType.OUTPUT_ONLY:
-            del self.fields['language']
-            self.fields['solution'].label = 'Выберите файл'
+
+class OutputOnlyEntranceTaskForm(EntranceTaskForm):
+    task_type = 'output-only'
+
+    solution = frontend.forms.RestrictedFileField(
+        max_upload_size=512 * 1024,
+        required=True,
+        label='Выберите файл',
+        label_suffix='',
+        widget=widgets.ClearableFileInput(
+            attrs={
+                'class': 'file -form-control',
+                'data-language': 'ru',
+                'data-show-upload': 'false',
+                'data-show-remove': 'false',
+                'data-show-preview': 'false',
+                'data-browse-on-zone-click': 'true',
+            }
+        )
+    )

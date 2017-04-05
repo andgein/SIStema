@@ -1,7 +1,7 @@
 {% load types %}
 
 {% for task in tasks %}
-    {% ifchanged task|get_type %}
+    {% ifchanged task.type_title %}
         <li class="tabs-group">
             <a class="tabs-group">{{ task.type_title }}:</a>
         </li>

@@ -1,0 +1,49 @@
+{% extends 'entrance/exam/base.html' %}
+
+{% block panel_icon %}
+    <i class="fa fa-code"></i>
+{% endblock %}
+
+{% block statement %}
+    {% if task.problem_type == task.ProblemType.STANDARD %}
+        <div class="entrance-exam__task__program__params mb20">
+            <div>Имя входного файла: <b>{{ task.input_file_name }}</b></div>
+            <div>Имя выходного файла: <b>{{ task.output_file_name }}</b></div>
+            <div>Ограничение по времени: <b>{% widthratio task.time_limit 1000 1%} с.</b></div>
+            <div>Ограничение по памяти: <b>{{ task.memory_limit|filesizeformat }} </b></div>
+        </div>
+    {% endif %}
+
+    <a href="/static/upload/entrance-exam-pdfs/{{ task.id }}.pdf" target="_blank" class="fs18 non-underlined-link">
+        <span class="underlined-link">Читать условие задачи</span>&nbsp;<span class="fa fa-external-link fs14"></span>
+    </a>
+{% endblock %}
+
+{% block answer_form %}
+    <div class="row">
+        {% if not is_closed %}
+            <div class="col-sm-12 col-md-6 mw400">
+                <form method="POST" action="" enctype="multipart/form-data">
+                    {% block form_title %}
+                    {% endblock %}
+                    {{ task.form.as_p }}
+                    {% if task.help_text %}
+                        <span class="help-block mbn">
+                            {{ task.help_text }}
+                        </span>
+                    {% endif %}
+                    {% if not is_closed %}
+                        <button class="entrance-exam__task__program__submit btn btn-info btn-small mt10">Отправить решение</button>
+                    {% endif %}
+                    <div class="mv20">
+                        <em class="status"></em>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+
+        <div class="entrance-exam__task__program__submits col-sm-12 col-md-5 col-md-offset-1">
+            {% include 'entrance/exam/'|add:task.solutions_template_file with task=task solutions=task.user_solutions %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,4 +1,3 @@
-from django.contrib import admin
 import polymorphic.admin
 
 
@@ -21,7 +20,10 @@ def get_all_inheritors(klass):
 
 class PolymorphicParentModelAdmin(polymorphic.admin.PolymorphicParentModelAdmin):
     def get_child_models(self):
-        return get_all_inheritors(self.base_model)
+        inheritors = get_all_inheritors(self.base_model)
+        # Remove absctract models
+        inheritors = [c for c in inheritors if not c._meta.abstract]
+        return inheritors
 
     def get_class(self, obj):
         return obj.get_real_instance_class().__name__

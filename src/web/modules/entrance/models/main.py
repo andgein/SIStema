@@ -12,6 +12,7 @@ import sizefield.models
 import schools.models
 import modules.ejudge.models
 import users.models
+import modules.entrance.forms as forms
 
 
 class EntranceExamTask(polymorphic.models.PolymorphicModel):
@@ -21,12 +22,16 @@ class EntranceExamTask(polymorphic.models.PolymorphicModel):
 
     exam = models.ForeignKey('EntranceExam', related_name='%(class)s')
 
-    help_text = models.CharField(max_length=100,
-                                 help_text='Дополнительная информация, например, сведения о формате ответа',
-                                 blank=True)
+    help_text = models.CharField(
+        max_length=100,
+        help_text='Дополнительная информация, например, сведения о формате ответа',
+        blank=True
+    )
 
-    order = models.IntegerField(help_text='Задачи выстраиваются по возрастанию порядка',
-                                default=0)
+    order = models.IntegerField(
+        help_text='Задачи выстраиваются по возрастанию порядка',
+        default=0
+    )
 
     max_score = models.PositiveIntegerField()
 
@@ -60,6 +65,19 @@ class EntranceExamTask(polymorphic.models.PolymorphicModel):
         """
         raise NotImplementedError('Child should define property type_title')
 
+    def get_form(self, user_solutions, *args, **kwargs):
+        """
+        Returns form for this task with user_solutions as previous solutions.
+        user_solutions are ordered by descending time
+        """
+        raise NotImplementedError('Child should define get_form()')
+
+    @property
+    def solution_class(self):
+        raise NotImplementedError(
+            'Child should define property solution_class'
+        )
+
 
 class TestEntranceExamTask(EntranceExamTask):
     template_file = 'test.html'
@@ -77,6 +95,21 @@ class TestEntranceExamTask(EntranceExamTask):
     def is_solved_by_user(self, user):
         return self.solutions.filter(user=user).exists()
 
+    def get_form(self, user_solutions, *args, **kwargs):
+        initial = {}
+        if len(user_solutions) > 0:
+            initial['solution'] = user_solutions[0].solution
+        form = forms.TestEntranceTaskForm(self, initial=initial, *args, **kwargs)
+        if self.exam.is_closed():
+            form['solution'].field.widget.attrs['readonly'] = True
+        return form
+
+    # Define it as property because TestEntranceExamTaskSolution
+    # is not defined yet
+    @property
+    def solution_class(self):
+        return TestEntranceExamTaskSolution
+
 
 class FileEntranceExamTask(EntranceExamTask):
     template_file = 'file.html'
@@ -85,24 +118,16 @@ class FileEntranceExamTask(EntranceExamTask):
     def is_solved_by_user(self, user):
         return self.solutions.filter(user=user).exists()
 
+    def get_form(self, user_solutions, *args, **kwargs):
+        return forms.FileEntranceTaskForm(self, *args, **kwargs)
 
-class ProgramEntranceExamTask(EntranceExamTask):
-    template_file = 'program.html'
+    @property
+    def solution_class(self):
+        return FileEntranceExamTaskSolution
+
+
+class EjudgeEntranceExamTask(EntranceExamTask):
     type_title = 'Практические задачи'
-
-    class ProblemType(djchoices.DjangoChoices):
-        STANDARD = djchoices.ChoiceItem(value=0, label='Стандартная задача')
-        OUTPUT_ONLY = djchoices.ChoiceItem(
-            value=1,
-            label='Задача на сдачу файла с ответом, а не программы'
-        )
-
-    problem_type = models.PositiveIntegerField(
-        choices=ProblemType.choices,
-        validators=[ProblemType.validator],
-        help_text='Тип задачи',
-        default=0,
-    )
 
     ejudge_contest_id = models.PositiveIntegerField(
         help_text='ID контеста в еджадже'
@@ -111,6 +136,31 @@ class ProgramEntranceExamTask(EntranceExamTask):
     ejudge_problem_id = models.PositiveIntegerField(
         help_text='ID задачи в еджадже'
     )
+
+    def is_solved_by_user(self, user):
+        user_solutions = self.solution_class.objects.filter(
+            user=user,
+            task=self
+        ).select_related('ejudge_queue_element__submission__result')
+        task_has_ok = any(filter(
+            lambda s: s.is_checked and s.result.is_success,
+            user_solutions
+        ))
+        return task_has_ok
+
+    @property
+    def solutions_template_file(self):
+        raise NotImplementedError(
+            'Child should define property solutions_template_file'
+        )
+
+    class Meta:
+        abstract = True
+
+
+class ProgramEntranceExamTask(EjudgeEntranceExamTask):
+    template_file = 'program.html'
+    solutions_template_file = '_program_solutions.html'
 
     input_file_name = models.CharField(max_length=100, blank=True)
 
@@ -125,16 +175,24 @@ class ProgramEntranceExamTask(EntranceExamTask):
 
     output_format = models.TextField(blank=True)
 
-    def is_solved_by_user(self, user):
-        user_solutions = ProgramEntranceExamTaskSolution.objects.filter(
-            user=user,
-            task=self
-        ).select_related('ejudge_queue_element__submission__result')
-        task_has_ok = any(filter(
-            lambda s: s.is_checked and s.result.is_success,
-            user_solutions
-        ))
-        return task_has_ok
+    def get_form(self, user_solutions, *args, **kwargs):
+        return forms.ProgramEntranceTaskForm(self, *args, **kwargs)
+
+    @property
+    def solution_class(self):
+        return ProgramEntranceExamTaskSolution
+
+
+class OutputOnlyEntranceExamTask(EjudgeEntranceExamTask):
+    template_file = 'output_only.html'
+    solutions_template_file = '_output_only_solutions.html'
+
+    def get_form(self, user_solutions, *args, **kwargs):
+        return forms.OutputOnlyEntranceTaskForm(self, *args, **kwargs)
+
+    @property
+    def solution_class(self):
+        return OutputOnlyEntranceExamTaskSolution
 
 
 class EntranceExam(models.Model):
@@ -232,14 +290,7 @@ class FileEntranceExamTaskSolution(EntranceExamTaskSolution):
     original_filename = models.TextField()
 
 
-class ProgramEntranceExamTaskSolution(EntranceExamTaskSolution):
-    language = models.ForeignKey(
-        modules.ejudge.models.ProgrammingLanguage,
-        null=True,
-        blank=True,
-        help_text='Значение NULL исользуется для output-only задач'
-    )
-
+class EjudgeEntranceExamTaskSolution(EntranceExamTaskSolution):
     ejudge_queue_element = models.ForeignKey(modules.ejudge.models.QueueElement)
 
     @property
@@ -250,6 +301,17 @@ class ProgramEntranceExamTaskSolution(EntranceExamTaskSolution):
     @property
     def result(self):
         return self.ejudge_queue_element.get_result()
+
+    class Meta:
+        abstract = True
+
+
+class ProgramEntranceExamTaskSolution(EjudgeEntranceExamTaskSolution):
+    language = models.ForeignKey(modules.ejudge.models.ProgrammingLanguage)
+
+
+class OutputOnlyEntranceExamTaskSolution(EjudgeEntranceExamTaskSolution):
+    pass
 
 
 class EntranceLevelUpgrade(models.Model):
