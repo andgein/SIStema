@@ -241,10 +241,16 @@ def submit(request, task_id):
             )
 
             with transaction.atomic():
+                if (task.problem_type ==
+                   models.ProgramEntranceExamTask.ProblemType.STANDARD):
+                    language = form.cleaned_data['language']
+                else:
+                    language = None
+
                 ejudge_queue_element = modules.ejudge.queue.add_from_file(
                     task.ejudge_contest_id,
                     task.ejudge_problem_id,
-                    form.cleaned_data['language'],
+                    language,
                     solution_file
                 )
 
@@ -252,7 +258,7 @@ def submit(request, task_id):
                     user=request.user,
                     task=task,
                     solution=solution_file,
-                    language=form.cleaned_data['language'],
+                    language=language,
                     ejudge_queue_element=ejudge_queue_element,
                     ip=ip
                 )

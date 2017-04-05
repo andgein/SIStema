@@ -21,8 +21,12 @@
     padding-bottom: 5px;
 }
 
-.entrance-exam__task__program__submits .submit .language {
+.entrance-exam__task__program__submits .submit > div:last-child {
+    padding-right: 0;
+}
 
+.entrance-exam__task__program__submits .submit .submit__result {
+    min-width: 200px;
 }
 
 .entrance-exam__task__statement {

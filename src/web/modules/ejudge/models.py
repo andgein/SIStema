@@ -97,7 +97,7 @@ class SolutionCheckingResult(CheckingResult):
         if self.failed_test is None:
             return super_str
         if self.score is not None:
-            return 'Баллов: %d' % self.score
+            return 'Количество баллов: %d' % self.score
         return '%s на тесте №%d' % (super_str, self.failed_test)
 
 
@@ -140,7 +140,12 @@ class QueueElement(models.Model):
     ejudge_problem_id = models.PositiveIntegerField()
 
     language = models.ForeignKey(
-        ProgrammingLanguage, null=True, on_delete=models.SET_NULL)
+        ProgrammingLanguage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text='Значение NULL используется для output-only задач'
+    )
 
     file_name = models.TextField()
 

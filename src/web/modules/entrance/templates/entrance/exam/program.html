@@ -16,12 +16,14 @@
 {% endblock %}
 
 {% block statement %}
-    <div class="entrance-exam__task__program__params mb20">
-        <div>Имя входного файла: <b>{{ task.input_file_name }}</b></div>
-        <div>Имя выходного файла: <b>{{ task.output_file_name }}</b></div>
-        <div>Ограничение по времени: <b>{% widthratio task.time_limit 1000 1%} с.</b></div>
-        <div>Ограничение по памяти: <b>{{ task.memory_limit|filesizeformat }} </b></div>
-    </div>
+    {% if task.problem_type == task.ProblemType.STANDARD %}
+        <div class="entrance-exam__task__program__params mb20">
+            <div>Имя входного файла: <b>{{ task.input_file_name }}</b></div>
+            <div>Имя выходного файла: <b>{{ task.output_file_name }}</b></div>
+            <div>Ограничение по времени: <b>{% widthratio task.time_limit 1000 1%} с.</b></div>
+            <div>Ограничение по памяти: <b>{{ task.memory_limit|filesizeformat }} </b></div>
+        </div>
+    {% endif %}
 
     <a href="/static/upload/entrance-exam-pdfs/{{ task.id }}.pdf" target="_blank" class="fs18 non-underlined-link">
         <span class="underlined-link">Читать условие задачи</span>&nbsp;<span class="fa fa-external-link fs14"></span>
@@ -33,7 +35,9 @@
         {% if not is_closed %}
             <div class="col-sm-12 col-md-6 mw400">
                 <form method="POST" action="" enctype="multipart/form-data">
-                    <h3 class="mt10">Отправить решение</h3>
+                    {% if task.problem_type == task.ProblemType.STANDARD %}
+                        <h3 class="mt10">Отправить решение</h3>
+                    {% endif %}
                     {{ task.form.as_p }}
                     {% if task.help_text %}
                         <span class="help-block mbn">

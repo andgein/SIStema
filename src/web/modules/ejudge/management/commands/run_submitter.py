@@ -135,7 +135,13 @@ class Command(BaseCommand):
 
     def _submit_solution(self, contest_id, problem_id, language, file_name):
         ejudge_sid = self._login(contest_id)
-        ejudge_submit_id = self._submit_to_ejudge(ejudge_sid, problem_id, language.ejudge_id, file_name)
+        language_ejudge_id = None if language is None else language.ejudge_id
+        ejudge_submit_id = self._submit_to_ejudge(
+            ejudge_sid,
+            problem_id,
+            language_ejudge_id,
+            file_name
+        )
 
         return ejudge_submit_id
 
@@ -153,10 +159,12 @@ class Command(BaseCommand):
                     queue_element.file_name))
 
                 try:
-                    ejudge_submit_id = self._submit_solution(queue_element.ejudge_contest_id,
-                                                             queue_element.ejudge_problem_id,
-                                                             queue_element.language,
-                                                             queue_element.file_name)
+                    ejudge_submit_id = self._submit_solution(
+                        queue_element.ejudge_contest_id,
+                        queue_element.ejudge_problem_id,
+                        queue_element.language,
+                        queue_element.file_name
+                    )
                 except CantSubmitEjudgeException as e:
                     self.stdout.write('Can\'t submit: %s' % (e, ))
                     queue_element.status = models.QueueElement.Status.WONT_CHECK

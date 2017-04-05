@@ -30,6 +30,15 @@ class EntranceExamTask(polymorphic.models.PolymorphicModel):
 
     max_score = models.PositiveIntegerField()
 
+    custom_description = models.TextField(
+        help_text='Текст с описанием типа задачи. Оставьте пустым, тогда будет '
+                  'использован текст по умолчанию для данного вида задач. '
+                  'В этом тексте можно указать, например, '
+                  'для кого эта задача предназначена.\n'
+                  'Поддерживается Markdown',
+        blank=True,
+    )
+
     def __str__(self):
         return self.title
 
@@ -80,6 +89,20 @@ class FileEntranceExamTask(EntranceExamTask):
 class ProgramEntranceExamTask(EntranceExamTask):
     template_file = 'program.html'
     type_title = 'Практические задачи'
+
+    class ProblemType(djchoices.DjangoChoices):
+        STANDARD = djchoices.ChoiceItem(value=0, label='Стандартная задача')
+        OUTPUT_ONLY = djchoices.ChoiceItem(
+            value=1,
+            label='Задача на сдачу файла с ответом, а не программы'
+        )
+
+    problem_type = models.PositiveIntegerField(
+        choices=ProblemType.choices,
+        validators=[ProblemType.validator],
+        help_text='Тип задачи',
+        default=0,
+    )
 
     ejudge_contest_id = models.PositiveIntegerField(
         help_text='ID контеста в еджадже'
@@ -210,7 +233,12 @@ class FileEntranceExamTaskSolution(EntranceExamTaskSolution):
 
 
 class ProgramEntranceExamTaskSolution(EntranceExamTaskSolution):
-    language = models.ForeignKey(modules.ejudge.models.ProgrammingLanguage)
+    language = models.ForeignKey(
+        modules.ejudge.models.ProgrammingLanguage,
+        null=True,
+        blank=True,
+        help_text='Значение NULL исользуется для output-only задач'
+    )
 
     ejudge_queue_element = models.ForeignKey(modules.ejudge.models.QueueElement)
 

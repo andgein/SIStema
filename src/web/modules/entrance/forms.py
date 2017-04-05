@@ -70,3 +70,9 @@ class ProgramEntranceTaskForm(EntranceTaskForm):
             }
         )
     )
+
+    def __init__(self, task, *args, **kwargs):
+        super().__init__(task, *args, **kwargs)
+        if task.problem_type == task.ProblemType.OUTPUT_ONLY:
+            del self.fields['language']
+            self.fields['solution'].label = 'Выберите файл'

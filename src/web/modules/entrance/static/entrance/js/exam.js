@@ -166,7 +166,7 @@ $(document).ready(function(){
                     if (data.status != 'ok') {
                         $status.text(data.errors['solution'].join(', ')).removeClass('state-success').addClass('state-error');
                     } else {
-                        $status.html('Решение загружено<br />Результаты запуска на&nbsp;тестах появятся справа без&nbsp;обновления страницы').removeClass('state-error').addClass('state-success');
+                        $status.html('Решение загружено<br />Результаты автоматической проверки появятся справа без&nbsp;обновления страницы').removeClass('state-error').addClass('state-success');
                         $status.delay(3000).fadeOut('fast');
                         /* TODO (andgein). Potentially bug: if user changed active tab before file has been uploaded */
                         updateProgramSolutions(current_task_id, $this, 0);

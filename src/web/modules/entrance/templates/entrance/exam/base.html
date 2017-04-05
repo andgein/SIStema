@@ -8,8 +8,15 @@
 </h3>
 
 <div class="mw800 help-block mb20">
-    {% block description %}
-    {% endblock %}
+    {% if task.custom_description %}
+        {{ task.custom_description|markdown }}
+    {% else %}
+        {% block description %}
+            Override block <code>description</code>
+            or set <code>task.custom_description</code>
+            to insert text here.
+        {% endblock %}
+    {% endif %}
 </div>
 
 <div class="entrance-exam__task__statement mw800">

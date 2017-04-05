@@ -6,11 +6,16 @@
 {% if solutions %}
     <div class="submit header">
         <div class="submit__counter"></div>
-        <div class="submit__language">
-            Язык
-        </div>
+        {% if task.problem_type == task.ProblemType.STANDARD %}
+            <div class="submit__language">
+                Язык
+            </div>
+        {% endif %}
         <div class="submit__status">
             Статус
+        </div>
+        <div class="submit__date">
+            Дата и&nbsp;время
         </div>
     </div>
 {% endif %}
@@ -19,7 +24,9 @@
     {% with solution.ejudge_queue_element.get_result as result %}
         <div class="submit {% if result %}{{ result.is_success|yesno:'text-success,text-danger,'}}{% endif %}">
             <div class="submit__counter"> {{ forloop.revcounter }}.</div>
-            <div class="submit__language">{{ solution.language }}</div>
+            {% if task.problem_type == task.ProblemType.STANDARD %}
+                <div class="submit__language">{{ solution.language }}</div>
+            {% endif %}
 
             <div class="submit__result">
                 {% if result %}
@@ -28,8 +35,13 @@
                     Проверяется... <i class="fa fa-spin fa-spinner"></i>
                 {% endif %}
             </div>
+
+            <div class="submit__date" title="{{ solution.created_at }}">
+                {% load date %}
+                {{ solution.created_at }}
+            </div>
         </div>
     {% endwith %}
 {% empty %}
-    <p class="text-muted">Здесь будут отображаться ваши попытки по этой задаче</p>
+    <p class="text-muted">Здесь будут отображаться ваши попытки по&nbsp;этой задаче</p>
 {% endfor %}
