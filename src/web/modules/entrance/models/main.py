@@ -24,7 +24,8 @@ class EntranceExamTask(polymorphic.models.PolymorphicModel):
 
     help_text = models.CharField(
         max_length=100,
-        help_text='Дополнительная информация, например, сведения о формате ответа',
+        help_text='Дополнительная информация, например, сведения о формате '
+                  'ответа',
         blank=True
     )
 
@@ -251,6 +252,31 @@ class EntranceLevel(models.Model):
 
     class Meta:
         ordering = ('school_id', 'order')
+
+
+class EntranceLevelOverride(models.Model):
+    """
+    If present this level is used instead of dynamically computed one.
+    """
+    school = models.ForeignKey(schools.models.School, related_name='+')
+
+    user = models.ForeignKey(users.models.User,
+                             related_name='entrance_level_overrides')
+
+    entrance_level = models.ForeignKey(EntranceLevel, related_name='overrides')
+
+    class Meta:
+        unique_together = ('school', 'user')
+
+    def __str__(self):
+        return 'Уровень {} для {}'.format(self.entrance_level, self.user)
+
+    def save(self, *args, **kwargs):
+        if self.school != self.entrance_level.school:
+            raise ValueError(
+                'Entrance level override should belong to the same school as '
+                'its entrance level')
+        super().save(*args, **kwargs)
 
 
 class EntranceExamTaskSolution(polymorphic.models.PolymorphicModel):

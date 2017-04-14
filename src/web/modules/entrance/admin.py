@@ -39,6 +39,29 @@ class EntranceLevelAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(models.EntranceLevelOverride)
+class EntranceLevelOverrideAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'school',
+        'user',
+        'entrance_level',
+    )
+
+    list_filter = (
+        'school',
+        'entrance_level',
+    )
+
+    search_fields = (
+        '=id',
+        'user__email',
+        'user__profile__first_name',
+        'user__profile__middle_name',
+        'user__profile__last_name',
+    )
+
+
 @admin.register(models.EntranceExamTaskSolution)
 class EntranceExamTaskSolutionAdmin(
     sistema.polymorphic.PolymorphicParentModelAdmin

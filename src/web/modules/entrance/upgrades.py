@@ -4,6 +4,11 @@ from . import models
 
 
 def get_base_entrance_level(school, user):
+    override = (models.EntranceLevelOverride.objects
+                .filter(school=school, user=user).first())
+    if override is not None:
+        return override.entrance_level
+
     limiters = [modules.topics.entrance.levels.TopicsEntranceLevelLimiter,
                 modules.entrance.levels.AlreadyWasEntranceLevelLimiter,
                 modules.entrance.levels.AgeEntranceLevelLimiter
