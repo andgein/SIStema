@@ -1,4 +1,3 @@
-# TODO: clean imports
 from functools import reduce
 from operator import and_
 from operator import or_
@@ -6,10 +5,8 @@ import collections
 import copy
 import enum
 import itertools
-import json
 
 from django.db.models import Q
-# from django.utils import safestring
 from django.utils.functional import cached_property
 import django.db.models.query
 import django.template
@@ -76,7 +73,6 @@ class BaseTable:
                 column_name = column_name[1:]
                 direction = '-'
 
-            print(direction, column_name)
             column = self.columns.get(column_name)
             if column is not None and column.orderable:
                 accessor_strs = column.order_by or (column.accessor,)
@@ -91,8 +87,7 @@ class BaseTable:
         if column_name is None:
             # Global search
             search_method = getattr(self, 'search', None)
-            # TODO: check, that self.search is callable
-            if search_method is not None:
+            if callable(search_method):
                 self.qs = search_method(self.qs, query)
             else:
                 tokens = query.split()
@@ -110,8 +105,7 @@ class BaseTable:
         else:
             # Column search
             search_method = getattr(self, 'search_' + column_name, None)
-            # TODO: check, that method is callable
-            if search_method is not None:
+            if callable(search_method):
                 self.qs = search_method(self.qs, query)
             else:
                 # TODO: implement the default case
@@ -132,7 +126,6 @@ class BaseTable:
 
     @cached_property
     def dt2_table(self):
-        print(self.qs.query.order_by)
         return type(self).dt2_table_type(self.qs)
 
     @cached_property
@@ -292,8 +285,5 @@ class DeclarativeColumnsMetaclass(type):
             mcs, name, bases, attrs)
 
 
-# TODO: understand, why that commented definition doesn't work
-# class Table(BaseTable):
-    # __metaclass__ = DeclarativeColumnsMetaclass
 Table = DeclarativeColumnsMetaclass('Table', (BaseTable,), {})
 Table.__doc__ = BaseTable.__doc__

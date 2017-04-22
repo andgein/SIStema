@@ -1,10 +1,6 @@
 import django_tables2.utils
 
 class Accessor(django_tables2.utils.Accessor):
-    # TODO: is it possible to make accessor syntax similar to django queryset
-    #       syntax?
-    # SEPARATOR = '__'
-
     @property
     def django_lookup(self):
         return '__'.join(self.bits)
@@ -13,18 +9,9 @@ class Accessor(django_tables2.utils.Accessor):
 A = Accessor
 
 
-# TODO(artemtab): should we allow comma-separated list of values for the order
-#     argument?
 class RequestConfig:
     """
-    Allows to configure table using request GET arguments:
-    - page: number of the page to show
-    - per_page: how many rows to display on a single page
-    - order: either <column_name> or -<column_name>
-    - q: request for the global table search
-    - q_<column name>: request for the specific column search
-    - f_<column name>: comma-separated list of values to filter in specific
-                       column
+    Allows to configure table using request GET arguments, defined by table
 
     If table has a prefix specified, then only the arguments with the same
     prefix will be used.
@@ -71,7 +58,7 @@ class RequestConfig:
         print(*self.request.GET.items(), sep='\n')
 
 
-# TODO: I don't like this class
+# TODO: I don't like this class. Can we do that better?
 class DataTablesJsonView:
     def __init__(self, table):
         self.table = table

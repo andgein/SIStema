@@ -1,7 +1,5 @@
-from .utils import A
-from .utils import RequestConfig
-
 from .table import Table
+
 from .columns import (
     BooleanColumn,
     CheckBoxColumn,
@@ -14,4 +12,9 @@ from .columns import (
     LinkColumn,
     TemplateColumn,
     URLColumn,
+)
+
+from .utils import (
+    A,
+    RequestConfig,
 )

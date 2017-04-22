@@ -52,6 +52,8 @@ class Column(BaseColumn):
 class IndexColumn(Column):
     def __init__(self, *args, **kwargs):
         self.counter = itertools.count(1)
+        kwargs.pop('empty_values', None)
+        kwargs.pop('orderable', None)
         super().__init__(
             empty_values=(),
             orderable=False,

@@ -14,25 +14,6 @@
       {% endif %}
       <span>{{ table.title }}</span>
       {% comment %}
-        <span class="pull-right ml10">
-          <div class="btn-group">
-            <button type="button" class="btn btn-default btn-sm fs12 fw500 dropdown-toggle ph10" data-toggle="dropdown">
-              Действия
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu pull-right" role="menu">
-              <li>
-                <a href="#">Расширенный поиск</a>
-              </li>
-              <li>
-                <a href="#">Выбрать столбцы</a>
-              </li>
-              <li>
-                <a href="#">Развернуть</a>
-              </li>
-            </ul>
-          </div>
-        </span>
       {% if table.search_enabled %}
         <div class="dataTables_filter">
           <span class="input-group ib va-m">
@@ -48,10 +29,10 @@
       <thead>
         <tr>
           {% for column_name, column in table.columns.items %}
-          <th {% if column.dt2_column %}{{ column.dt2_column.attrs.th.as_html }}{% endif %}
-                data-name="{{ column_name }}"
-                data-orderable="{% if column.orderable %}true{% else %}false{% endif %}"
-            >{{ column.header }}</th>
+            <th {% if column.dt2_column %}{{ column.dt2_column.attrs.th.as_html }}{% endif %}
+                  data-name="{{ column_name }}"
+                  data-orderable="{% if column.orderable %}true{% else %}false{% endif %}"
+              >{{ column.header }}</th>
           {% endfor %}
         </tr>
       </thead>
