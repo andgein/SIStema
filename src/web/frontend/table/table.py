@@ -191,6 +191,7 @@ class BaseTable:
 
     @cached_property
     def search_enabled(self):
+        # TODO: make it customizable
         return True
 
 
@@ -201,6 +202,7 @@ class TableOptions:
 
         self.prefix = getattr(options, 'prefix', '')
 
+        # TODO: add and handle 'all' option
         self.pagination = getattr(
             options, 'pagination', (15, 20, 30, 50, 100))
         self.default_slice_length = getattr(options, 'default_slice_length', 15)
