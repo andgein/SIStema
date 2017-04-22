@@ -44,9 +44,6 @@ $(document).ready(function() {
             processing: true,
             order: [],  // TODO: order by the first orderable column
             ajax: function(data, callback, settings) {
-                console.log(data);
-                console.log(settings);
-
                 var args = {
                     start: data.start,
                     length: data.length,
