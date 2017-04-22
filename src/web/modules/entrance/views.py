@@ -370,7 +370,6 @@ def upgrade(request):
     return redirect(entrance_exam.get_absolute_url())
 
 
-@cache_page(5 * 60)
 def results(request):
     table = EntrancedUsersTable(request.school)
     frontend.table.RequestConfig(request).configure(table)

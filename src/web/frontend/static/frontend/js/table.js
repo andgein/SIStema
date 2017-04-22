@@ -11,11 +11,14 @@ $(document).ready(function() {
         var pagination = paging
             ? pagination_str.split(',').map(function(x) { return parseInt(x); })
             : [];
+        var dom = 'rt';
+        if (paging) {
+          dom = '<"dt-panelmenu clearfix"lr>t<"dt-panelfooter clearfix"ip>';
+        }
         var tableOptions = {
             // TODO: correct localization
             language: {
                 "processing": "Подождите...",
-                "search": "Поиск:",
                 "lengthMenu": "По _MENU_ строк на странице",
                 "info": "Строки _START_-_END_ из _TOTAL_",
                 "infoEmpty": "Нет подходящих строк",
@@ -35,10 +38,11 @@ $(document).ready(function() {
                   "sortDescending": ": активировать для сортировки столбца по убыванию"
                 }
             },
-            sDom: '<"dt-panelmenu clearfix"lfr>t<"dt-panelfooter clearfix"ip>',
+            dom: dom,
             paging: paging,
             serverSide: true,
-            order: [],
+            processing: true,
+            order: [],  // TODO: order by the first orderable column
             ajax: function(data, callback, settings) {
                 console.log(data);
                 console.log(settings);
@@ -91,5 +95,10 @@ $(document).ready(function() {
             tableOptions.lengthMenu = pagination;
         }
         $table.DataTable(tableOptions);
+
+        // Set up global search
+        $this.find('.global-search').keyup(function() {
+          $table.DataTable().search($(this).val()).draw();
+        });
     });
 });

@@ -13,15 +13,13 @@
       <span class="{{ table.icon }}"></span>
       {% endif %}
       <span>{{ table.title }}</span>
-      {% comment %}
       {% if table.search_enabled %}
         <div class="dataTables_filter">
           <span class="input-group ib va-m">
-            <input type="search" placeholder="Поиск по школьникам" class="table-filter form-control input-sm w200 onfocus-w400 h-30" aria-controls="datatable2" data-query-arg="{{ table.search_arg }}">
+            <input type="search" placeholder="Поиск..." class="table-filter form-control input-sm w200 onfocus-w400 h-30 global-search" aria-controls="datatable2" data-query-arg="{{ table.search_arg }}">
           </span>
         </div>
       {% endif %}
-      {% endcomment %}
     </div>
   </div>
   <div class="panel-body pn">
