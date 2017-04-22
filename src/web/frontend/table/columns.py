@@ -35,6 +35,8 @@ class Column(BaseColumn):
 
         self.dt2_column = self.dt2_class(*args, orderable=False, **kwargs)
 
+        # TODO: That's hacky and I actually don't understand, why does it work.
+        #       Need to achieve the same in some nicer way.
         render = getattr(self, 'render', None)
         if callable(render):
             self.dt2_column.render = render
