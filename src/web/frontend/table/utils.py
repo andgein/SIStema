@@ -55,8 +55,6 @@ class RequestConfig:
         if slice_start is not None or slice_length is not None:
             table.slice(slice_start, slice_length)
 
-        print(*self.request.GET.items(), sep='\n')
-
 
 # TODO: I don't like this class. Can we do that better?
 class DataTablesJsonView:
