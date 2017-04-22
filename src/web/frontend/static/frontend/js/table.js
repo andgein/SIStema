@@ -4,8 +4,6 @@ $(document).ready(function() {
         var $table = $this.find('table');
         var url = $this.data('url');
         var prefix = $this.data('prefix');
-        var localizationUrl = $this.data('localization-url');
-        // TODO: advanced pagination handling
         var pagination_str = $this.data('pagination');
         var paging = pagination_str ? true : false;
         var pagination = paging
