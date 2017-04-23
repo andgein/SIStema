@@ -1,0 +1,12 @@
+{% extends 'staff_layout.html' %}
+
+{% load staticfiles %}
+{% load types %}
+
+{% block title %}Задача «{{ task.title }}»{% endblock %}
+
+{% block content %}
+  <div style="padding: 50px; background: #fff;">
+    {% include 'entrance/exam/'|add:task.template_file with index=1 task=task solution=test_task.user_solution.solution%}
+  </div>
+{% endblock %}

@@ -9,20 +9,22 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 
 import frontend.table
+from modules.ejudge.models import SolutionCheckingResult, CheckingResult
+from sistema.helpers import group_by, respond_as_attachment
 import frontend.icons
+import modules.topics.models
+import modules.topics.views as topics_views
 import questionnaire.models
 import questionnaire.views
-import modules.topics.views as topics_views
-from modules.ejudge.models import SolutionCheckingResult, CheckingResult
 import schools.models
 import sistema.staff
-import modules.topics.models
 import users.models
 import users.views
+
 from . import forms
 from .. import models
 from .. import upgrades
-from sistema.helpers import group_by, respond_as_attachment
+import modules.entrance.forms as entrance_forms
 
 
 class EnrollingUsersTable(frontend.table.Table):
@@ -470,3 +472,22 @@ def initial_auto_reject(request):
 @sistema.staff.only_staff
 def initial_checking_groups(request):
     return None
+
+
+@sistema.staff.only_staff
+def task(request, task_id):
+    task = get_object_or_404(models.EntranceExamTask, id=task_id)
+    if type(task) is models.TestEntranceExamTask:
+        initial = {}
+        if len(task.user_solutions) > 0:
+            initial['solution'] = task.user_solutions[0].solution
+        task.form = entrance_forms.TestEntranceTaskForm(task, initial=initial)
+    if type(task) is models.FileEntranceExamTask:
+        task.form = entrance_forms.FileEntranceTaskForm(task)
+    if type(task) is models.ProgramEntranceExamTask:
+        task.form = entrance_forms.ProgramEntranceTaskForm(task)
+
+    return render(request, 'entrance/staff/task.html', {
+        'school': request.school,
+        'task': task,
+    })
