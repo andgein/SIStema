@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     url(r'^enrolling/$', views.enrolling, name='enrolling'),
-    url(r'^enrolling/json/$', views.enrolling_json, name='enrolling_json'),
+    url(r'^enrolling/data/$', views.enrolling_data, name='enrolling_data'),
 
     url(r'^enrolling/(?P<user_id>\d+)/$',
         views.enrolling_user,

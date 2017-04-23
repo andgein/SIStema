@@ -12,7 +12,7 @@ urlpatterns = [
     url(r'^exam/upgrade/$', views.upgrade, name='upgrade'),
 
     url(r'^results/$', views.results, name='results'),
-    url(r'^results/json/$', views.results_json, name='results_json'),
+    url(r'^results/data/$', views.results_data, name='results_data'),
 
     # Submodules
     url(r'^scans/', include('modules.enrolled_scans.urls', namespace='enrolled_scans')),

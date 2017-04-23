@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 import django.urls
 
-from frontend.table.utils import A, DataTablesJsonView
+from frontend.table.utils import A, TableDataSource
 from modules.ejudge.models import CheckingResult
 from sistema.helpers import group_by, respond_as_attachment, nested_query_list
 import frontend.icons
@@ -63,6 +63,7 @@ class EnrollingUsersTable(frontend.table.Table):
     class Meta:
         icon = frontend.icons.FaIcon('envelope-o')
         title = 'Подавшие заявку'
+        exportable = True
 
     def __init__(self, school, *args, **kwargs):
         qs = (users.models.User.objects
@@ -74,7 +75,7 @@ class EnrollingUsersTable(frontend.table.Table):
               .select_related('profile'))
         super().__init__(
             qs,
-            django.urls.reverse('school:entrance:enrolling_json',
+            django.urls.reverse('school:entrance:enrolling_data',
                                 args=[school.short_name]),
             *args, **kwargs)
 
@@ -107,11 +108,9 @@ def enrolling(request):
 
 
 @sistema.staff.only_staff
-def enrolling_json(request):
+def enrolling_data(request):
     users_table = EnrollingUsersTable(request.school)
-    frontend.table.RequestConfig(request).configure(users_table)
-    return JsonResponse(
-        DataTablesJsonView(users_table).get_response_object(request))
+    return TableDataSource(users_table).get_response(request)
 
 
 @sistema.staff.only_staff

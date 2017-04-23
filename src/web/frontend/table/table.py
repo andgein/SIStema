@@ -31,6 +31,7 @@ class BaseTable:
                  title=None,
                  pagination=None,
                  default_slice_length=None,
+                 exportable=None,
                  *args, **kwargs):
         if not isinstance(qs, django.db.models.query.QuerySet):
             raise TypeError('qs must be a QuerySet')
@@ -50,6 +51,7 @@ class BaseTable:
         self._title = title
         self._pagination = pagination
         self._default_slice_length = default_slice_length
+        self._exportable = exportable
 
         if 'prefix' in kwargs:
             kwargs['prefix'] += '_'
@@ -158,6 +160,10 @@ class BaseTable:
         return self.with_prefix(self._meta.slice_length_arg)
 
     @cached_property
+    def export_arg(self):
+        return self.with_prefix(self._meta.export_arg)
+
+    @cached_property
     def icon(self):
         return self._icon if self._icon is not None else self._meta.icon
 
@@ -190,6 +196,11 @@ class BaseTable:
             return self._meta.default_slice_length
 
     @cached_property
+    def exportable(self):
+        return (self._exportable if self._exportable is not None
+                else self._meta.exportable)
+
+    @cached_property
     def search_enabled(self):
         # TODO: make it customizable
         return True
@@ -207,12 +218,15 @@ class TableOptions:
             options, 'pagination', (15, 20, 30, 50, 100))
         self.default_slice_length = getattr(options, 'default_slice_length', 15)
 
+        self.exportable = getattr(options, 'exportable', False)
+
         # Query args
         self.filter_arg = getattr(options, 'filter_arg', 'f')
         self.search_arg = getattr(options, 'search_arg', 'q')
         self.order_by_arg = getattr(options, 'order_by_arg', 'sort')
         self.slice_start_arg = getattr(options, 'slice_start_arg', 'start')
         self.slice_length_arg = getattr(options, 'slice_length_arg', 'length')
+        self.export_arg = getattr(options, 'export_arg', 'export')
 
 
 class DeclarativeColumnsMetaclass(type):

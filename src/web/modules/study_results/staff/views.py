@@ -1,7 +1,6 @@
 import django.shortcuts
-from django.http.response import JsonResponse
 
-from frontend.table.utils import A, DataTablesJsonView
+from frontend.table.utils import A, TableDataSource
 import frontend.icons
 import frontend.table
 import modules.study_results.models as study_results_models
@@ -59,6 +58,7 @@ class StudyResultsTable(frontend.table.Table):
     class Meta:
         icon = frontend.icons.FaIcon('envelope-o')
         title = 'Результаты обучения в школе'
+        exportable = True
 
     def __init__(self, school, *args, **kwargs):
         qs = (study_results_models.StudyResult.objects
@@ -70,7 +70,7 @@ class StudyResultsTable(frontend.table.Table):
 
         super().__init__(
             qs,
-            django.urls.reverse('school:study_results:study_results_json',
+            django.urls.reverse('school:study_results:study_results_data',
                                 args=[school.short_name]),
             *args, **kwargs)
 
@@ -96,11 +96,9 @@ def study_results(request):
 
 
 @sistema.staff.only_staff
-def study_results_json(request):
-    study_results_table = StudyResultsTable(request.school)
-    frontend.table.RequestConfig(request).configure(study_results_table)
-    return JsonResponse(
-        DataTablesJsonView(study_results_table).get_response_object(request))
+def study_results_data(request):
+    table = StudyResultsTable(request.school)
+    return TableDataSource(table).get_response(request)
 
 
 @sistema.staff.only_staff

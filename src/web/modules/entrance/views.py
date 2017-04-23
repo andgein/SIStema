@@ -11,7 +11,7 @@ import django.urls
 
 import ipware.ip
 
-from frontend.table.utils import DataTablesJsonView
+from frontend.table.utils import TableDataSource
 import frontend.icons
 import frontend.table
 import modules.ejudge.queue
@@ -100,7 +100,7 @@ class EntrancedUsersTable(frontend.table.Table):
 
         super().__init__(
             qs,
-            django.urls.reverse('school:entrance:results_json',
+            django.urls.reverse('school:entrance:results_data',
                                 args=[school.short_name]),
             *args, **kwargs)
 
@@ -377,8 +377,6 @@ def results(request):
 
 
 @cache_page(5 * 60)
-def results_json(request):
+def results_data(request):
     table = EntrancedUsersTable(request.school)
-    frontend.table.RequestConfig(request).configure(table)
-    # TODO: cache for short time
-    return JsonResponse(DataTablesJsonView(table).get_response_object(request))
+    return TableDataSource(table).get_response(request)
