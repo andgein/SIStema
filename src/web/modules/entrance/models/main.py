@@ -1,16 +1,14 @@
-import datetime
 import re
 
-import djchoices
-import polymorphic.models
-from django.core import urlresolvers
-from django.conf import settings
-from django.db import models, transaction
 import django.utils.timezone
+import polymorphic.models
 import sizefield.models
+from django.core import urlresolvers
+from django.db import models
+import djchoices
 
-import schools.models
 import modules.ejudge.models
+import schools.models
 import users.models
 from modules.entrance import forms
 
@@ -339,102 +337,58 @@ class SolveTaskEntranceLevelUpgradeRequirement(EntranceLevelUpgradeRequirement):
         return self.task.is_solved_by_user(user)
 
 
-class CheckingGroup(models.Model):
-    school = models.ForeignKey(schools.models.School)
+class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
+    school = models.ForeignKey(
+        schools.models.School,
+        related_name='absences_reasons'
+    )
 
-    short_name = models.CharField(max_length=100,
-                                  help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием')
+    user = models.ForeignKey(users.models.User, related_name='absences_reasons')
 
-    name = models.CharField(max_length=100)
+    private_comment = models.TextField(
+        blank=True,
+        help_text='Не показывается школьнику'
+    )
 
-    def __str__(self):
-        return 'Группа проверки %s для %s' % (self.name, self.school)
+    public_comment = models.TextField(
+        blank=True,
+        help_text='Показывается школьнику'
+    )
 
-    class Meta:
-        unique_together = ('school', 'short_name')
-
-
-class UserInCheckingGroup(models.Model):
-    user = models.ForeignKey(users.models.User)
-
-    group = models.ForeignKey(CheckingGroup)
-
-    is_actual = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        users.models.User,
+        related_name='+',
+        null=True, default=None, blank=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return '%s: пользователь %s' % (self.group, self.user)
-
-    class Meta:
-        ordering = ('-created_at', )
 
     @classmethod
-    @transaction.atomic
-    def put_user_into_group(cls, user, group):
-        for instance in cls.objects.filter(group__school=group.school, user=user):
-            instance.is_actual = False
-            instance.save()
-        cls(user=user, group=group).save()
+    def for_user_in_school(cls, user, school):
+        """
+        Returns absence reason for specified user
+        or None if user has not declined.
+        """
+        return cls.objects.filter(user=user, school=school).first()
+
+    def default_public_comment(self):
+        raise NotImplementedError()
 
 
-def get_locked_timeout():
-    return datetime.datetime.now() + settings.SISTEMA_ENTRANCE_CHECKING_TIMEOUT
+class RejectionAbsenceReason(AbstractAbsenceReason):
+    def __str__(self):
+        return 'Отказ от участия'
+
+    def default_public_comment(self):
+        return 'Вы отказались от участия в ЛКШ.'
 
 
-class CheckingLock(models.Model):
-    locked_user = models.ForeignKey(users.models.User, related_name='checking_locked')
+class NotConfirmedAbsenceReason(AbstractAbsenceReason):
+    def __str__(self):
+        return 'Участие не подтверждено'
 
-    locked_by = models.ForeignKey(users.models.User, related_name='checking_lock')
-
-    locked_until = models.DateTimeField(default=get_locked_timeout)
-
-
-class SolutionScore(models.Model):
-    solution = models.ForeignKey(EntranceExamTaskSolution, related_name='scores')
-
-    scored_by = models.ForeignKey(users.models.User, related_name='+')
-
-    score = models.PositiveIntegerField()
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-class CheckingComment(models.Model):
-    school = models.ForeignKey(schools.models.School, related_name='+')
-
-    user = models.ForeignKey(users.models.User, related_name='checking_comments')
-
-    commented_by = models.ForeignKey(users.models.User, related_name='+')
-
-    comment = models.TextField()
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-# Рекомендации от проверяющего по поступлению в определённую параллель
-class EntranceRecommendation(models.Model):
-    school = models.ForeignKey(schools.models.School, related_name='+')
-
-    user = models.ForeignKey(
-        users.models.User,
-        related_name='entrance_recommendations'
-    )
-
-    checked_by = models.ForeignKey(users.models.User, related_name='+')
-
-    # Null parallel means recommendation to not enroll user
-    parallel = models.ForeignKey(
-        schools.models.Parallel,
-        related_name='entrance_recommendations',
-        blank=True,
-        null=True,
-        default=None
-    )
-
-    score = models.PositiveIntegerField()
-
-    created_at = models.DateTimeField(auto_now_add=True)
+    def default_public_comment(self):
+        return 'Вы не подтвердили своё участие в ЛКШ.'
 
 
 class EntranceStatus(models.Model):
@@ -519,57 +473,3 @@ class EntranceStatus(models.Model):
 
 # For using in templates
 EntranceStatus.do_not_call_in_templates = True
-
-
-class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
-    school = models.ForeignKey(
-        schools.models.School,
-        related_name='absences_reasons'
-    )
-
-    user = models.ForeignKey(users.models.User, related_name='absences_reasons')
-
-    private_comment = models.TextField(
-        blank=True,
-        help_text='Не показывается школьнику'
-    )
-
-    public_comment = models.TextField(
-        blank=True,
-        help_text='Показывается школьнику'
-    )
-
-    created_by = models.ForeignKey(
-        users.models.User,
-        related_name='+',
-        null=True, default=None, blank=True
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    @classmethod
-    def for_user_in_school(cls, user, school):
-        """
-        Returns absence reason for specified user
-        or None if user has not declined.
-        """
-        return cls.objects.filter(user=user, school=school).first()
-
-    def default_public_comment(self):
-        raise NotImplementedError()
-
-
-class RejectionAbsenceReason(AbstractAbsenceReason):
-    def __str__(self):
-        return 'Отказ от участия'
-
-    def default_public_comment(self):
-        return 'Вы отказались от участия в ЛКШ.'
-
-
-class NotConfirmedAbsenceReason(AbstractAbsenceReason):
-    def __str__(self):
-        return 'Участие не подтверждено'
-
-    def default_public_comment(self):
-        return 'Вы не подтвердили своё участие в ЛКШ.'

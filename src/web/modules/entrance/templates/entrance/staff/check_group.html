@@ -1,0 +1,63 @@
+{% extends 'staff_layout.html' %}
+
+{% load markdown_deux_tags %}
+
+{% block title %}Проверка вступительной работы, группы {{ group.name }}{% endblock %}
+
+{% block topbar %}{% endblock %}
+
+{% block content %}
+    <h3 class="mb20">
+        Проверка вступительной работы, группа {{ group.name }}
+    </h3>
+
+    {% if tasks %}
+        <div class="panel">
+            <div class="panel-heading">
+                <ul class="nav panel-tabs-border panel-tabs panel-tabs-left">
+                    {% for task in tasks %}
+                        <li class="{{ forloop.first|yesno:'active,' }}">
+                            <a href="#entrance__checking_problem__{{ task.id }}"
+                               data-toggle="tab"
+                               aria-expanded="true"
+                               title="{{ task.title }}"
+                            >
+                                {{ forloop.counter }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="panel-body">
+                <div class="tab-content pn br-n">
+                    {% for task in tasks%}
+                        <div id="entrance__checking_problem__{{ task.id }}" class="tab-pane {{ forloop.first|yesno:'active,' }}">
+                            <h3 class="mtn mb20">«{{ task.title }}»</h3>
+
+                            <h4>Условие</h4>
+                            {{ task.text|markdown }}
+
+                            <h4>Проверка</h4>
+                            <p class="text-muted">
+                                Всего {{ task.solutions_count }} работ(а) <br>
+                                Проверено {{ task.checked_solutions_count }} работ(а)
+                            </p>
+                            <p>
+                                <a href="{% url 'school:entrance:check_task' request.school.short_name group.short_name task.id %}"
+                                   class="btn btn-sm btn-success">
+                                    Перейти к&nbsp;проверке
+                                </a>
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-muted">
+            В этой группе нет задач для проверки.
+            <a href="{% url 'school:entrance:check' request.school.short_name %}">Вернуться назад</a>.
+        </div>
+    {% endif %}
+
+{% endblock %}

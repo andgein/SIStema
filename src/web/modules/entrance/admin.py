@@ -113,13 +113,13 @@ class UserInCheckingGroupAdmin(admin.ModelAdmin):
 
 @admin.register(models.CheckingLock)
 class CheckingLockAdmin(admin.ModelAdmin):
-    list_display = ('id', 'locked_user', 'locked_by', 'locked_until')
+    list_display = ('id', 'user', 'task', 'locked_by', 'locked_until')
     list_filter = (('locked_by', admin.RelatedOnlyFieldListFilter), )
 
 
-@admin.register(models.SolutionScore)
-class SolutionScoreAdmin(admin.ModelAdmin):
-    list_display = ('id', 'solution', 'scored_by', 'score', 'created_at')
+@admin.register(models.CheckedSolution)
+class CheckedSolutionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'solution', 'checked_by', 'score', 'comment', 'created_at')
     list_filter = (('scored_by', admin.RelatedOnlyFieldListFilter), )
 
 
@@ -129,16 +129,6 @@ class CheckingCommentAdmin(admin.ModelAdmin):
     list_filter = ('school', ('commented_by', admin.RelatedOnlyFieldListFilter))
     search_fields = (
         'user__profile__first_name', 
-        'user__profile__last_name',
-        'user__username')
-
-
-@admin.register(models.EntranceRecommendation)
-class EntranceRecommendationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'school', 'user', 'checked_by', 'parallel', 'created_at', 'score')
-    list_filter = ('school', ('checked_by', admin.RelatedOnlyFieldListFilter))
-    search_fields = (
-        'user__profile__first_name',
         'user__profile__last_name',
         'user__username')
 

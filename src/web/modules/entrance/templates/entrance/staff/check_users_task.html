@@ -1,0 +1,130 @@
+{% extends 'staff_layout.html' %}
+
+{% load dict_tags %}
+{% load range %}
+
+{% block title %}{{ user_for_checking.get_full_name }}, «{{ task.title }}»{% endblock %}
+
+{% block topbar_left %}
+    <div class="fs16 fw600 mt10 mb5">
+        Группа {{ group.name }}, {{ user_for_checking.get_full_name }}, «{{ task.title }}»
+
+        <form method="POST" action="{% url 'school:entrance:change_group' request.school.short_name user_for_checking.id %}" class="form form-horizontal form-inline ib pull-right">
+            {% csrf_token %}
+            <div class="form-group form-group-sm">
+                {{ put_into_checking_group_form|get_item:'group_id' }}
+                <button class="btn btn-sm btn-default">Переложить</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="mtn5 mb15">
+        Выданы задания уровня <span class="label label-sm label-{{ level_upgrades|yesno:'primary,success' }}">{{ base_entrance_level.name }}</span>
+        {% if level_upgrades %}
+            , повышения до
+            {% for upgrade in level_upgrades %}
+                <span class="label label-sm label-{{ forloop.last|yesno:'success,primary' }}" title="{{ upgrade.created_at }}">
+                {{ upgrade.upgraded_to.name }}
+            </span>
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12 col-md-6">
+            <div class="panel">
+                <div class="panel-heading">
+                    Проверка решения
+                </div>
+                <div class="panel-body">
+                    <h4>Решение задачи «{{ task.title }}»</h4>
+                    <p class="fs20">
+                        <a href="{% url 'school:entrance:user_solution' request.school.short_name last_solution.id %}" title="Скачать решение">{{ last_solution.original_filename|default_if_none:'Решение' }}</a>
+                        <span class="fs12">({{ last_solution.created_at }})</span>
+                    </p>
+
+                    {% if locked_by_me %}
+                        <h4>Оценить решение</h4>
+                        <p>
+                            <div class="btn-group" data-toggle="buttons">
+                                {% with max_score=task.max_score|add:1 %}
+                                    {% mkrange max_score as marks_range %}
+                                    {% for mark in marks_range %}
+                                        <label class="btn btn-default {% if last_mark == mark %}active{% endif %}" onClick="$('#{{ task.mark_field_id }}').val('{{ mark }}')">
+                                            <input type="radio">{{ mark }}
+                                        </label>
+                                    {% endfor %}
+                                {% endwith %}
+                            </div>
+                        </p>
+
+                        <div class="admin-form">
+                            <form action="" method="POST">
+                                {% csrf_token %}
+                                {{ mark_form }}
+
+                                <button type="submit" class="btn btn-success mt10">Сохранить</button>
+                                <button type="submit" name="refuse" class="btn btn-danger mt10 pull-right">Отказаться от&nbsp;проверки</button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">
+                            Решение заблокировано другим проверяющим.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xs-12 col-md-6">
+            {% if checks %}
+                <div class="panel">
+                    <div class="panel-heading">
+                        Предудыщие проверки
+                    </div>
+                    <div class="panel-body">
+                        {% for check in checks %}
+                            <h4>
+                                {{ check.checked_by.get_full_name }}
+                                <small>{{ check.created_at }}</small>
+                            </h4>
+                            <p>
+                                <div>
+                                    {{ check.score }} балл(ов)
+                                </div>
+                                {% if check.comment %}
+                                    <div>
+                                        <i>{{ check.comment|linebreaksbr }}</i>
+                                    </div>
+                                {% endif %}
+                            </p>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if checking_comments %}
+                <div class="panel">
+                    <div class="panel-heading">
+                        Общие комментарии
+                    </div>
+                    <div class="panel-body">
+                        {% for comment in checking_comments %}
+                            <h4>
+                                {{ comment.commented_by.get_full_name }}
+                                <small>{{ comment.created_at }}</small>
+                            </h4>
+                            <p>
+                                <i>{{ comment.comment|linebreaksbr }}</i>
+                            </p>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}

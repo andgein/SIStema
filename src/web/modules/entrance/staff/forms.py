@@ -8,15 +8,31 @@ class FileEntranceExamTasksMarkForm(forms.Form):
     FIELD_ID_TEMPLATE = 'tasks__file__mark_%d'
 
     def __init__(self, tasks, *args, **kwargs):
+        with_comment = kwargs.pop('with_comment', False)
         super().__init__(*args, **kwargs)
+
         for task in tasks:
             field_id = self.FIELD_ID_TEMPLATE % task.id
-            self.fields[field_id] = forms.IntegerField(min_value=0,
-                                                       max_value=task.max_score,
-                                                       widget=forms.HiddenInput(attrs={'id': field_id}),
-                                                       required=False,
-                                                       )
+            self.fields[field_id] = forms.IntegerField(
+                min_value=0,
+                max_value=task.max_score,
+                widget=forms.HiddenInput(attrs={'id': field_id}),
+            )
             self.fields[field_id].task_id = task.id
+            if with_comment:
+                comment_field_id = field_id + '_comment'
+                self.fields[comment_field_id] = forms.CharField(
+                    label_suffix='',
+                    label='',
+                    widget=frontend.forms.TextareaWithFaIcon(attrs={
+                        'fa': 'comment',
+                        'id': comment_field_id,
+                        'placeholder': 'Комментарий о решении (необязательно)',
+                        'class': 'form-control',
+                        'rows': 3
+                    }),
+                    required=False
+                )
 
     def set_initial_mark(self, task_id, mark):
         field_id = self.FIELD_ID_TEMPLATE % task_id

@@ -40,56 +40,58 @@
 
     <div class="row">
         <div class="col-md-4 col-sm-6 col-xs-12">
-            <div class="panel">
-                <div class="panel-heading">
-                    <span class="panel-title">Тестовые задания</span>
-                </div>
-                <div class="panel-body">
-                    {% for test_task in test_tasks %}
-                        <div class="mb10">
-                            <div class="{{ test_task.is_solved|yesno:'text-success,text-danger' }} fs14">
-                                {{ test_task.title }}
-                                {% if test_task.user_solutions %}
-                                    <button class="btn btn-link btn-xs" data-toggle="modal" data-target="#tasks__test__{{ test_task.id }}" title="Показать все попытки">
-                                        Последняя попытка: {{ test_task.last_try|truncatechars:10 }}
-                                    </button>
-                                {% endif %}
-                            </div>
-                            <div id="tasks__test__{{ test_task.id }}" class="modal fade" role="dialog">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                            <h4 class="modal-title">Решения задания «{{ test_task.title }}»</h4>
-                                        </div>
-                                        <div class="modal-body">
-                                            {% for solution in test_task.user_solutions %}
-                                                <div>
+            {% if test_tasks %}
+                <div class="panel">
+                    <div class="panel-heading">
+                        <span class="panel-title">Тестовые задания</span>
+                    </div>
+                    <div class="panel-body">
+                        {% for test_task in test_tasks %}
+                            <div class="mb10">
+                                <div class="{{ test_task.is_solved|yesno:'text-success,text-danger' }} fs14">
+                                    {{ test_task.title }}
+                                    {% if test_task.user_solutions %}
+                                        <button class="btn btn-link btn-xs" data-toggle="modal" data-target="#tasks__test__{{ test_task.id }}" title="Показать все попытки">
+                                            Последняя попытка: {{ test_task.last_try|truncatechars:10 }}
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div id="tasks__test__{{ test_task.id }}" class="modal fade" role="dialog">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                <h4 class="modal-title">Решения задания «{{ test_task.title }}»</h4>
+                                            </div>
+                                            <div class="modal-body">
+                                                {% for solution in test_task.user_solutions %}
                                                     <div>
-                                                        {{ solution.created_at }}
+                                                        <div>
+                                                            {{ solution.created_at }}
+                                                        </div>
+                                                        <div class="mb10">
+                                                            <span class="{{ solution.is_correct|yesno:'text-success,text-danger' }}">{{ solution.solution }}</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="mb10">
-                                                        <span class="{{ solution.is_correct|yesno:'text-success,text-danger' }}">{{ solution.solution }}</span>
-                                                    </div>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                                                {% endfor %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                {% if test_task.last_try and not test_task.is_last_correct and test_task.testentranceexamtask.correct_answer_re %}
+                                    <div class="fs10">
+                                        Правильный ответ:
+                                        <span class="регулярное выражение">{{ test_task.testentranceexamtask.correct_answer_re }}</span>
+                                    </div>
+                                {% endif %}
                             </div>
-                            {% if test_task.last_try and not test_task.is_last_correct and test_task.testentranceexamtask.correct_answer_re %}
-                                <div class="fs10">
-                                    Правильный ответ:
-                                    <span class="регулярное выражение">{{ test_task.testentranceexamtask.correct_answer_re }}</span>
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
+            {% endif %}
 
             <div class="panel">
                 <div class="panel-heading">
@@ -222,51 +224,49 @@
                 </div>
             </div>
 
-            <div class="admin-form">
-                <form method="POST" action="">
-                    {% csrf_token %}
-                    {{ file_tasks_mark_form }}
 
-                    {% for field in recommendation_form %}
-                        {% if not field.is_hidden %}
-                            <div class="form-group {{ field.errors|yesno:'state-error,'}}">
-                                <label for="{{ field.id_for_label }}" class="field-label fs18">
-                                    {{ field.label }}
-                                </label>
-
-                                {% if field.name == 'comment' %}
-                                    {% if checking_comments %}
-                                        <div class="checking-comments pl25">
-                                            {% for comment in checking_comments %}
-                                                <div class="checking-comments__comment mb10">
-                                                    <b title="{{ comment.created_at }}">{{ comment.commented_by.get_full_name }}:</b>
-                                                    <span title="{{ comment.comment }}">{{ comment.comment|truncatechars:100 }}</span>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                {% endif %}
-
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <p class="help-block">{{ field.help_text }}</p>
-                                {% endif %}
-                            </div>
-                            {% if field.errors %}
-                                {% for error in field.errors %}
-                                    <em>{{ error }}</em>
-                                {% endfor %}
-                            {% endif %}
-                        {% endif %}
-                    {% endfor %}
-
-                    <button type="submit" class="btn btn-success mt10">Сохранить</button>
-                </form>
-            </div>
+{#            <div class="admin-form">#}
+{#                <form method="POST" action="">#}
+{#                    {% csrf_token %}#}
+{#                    {{ file_tasks_mark_form }}#}
+{##}
+{#                    {% for field in recommendation_form %}#}
+{#                        {% if not field.is_hidden %}#}
+{#                            <div class="form-group {{ field.errors|yesno:'state-error,'}}">#}
+{#                                <label for="{{ field.id_for_label }}" class="field-label fs18">#}
+{#                                    {{ field.label }}#}
+{#                                </label>#}
+{##}
+{#                                {% if field.name == 'comment' %}#}
+{#                                    {% if checking_comments %}#}
+{#                                        <div class="checking-comments pl25">#}
+{#                                            {% for comment in checking_comments %}#}
+{#                                                <div class="checking-comments__comment mb10">#}
+{#                                                    <b title="{{ comment.created_at }}">{{ comment.commented_by.get_full_name }}:</b>#}
+{#                                                    <span title="{{ comment.comment }}">{{ comment.comment|truncatechars:100 }}</span>#}
+{#                                                </div>#}
+{#                                            {% endfor %}#}
+{#                                        </div>#}
+{#                                    {% endif %}#}
+{#                                {% endif %}#}
+{##}
+{#                                {{ field }}#}
+{#                                {% if field.help_text %}#}
+{#                                    <p class="help-block">{{ field.help_text }}</p>#}
+{#                                {% endif %}#}
+{#                            </div>#}
+{#                            {% if field.errors %}#}
+{#                                {% for error in field.errors %}#}
+{#                                    <em>{{ error }}</em>#}
+{#                                {% endfor %}#}
+{#                            {% endif %}#}
+{#                        {% endif %}#}
+{#                    {% endfor %}#}
+{##}
+{#                    <button type="submit" class="btn btn-success mt10">Сохранить</button>#}
+{#                </form>#}
+{#            </div>#}
         </div>
 
-
     </div>
-
-
 {% endblock %}

@@ -45,6 +45,8 @@
         {% endblock %}
     {% endblock %}
 
+    {% include '_messages.html' %}
+
     <script src="{% static 'vendor/jquery/jquery-1.11.1.min.js' %}"></script>
     <script src="{% static 'vendor/jquery/jquery_ui/jquery-ui.min.js' %}"></script>
     <script src="{% static 'vendor/admin-designs/utility.js' %}"></script>
@@ -53,6 +55,7 @@
     <script src="{% static 'vendor/js.cookie/js.cookie-2.1.3.min.js' %}"></script>
     <script src="{% static 'vendor/plugins/bootstrap-fileinput/js/fileinput.min.js' %}"></script>
     <script src="{% static 'vendor/plugins/bootstrap-fileinput/js/locales/ru.js' %}"></script>
+    <script src="{% static 'vendor/plugins/pnotify/pnotify.js' %}"></script>
     <script>
         Core.init();
     </script>
@@ -61,6 +64,7 @@
     <script src="{% static 'js/jquery.donetyping.js' %}"></script>
     <script src="{% static 'js/ajax-csrf.js' %}"></script>
     <script src="{% static 'js/post-request-links.js' %}"></script>
+    <script src="{% static 'js/notification-messages.js' %}"></script>
 
     {% block scripts %}
     {% endblock %}

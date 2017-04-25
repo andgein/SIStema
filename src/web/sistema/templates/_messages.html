@@ -1,0 +1,7 @@
+{% if messages %}
+    <ul class="notification-messages hidden">
+        {% for message in messages %}
+            <li class="notification-message {{ message.tags }}" data-note-style="{{ message.tags }}" data-note-shadow="true">{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
