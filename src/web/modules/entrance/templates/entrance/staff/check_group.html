@@ -1,6 +1,7 @@
 {% extends 'staff_layout.html' %}
 
 {% load markdown_deux_tags %}
+{% load number_to_text %}
 
 {% block title %}Проверка вступительной работы, группы {{ group.name }}{% endblock %}
 
@@ -39,8 +40,7 @@
 
                             <h4>Проверка</h4>
                             <p class="text-muted">
-                                Всего {{ task.solutions_count }} работ(а) <br>
-                                Проверено {{ task.checked_solutions_count }} работ(а)
+                                Проверено {{ task.checked_solutions_count }} из {{ task.solutions_count }} работ{{ task.solutions_count|russian_pluralize:'ы,,' }}
                             </p>
                             <p>
                                 <a href="{% url 'school:entrance:check_task' request.school.short_name group.short_name task.id %}"

@@ -8,6 +8,8 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.conf import settings
 
+from constance import config
+
 from modules.ejudge import models
 
 
@@ -25,9 +27,9 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.backend_address = settings.SISTEMA_EJUDGE_BACKEND_ADDRESS
-        self.ejudge_login = settings.SISTEMA_EJUDGE_USER
-        self.ejudge_password = settings.SISTEMA_EJUDGE_PASSWORD
+        self.backend_address = config.SISTEMA_EJUDGE_BACKEND_ADDRESS
+        self.ejudge_login = config.SISTEMA_EJUDGE_USER
+        self.ejudge_password = config.SISTEMA_EJUDGE_PASSWORD
         self.session = requests.session()
 
     @staticmethod

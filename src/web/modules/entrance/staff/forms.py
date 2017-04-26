@@ -6,6 +6,7 @@ from .. import models
 
 class FileEntranceExamTasksMarkForm(forms.Form):
     FIELD_ID_TEMPLATE = 'tasks__file__mark_%d'
+    COMMENT_ID_TEMPLATE = 'tasks__file__comment_%d'
 
     def __init__(self, tasks, *args, **kwargs):
         with_comment = kwargs.pop('with_comment', False)
@@ -20,7 +21,7 @@ class FileEntranceExamTasksMarkForm(forms.Form):
             )
             self.fields[field_id].task_id = task.id
             if with_comment:
-                comment_field_id = field_id + '_comment'
+                comment_field_id = self.COMMENT_ID_TEMPLATE % task.id
                 self.fields[comment_field_id] = forms.CharField(
                     label_suffix='',
                     label='',
@@ -63,7 +64,7 @@ class EntranceRecommendationForm(forms.Form):
         self.fields['recommended_parallel'].choices = available_parallels
 
 
-class PutIntoCheckingGroupForm(forms.Form):
+class MoveIntoCheckingGroupForm(forms.Form):
     def __init__(self, school, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

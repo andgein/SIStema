@@ -167,7 +167,7 @@ def user_topics(request, user_id):
 @require_POST
 def change_group(request, user_id):
     user = get_object_or_404(users.models.User, id=user_id)
-    form = forms.PutIntoCheckingGroupForm(request.school, data=request.POST)
+    form = forms.MoveIntoCheckingGroupForm(request.school, data=request.POST)
 
     if form.is_valid():
         group = get_object_or_404(models.CheckingGroup, school=request.school, id=form.cleaned_data.get('group_id'))
@@ -185,6 +185,8 @@ def check(request):
     _remove_old_checking_locks()
 
     checking_groups = request.school.entrance_checking_groups.all()
+    for group in checking_groups:
+        group.users = list(group.actual_users)
 
     return render(request, 'entrance/staff/check.html', {
         'checking_groups': checking_groups,
@@ -245,49 +247,58 @@ class UserSummary:
         return cls(class_number, school_name, city, previous_parallels, a_ml)
 
 
-def check_user(request, user_for_checking, checking_group=None):
+def check_user(request, user, checking_group=None):
     entrance_exam = models.EntranceExam.objects.filter(school=request.school).first()
-    base_entrance_level = upgrades.get_base_entrance_level(request.school, user_for_checking)
+    base_entrance_level = upgrades.get_base_entrance_level(request.school, user)
     level_upgrades = models.EntranceLevelUpgrade.objects.filter(
         upgraded_to__school=request.school,
-        user=user_for_checking
+        user=user
     )
     tasks = upgrades.get_entrance_tasks(
         request.school,
-        user_for_checking,
+        user,
         base_entrance_level
     )
     tasks_solutions = group_by(
-        user_for_checking.entrance_exam_solutions.filter(task__exam=entrance_exam).order_by('-created_at'),
+        user.entrance_exam_solutions.filter(task__exam=entrance_exam).order_by('-created_at'),
         operator.attrgetter('task_id')
     )
 
-    # TODO (andgein): refactor this code
     for task in tasks:
         task.user_solutions = tasks_solutions[task.id]
+        task.is_solved = task.is_solved_by_user(user)
         if type(task) is models.TestEntranceExamTask:
-            for solution in task.user_solutions:
-                solution.is_correct = task.check_solution(solution.solution)
-            task.is_solved = any(s.is_correct for s in task.user_solutions)
-            task.last_try = task.user_solutions[0].solution if len(task.user_solutions) > 0 else None
-            task.is_last_correct = len(task.user_solutions) > 0 and task.user_solutions[0].is_correct
-        if type(task) is models.ProgramEntranceExamTask:
-            task.is_solved = any(s.is_checked and s.result.is_success for s in task.user_solutions)
+            if len(task.user_solutions) > 0:
+                task.last_try = task.user_solutions[0].solution
+                task.is_last_correct = task.check_solution(task.last_try)
+            else:
+                task.last_try = None
+                task.is_last_correct = None
         if type(task) is models.FileEntranceExamTask:
-            task.last_solution = task.user_solutions[0] if len(task.user_solutions) else None
-            task.mark_field_id = 'tasks__file__mark_%d' % task.id
+            if len(task.user_solutions) > 0:
+                task.last_solution = task.user_solutions[0]
+                task.checks = list(task.last_solution.checks.all())
+            else:
+                task.last_solution = None
+                task.checks = []
 
-    test_tasks = list(filter(lambda t: type(t) is models.TestEntranceExamTask, tasks))
-    file_tasks = list(filter(lambda t: type(t) is models.FileEntranceExamTask, tasks))
-    program_tasks = list(filter(lambda t: type(t) is models.ProgramEntranceExamTask, tasks))
+    test_tasks = list(filter(
+        lambda t: type(t) is models.TestEntranceExamTask, tasks
+    ))
+    file_tasks = list(filter(
+        lambda t: type(t) is models.FileEntranceExamTask, tasks
+    ))
+    program_tasks = list(filter(
+        lambda t: isinstance(t, models.EjudgeEntranceExamTask), tasks
+    ))
 
-    put_into_checking_group_form = forms.PutIntoCheckingGroupForm(request.school)
+    move_into_checking_group_form = forms.MoveIntoCheckingGroupForm(request.school)
 
-    checking_comments = user_for_checking.entrance_checking_comments.filter(school=request.school).order_by('created_at')
+    checking_comments = user.entrance_checking_comments.filter(school=request.school).order_by('created_at')
 
     return render(request, 'entrance/staff/check_user.html', {
         'checking_group': checking_group,
-        'user_for_checking': user_for_checking,
+        'user_for_checking': user,
         'base_entrance_level': base_entrance_level,
         'level_upgrades': level_upgrades,
 
@@ -296,11 +307,11 @@ def check_user(request, user_for_checking, checking_group=None):
         'program_tasks': program_tasks,
 
         'checking_comments': checking_comments,
-        'put_into_checking_group_form': put_into_checking_group_form,
+        'move_into_checking_group_form': move_into_checking_group_form,
 
         'user_summary': UserSummary.summary_for_user(
             request.school,
-            user_for_checking
+            user
         ),
     })
 
@@ -314,9 +325,8 @@ def check_group(request, group_name):
     )
     _remove_old_checking_locks()
 
-    already_locked = request.user.entrance_checking_locks_by_user
-    if already_locked.exists():
-        lock = already_locked.first()
+    lock = request.user.entrance_checking_locks_by_user.first()
+    if lock is not None:
         messages.add_message(
             request, messages.INFO,
             'Вам необходимо допроверить выбранную работу или отказаться от проверки'
@@ -330,7 +340,7 @@ def check_group(request, group_name):
         )
 
     tasks = list(group.tasks.all())
-    group_users = group.users.values_list('user_id', flat=True)
+    group_users = list(group.actual_users.values_list('user_id', flat=True))
     for task in tasks:
         task.solutions_count = len(set(
             task.solutions
@@ -355,80 +365,95 @@ def check_task(request, group_name, task_id):
     group = get_object_or_404(
         models.CheckingGroup,
         school=request.school,
-        short_name=group_name
+        short_name=group_name,
     )
 
     if not group.tasks.filter(id=task_id).exists():
         return redirect('school:entrance:check',
-                        school_name=request.school.short_name)
+                        school_name=request.school.short_name,
+                        )
 
     task = get_object_or_404(models.FileEntranceExamTask, id=task_id)
     _remove_old_checking_locks()
 
     with transaction.atomic():
-        locked_users = (models.CheckingLock.objects.filter(task_id=task.id)
-                        .values_list('user_id', flat=True))
-        task_users = set(task.solutions.values_list('user_id', flat=True))
-        already_checked_users = set(models.CheckedSolution.objects.filter(
+        locked_users_ids = set(models.CheckingLock.objects
+                               .filter(task=task)
+                               .values_list('user_id', flat=True))
+        task_users_ids = set(task.solutions.values_list('user_id', flat=True))
+        already_checked_users_ids = set(models.CheckedSolution.objects.filter(
             solution__task=task
         ).values_list('solution__user_id', flat=True))
 
-        users_to_checking = (group.users.
-                             exclude(user_id__in=locked_users).
-                             exclude(user_id__in=already_checked_users).
-                             filter(user_id__in=task_users)
-                            )
+        users_to_check = (
+            group.actual_users
+            .exclude(user_id__in=locked_users_ids)
+            .exclude(user_id__in=already_checked_users_ids)
+            .filter(user_id__in=task_users_ids)
+        )
 
-        if not users_to_checking.exists():
+        user_for_checking = users_to_check.first()
+
+        if user_for_checking is None:
             messages.add_message(
                 request, messages.INFO,
                 'Все решения задачи «%s» проверены' % (task.title, )
             )
             return redirect('school:entrance:check_group',
                             school_name=request.school.short_name,
-                            group_name=group_name)
+                            group_name=group_name,
+                            )
 
-        user_for_checking = users_to_checking.first().user
-        models.CheckingLock(
+        user_for_checking = user_for_checking.user
+        models.CheckingLock.objects.create(
             user=user_for_checking,
             task=task,
             locked_by=request.user
-        ).save()
+        )
 
     return redirect('school:entrance:check_users_task',
                     school_name=request.school.short_name,
                     group_name=group_name,
                     task_id=task.id,
-                    user_id=user_for_checking.id)
+                    user_id=user_for_checking.id,
+                    )
 
 
 @sistema.staff.only_staff
-def check_users_task(request, group_name, task_id, user_id):
+def check_users_task(request, task_id, user_id, group_name=None):
     _remove_old_checking_locks()
 
-    group = get_object_or_404(
-        models.CheckingGroup,
-        school=request.school,
-        short_name=group_name
-    )
+    if group_name is not None:
+        group = get_object_or_404(
+            models.CheckingGroup,
+            school=request.school,
+            short_name=group_name
+        )
+    else:
+        group = None
+
     user = get_object_or_404(users.models.User, id=user_id)
     task = get_object_or_404(models.FileEntranceExamTask, id=task_id)
-    task.mark_field_id = 'tasks__file__mark_%d' % task.id
+    task.mark_field_id = (
+        forms.FileEntranceExamTasksMarkForm.FIELD_ID_TEMPLATE % task.id
+    )
+    task.comment_field_id = (
+        forms.FileEntranceExamTasksMarkForm.COMMENT_ID_TEMPLATE % task.id
+    )
 
     locked_by_me = True
     with transaction.atomic():
         lock = models.CheckingLock.objects.filter(
-            user_id=user_id,
-            task_id=task_id
-        )
-        if not lock.exists():
-            models.CheckingLock(
+            user=user,
+            task=task,
+        ).first()
+        if lock is None:
+            models.CheckingLock.objects.create(
                 user_id=user_id,
                 task_id=task_id,
-                locked_by=request.user
-            ).save()
+                locked_by=request.user,
+            )
         else:
-            lock = lock.first()
             locked_by_me = lock.locked_by_id == request.user.id
 
     base_entrance_level = upgrades.get_base_entrance_level(
@@ -446,6 +471,10 @@ def check_users_task(request, group_name, task_id, user_id):
             request, messages.INFO,
             'Этот пользователь не решал выбранную задачу'
         )
+        if group is None:
+            return redirect('school:entrance:enrolling_user',
+                            school_name=request.school.short_name,
+                            user_id=user.id)
         return redirect('school:entrance:check_task',
                         school_name=request.school.short_name,
                         group_name=group_name,
@@ -467,19 +496,24 @@ def check_users_task(request, group_name, task_id, user_id):
         )
         if mark_form.is_valid():
             score = mark_form.cleaned_data[task.mark_field_id]
-            comment = mark_form.cleaned_data[task.mark_field_id + '_comment']
-            models.CheckedSolution(
+            comment = mark_form.cleaned_data[task.comment_field_id]
+            models.CheckedSolution.objects.create(
                 solution=last_solution,
                 checked_by=request.user,
                 score=score,
                 comment=comment
-            ).save()
+            )
             lock.delete()
 
             messages.add_message(
                 request, messages.INFO,
                 'Баллы пользователю %s успешно сохранены' % (user.get_full_name(), )
             )
+
+            if group is None:
+                return redirect('school:entrance:enrolling_user',
+                                school_name=request.school.short_name,
+                                user_id=user.id)
 
             return redirect(
                 'school:entrance:check_task',
@@ -504,7 +538,7 @@ def check_users_task(request, group_name, task_id, user_id):
         user=user
     )
 
-    put_into_checking_group_form = forms.PutIntoCheckingGroupForm(request.school)
+    put_into_checking_group_form = forms.MoveIntoCheckingGroupForm(request.school)
 
     return render(request, 'entrance/staff/check_users_task.html', {
         'group': group,
@@ -528,11 +562,10 @@ def check_users_task(request, group_name, task_id, user_id):
 
 @sistema.staff.only_staff
 def enrolling_user(request, user_id):
-    user_for_checking = get_object_or_404(users.models.User, id=user_id)
+    user = get_object_or_404(users.models.User, id=user_id)
     _remove_old_checking_locks()
-    # TODO: check for locks by current user, add button «Unlock»
 
-    return check_user(request, user_for_checking)
+    return check_user(request, user)
 
 
 @sistema.staff.only_staff
@@ -598,8 +631,8 @@ def initial_auto_reject(request):
 
     return JsonResponse({
         'rejected': [s.__dict__ for s in models.EntranceStatus.objects.filter(
-                school=request.school,
-                status=models.EntranceStatus.Status.AUTO_REJECTED
+            school=request.school,
+            status=models.EntranceStatus.Status.AUTO_REJECTED
         )]
     })
 
@@ -607,5 +640,3 @@ def initial_auto_reject(request):
 @sistema.staff.only_staff
 def initial_checking_groups(request):
     return None
-
-

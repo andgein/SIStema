@@ -1,5 +1,7 @@
 {% extends 'staff_layout.html' %}
 
+{% load number_to_text %}
+
 {% block title %}Проверка вступительной работы{% endblock %}
 
 {% block topbar %}{% endblock %}
@@ -19,7 +21,7 @@
                            aria-expanded="true"
                         >
                             {{ group.name }}
-                            <span class="label label-sm label-{{ group.users.all|yesno:'primary,default' }} ml5">{{ group.users.all|length }}</span>
+                            <span class="label label-sm label-{{ group.users|yesno:'primary,default' }} ml5">{{ group.users|length }}</span>
                         </a>
                     </li>
                 {% endfor %}
@@ -29,7 +31,7 @@
             <div class="tab-content pn br-n">
                 {% for group in checking_groups %}
                     <div id="entrance__checking_group__{{ group.short_name }}" class="tab-pane {{ forloop.first|yesno:'active,' }}">
-                        {% if group.users.all %}
+                        {% if group.users %}
                             <p>
                                 <a href="{% url 'school:entrance:check_group' school_name=request.school.short_name group_name=group.short_name %}"
                                    class="btn btn-success btn-sm">
@@ -47,7 +49,7 @@
                             {% endif %}
 
                             <ol>
-                                {% for user in group.users.all|slice:',10' %}
+                                {% for user in group.users|slice:',10' %}
                                     <li>
                                         {{ user.user.get_full_name }}, {{ user.user.email }}
                                     </li>
@@ -55,7 +57,7 @@
                             </ol>
 
                             <p class="text-muted">
-                                Всего {{ group.users.all|length }} школьник(ов)
+                                Всего {{ group.users|length }} школьник{{ group.users|length|russian_pluralize:',а,ов' }}
                             </p>
                         {% else %}
                             <div class="text-muted">Нет школьников для проверки</div>

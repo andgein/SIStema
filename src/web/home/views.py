@@ -1,5 +1,5 @@
 from constance import config
-from django import shortcuts, conf
+from django import shortcuts
 
 import schools.models
 

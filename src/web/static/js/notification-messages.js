@@ -7,7 +7,7 @@ $(document).ready(function(){
         var noteShadow = $message.data('note-shadow');
         var noteOpacity = $message.data('note-opacity') || '1';
         var width = '400px';
-        var delay = 4000; // 4 seconds
+        var delay = 1500; // 1.5 seconds
 
         new PNotify({
             title: '',

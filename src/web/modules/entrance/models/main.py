@@ -4,7 +4,7 @@ import django.utils.timezone
 import polymorphic.models
 import sizefield.models
 from django.core import urlresolvers
-from django.db import models
+from django.db import models, transaction
 import djchoices
 
 import modules.ejudge.models
@@ -194,7 +194,10 @@ class OutputOnlyEntranceExamTask(EjudgeEntranceExamTask):
 
 
 class EntranceExam(models.Model):
-    school = models.OneToOneField(schools.models.School)
+    school = models.OneToOneField(
+        schools.models.School,
+        on_delete=models.CASCADE,
+    )
 
     close_time = models.DateTimeField(blank=True, default=None, null=True)
 
@@ -223,7 +226,8 @@ class EntranceLevel(models.Model):
 
     short_name = models.CharField(
         max_length=100,
-        help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием'
+        help_text='Используется в урлах. '
+                  'Лучше обойтись латинскими буквами, цифрами и подчёркиванием'
     )
 
     name = models.CharField(max_length=100)
@@ -270,7 +274,10 @@ class EntranceExamTaskSolution(polymorphic.models.PolymorphicModel):
         default=''
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+    )
 
     def __str__(self):
         return 'Решение %s по задаче %s' % (self.user, self.task)

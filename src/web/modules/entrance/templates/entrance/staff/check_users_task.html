@@ -2,6 +2,8 @@
 
 {% load dict_tags %}
 {% load range %}
+{% load number_to_text %}
+{% load math %}
 
 {% block title %}{{ user_for_checking.get_full_name }}, «{{ task.title }}»{% endblock %}
 
@@ -37,7 +39,7 @@
         <div class="col-xs-12 col-md-6">
             <div class="panel">
                 <div class="panel-heading">
-                    Проверка решения
+                    <span class="panel-title">Проверка решения</span>
                 </div>
                 <div class="panel-body">
                     <h4>Решение задачи «{{ task.title }}»</h4>
@@ -83,24 +85,25 @@
             {% if checks %}
                 <div class="panel">
                     <div class="panel-heading">
-                        Предудыщие проверки
+                        <span class="panel-title">Предудыщие проверки</span>
                     </div>
-                    <div class="panel-body">
+                    <div class="panel-body ptn pbn">
                         {% for check in checks %}
                             <h4>
-                                {{ check.checked_by.get_full_name }}
-                                <small>{{ check.created_at }}</small>
+                                {{ forloop.revcounter }}. {{ check.checked_by.get_full_name }}
+                                <span class="label label-sm ml5 mr10 label-{% ifequal check.score task.max_score %}success{% else %}{% ifequal check.score 0 %}danger{% else %}warning{% endifequal %}{% endifequal %}">
+                                    {{ check.score }} балл{{ check.score|russian_pluralize:',а,ов' }}
+                                </span>
+                                <small class="">{{ check.created_at }}</small>
                             </h4>
-                            <p>
-                                <div>
-                                    {{ check.score }} балл(ов)
-                                </div>
-                                {% if check.comment %}
-                                    <div>
-                                        <i>{{ check.comment|linebreaksbr }}</i>
-                                    </div>
-                                {% endif %}
-                            </p>
+
+                            {% if check.comment %}
+                                <blockquote class="blockquote-thin">
+                                    <p class="fs14">
+                                        {{ check.comment|linebreaksbr }}
+                                    </p>
+                                </blockquote>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 </div>
@@ -109,7 +112,7 @@
             {% if checking_comments %}
                 <div class="panel">
                     <div class="panel-heading">
-                        Общие комментарии
+                        <span class="panel-title">Общие комментарии</span>
                     </div>
                     <div class="panel-body">
                         {% for comment in checking_comments %}
