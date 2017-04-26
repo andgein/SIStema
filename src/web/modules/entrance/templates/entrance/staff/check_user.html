@@ -46,6 +46,17 @@
         {% endif %}
     </div>
 
+    {% if clone_accounts %}
+        <div class="alert alert-micro alert-danger">
+            <b>Клоны:</b>
+            {% for clone in clone_accounts %}
+                <a href="{% url 'school:entrance:enrolling_user' request.school.short_name clone.id %}">
+                    {{ clone.get_full_name }}
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div class="row">
         <div class="col-md-4 col-sm-6 col-xs-12">
             {% if test_tasks %}
@@ -79,6 +90,7 @@
                                                     <h4>
                                                         {{ forloop.revcounter }}. {{ solution.created_at }}
                                                     </h4>
+
                                                     <div class="mb10">
                                                         <span class="{{ solution.is_correct|yesno:'text-success,text-danger' }}">{{ solution.solution }}</span>
                                                     </div>
@@ -194,7 +206,21 @@
                             <b>Не был в ЛКШ</b>
                         {% endif %}
                     </div>
+                    <div>
+                        <b>Основание для поступления:</b> {{ user_summary.entrance_reason_text }}
+                    </div>
                     <div><b>Хочет в A-ML:</b> {{ user_summary.a_ml|yesno:"Да,Нет" }}</div>
+                    {% if user_summary.entrance_statuses %}
+                        <div>
+                            <b>История:</b>
+                            {% for status in user_summary.entrance_statuses %}
+                                <a href="{% url 'school:entrance:enrolling_user' status.school.short_name user_for_checking.id %}">
+                                    {{ status.school.short_name }}
+                                </a> -
+                                {{ status.is_enrolled|yesno:"Зачислен,Не зачислен" }},
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 

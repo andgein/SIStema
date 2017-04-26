@@ -177,7 +177,7 @@ class SimilarAccountSearcher(object):
         self._new_user_profile = new_user_profile
         self._candidates = []
 
-    def search(self):
+    def search(self, strict=True):
         poldnev_person = self._new_user_profile.poldnev_person
         if poldnev_person:
             if poldnev_person.user:
@@ -205,10 +205,11 @@ class SimilarAccountSearcher(object):
         self._apply_filter(self._good_match, True)
         if not first_name and not birth_date and len(self._candidates) > 1:
             return []
-        self._apply_filter(self._sex_matched_or_null)
-        self._apply_filter(self._has_poldnev)
-        self._apply_filter(self._was_enrolled)
-        self._apply_filter(self._has_some_entrance_status)
+        if strict:
+            self._apply_filter(self._sex_matched_or_null)
+            self._apply_filter(self._has_poldnev)
+            self._apply_filter(self._was_enrolled)
+            self._apply_filter(self._has_some_entrance_status)
         return self._candidates
 
     def _apply_filter(self, func, can_empty=False):

@@ -19,11 +19,12 @@ import schools.models
 import sistema.staff
 import users.models
 import users.views
-from modules.ejudge.models import CheckingResult
+from modules.ejudge import models as ejudge_models
+from modules.entrance import models
+from modules.entrance import upgrades
+from modules.entrance.staff import forms
 from sistema.helpers import group_by, respond_as_attachment, nested_query_list
-from . import forms
-from .. import models
-from .. import upgrades
+from users import search_utils
 
 
 class EnrollingUsersTable(frontend.table.Table):
@@ -37,6 +38,7 @@ class EnrollingUsersTable(frontend.table.Table):
         self.identifiers = {'school_name': school.short_name}
 
         self.about_questionnaire = questionnaire.models.Questionnaire.objects.filter(short_name='about').first()
+
         self.enrollee_questionnaire = questionnaire.models.Questionnaire.objects.filter(
                 school=self.school,
                 short_name='enrollee'
@@ -83,7 +85,6 @@ class EnrollingUsersTable(frontend.table.Table):
                 ),
                 operator.attrgetter('user_id')
         )
-
         self.enrollee_questionnaire_answers = group_by(
                 questionnaire.models.QuestionnaireAnswer.objects.filter(
                         questionnaire=self.enrollee_questionnaire,
@@ -119,11 +120,11 @@ class EnrollingUsersTable(frontend.table.Table):
         return self._get_questionnaire_answer(self.enrollee_questionnaire_answers[user.id], field)
 
     def city(self, user):
-        return self._get_user_about_field(user, 'city')
+        return user.profile.city if hasattr(user, 'profile') else self._get_user_about_field(user, 'city')
 
     def school_and_class(self, user):
-        user_school = self._get_user_about_field(user, 'school')
-        user_class = self._get_user_enrollee_field(user, 'class')
+        user_school = user.profile.school_name if hasattr(user, 'profile') else self._get_user_about_field(user, 'school')
+        user_class = user.profile.current_class if hasattr(user, 'profile') else self._get_user_enrollee_field(user, 'class')
         if user_school == '':
             return '%s класс' % user_class
         return '%s, %s класс' % (user_school, user_class)
@@ -201,18 +202,21 @@ def results(request):
 
 
 class UserSummary:
-    def __init__(self, class_number, school, city, previous_parallels, a_ml):
+    def __init__(self, class_number, school, city, previous_parallels, a_ml, entrance_reason_text, entrance_statuses):
         self.class_number = class_number
         self.school = school
         self.city = city
         self.previous_parallels = previous_parallels
         self.a_ml = a_ml
+        self.entrance_reason_text = entrance_reason_text
+        self.entrance_statuses = entrance_statuses
 
     @classmethod
-    def get_answer(cls, user, answer_model, question_short_name):
+    def get_answer(cls, user, school, answer_model, question_short_name):
         answer = answer_model.objects.filter(
-                user=user,
-                question_short_name=question_short_name
+            user=user,
+            questionnaire__school=school,
+            question_short_name=question_short_name
         ).first()
         return answer.answer if answer is not None else None
 
@@ -228,9 +232,12 @@ class UserSummary:
             school_name = user.profile.school_name
             city = user.profile.city
         else:
-            class_number = 'N/A'
-            school_name = 'N/A'
-            city = 'N/A'
+            class_number = cls.get_answer(user, school, AnswerModel, 'class')
+            school_name = cls.get_answer(user, school, AnswerModel, 'school')
+            city = cls.get_answer(user, school, AnswerModel, 'city')
+
+        entrance_reason_id = cls.get_answer(user, school, AnswerModel, 'entrance_reason')
+        entrance_reason_text = variant_by_id[entrance_reason_id].text if entrance_reason_id else None
 
         prev_parallel_answers = AnswerModel.objects.filter(
             user=user,
@@ -246,7 +253,16 @@ class UserSummary:
             question_short_name='a_ml'
         ).exists()
 
-        return cls(class_number, school_name, city, previous_parallels, a_ml)
+        entrance_statuses = models.EntranceStatus.objects.filter(user=user).all()
+
+        return cls(class_number, school_name, city, previous_parallels, a_ml, entrance_reason_text, entrance_statuses)
+
+
+def _find_clones(user):
+    if not hasattr(user, 'profile'):
+        return []
+    similar_accounts = search_utils.SimilarAccountSearcher(user.profile).search(False)
+    return [similar_user for similar_user in similar_accounts if user.id != similar_user.id]
 
 
 def check_user(request, user, group=None):
@@ -311,10 +327,8 @@ def check_user(request, user, group=None):
         'checking_comments': checking_comments,
         'move_into_checking_group_form': move_into_checking_group_form,
 
-        'user_summary': UserSummary.summary_for_user(
-            request.school,
-            user
-        ),
+        'user_summary': UserSummary.summary_for_user(request.school, user),
+        'clone_accounts': _find_clones(user)
     })
 
 
@@ -730,7 +744,7 @@ def solution(request, solution_id):
 def _get_ejudge_task_accepted_solutions(school, solution_model):
     return solution_model.objects.filter(
         task__exam__school=school,
-        ejudge_queue_element__submission__result__result=CheckingResult.Result.OK
+        ejudge_queue_element__submission__result__result=ejudge_models.CheckingResult.Result.OK
     )
 
 
