@@ -171,7 +171,7 @@ def change_group(request, user_id):
 
     if form.is_valid():
         group = get_object_or_404(models.CheckingGroup, school=request.school, id=form.cleaned_data.get('group_id'))
-        models.UserInCheckingGroup.put_user_into_group(user, group)
+        models.UserInCheckingGroup.move_user_into_group(user, group)
 
     return redirect('school:entrance:enrolling_user', school_name=request.school.short_name, user_id=user.id)
 
@@ -340,19 +340,21 @@ def check_group(request, group_name):
         )
 
     tasks = list(group.tasks.all())
-    group_users = list(group.actual_users.values_list('user_id', flat=True))
+    group_users_ids = list(group.actual_users.values_list('user_id', flat=True))
     for task in tasks:
         task.solutions_count = len(set(
             task.solutions
-                .filter(user_id__in=group_users)
+                .filter(user_id__in=group_users_ids)
                 .values_list('user_id', flat=True)
         ))
+        task.checks = models.CheckedSolution.objects.filter(
+            solution__task=task,
+            solution__user_id__in=group_users_ids
+        )
         task.checked_solutions_count = len(set(
-            models.CheckedSolution.objects.filter(
-                solution__task=task,
-                solution__user_id__in=group_users
-            ).values_list('solution__user_id', flat=True)
+            task.checks.values_list('solution__user_id', flat=True)
         ))
+        task.checks = list(task.checks)
 
     return render(request, 'entrance/staff/check_group.html', {
         'group': group,

@@ -68,7 +68,7 @@ class UserInCheckingGroup(models.Model):
 
     @classmethod
     @transaction.atomic
-    def put_user_into_group(cls, user, group):
+    def move_user_into_group(cls, user, group):
         (cls.objects
          .filter(group__school=group.school, user=user)
          .update(is_actual=False)
@@ -125,7 +125,10 @@ class CheckedSolution(models.Model):
         on_delete=models.CASCADE,
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+    )
 
 
 class CheckingComment(models.Model):

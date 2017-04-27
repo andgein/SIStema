@@ -44,10 +44,41 @@
                             </p>
                             <p>
                                 <a href="{% url 'school:entrance:check_task' request.school.short_name group.short_name task.id %}"
-                                   class="btn btn-sm btn-success">
+                                   class="btn btn-sm {% ifequal task.checked_solutions_count task.solutions_count %}disabled btn-default{% else %}btn-success{% endifequal %}
+                                   ">
                                     Перейти к&nbsp;проверке
                                 </a>
                             </p>
+
+                            {% if task.checks %}
+                                <h4>Последние проверки</h4>
+                                <table class="table table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <th>№</th>
+                                            <th>Дата и время</th>
+                                            <th>Школьник</th>
+                                            <th>Баллы</th>
+                                            <th>Кем проверено</th>
+                                            <th>Комментарий</th>
+                                        </tr>
+                                    </thead>
+                                    {% for check in task.checks %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ check.created_at }}</td>
+                                            <td>
+                                                <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=check.solution.user_id task_id=task.id %}">
+                                                    {{ check.solution.user.get_full_name }}
+                                                </a>
+                                            </td>
+                                            <td class="{% ifequal check.score task.max_score %}text-success{% else %}text-danger{% endifequal %}">{{ check.score }} {% if forloop.first %}балл{{ check.score|russian_pluralize:',а,ов' }}{% endif %}</td>
+                                            <td>{{ check.checked_by.get_full_name }}</td>
+                                            <td><i>{{ check.comment|truncatewords:10 }}</i></td>
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>
