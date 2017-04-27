@@ -253,3 +253,32 @@ class ResultsEntranceStepAdmin(AbstractEntranceStepAdmin):
 @admin.register(models.MakeUserParticipatingEntranceStep)
 class MakeUserParticipatingEntranceStepAdmin(AbstractEntranceStepAdmin):
     base_model = models.MakeUserParticipatingEntranceStep
+
+
+@admin.register(models.EntranceUserMetric)
+class EntranceUserMetricAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
+    base_model = models.EntranceUserMetric
+    list_display = ('id', 'exam', 'name')
+    list_filter = ('exam', PolymorphicChildModelFilter)
+    ordering = ('-exam', '-id')
+
+
+class ParallelScoreEntranceUserMetricFileTaskEntryInline(admin.StackedInline):
+    model = models.ParallelScoreEntranceUserMetricFileTaskEntry
+    extra = 1
+
+
+class ParallelScoreEntranceUserMetricProgramTaskEntryInline(
+        admin.StackedInline
+):
+    model = models.ParallelScoreEntranceUserMetricProgramTaskEntry
+    extra = 1
+
+
+@admin.register(models.ParallelScoreEntranceUserMetric)
+class ParallelScoreEntranceUserMetricAdmin(PolymorphicChildModelAdmin):
+    base_model = models.EntranceUserMetric
+    inlines = (
+        ParallelScoreEntranceUserMetricFileTaskEntryInline,
+        ParallelScoreEntranceUserMetricProgramTaskEntryInline,
+    )
