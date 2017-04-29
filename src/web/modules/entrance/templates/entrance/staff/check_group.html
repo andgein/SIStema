@@ -111,6 +111,11 @@
                                     </tr>
                                 {% endfor %}
                             </table>
+                            {% if checks|length >= 20 %}
+                                <p class="text-muted mt15">
+                                    Показаны последние 20 проверок. <a href="{% url 'school:entrance:task_checks' request.school.short_name group.short_name task.id %}">Посмотреть все?</a>
+                                </p>
+                            {% endif %}
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>

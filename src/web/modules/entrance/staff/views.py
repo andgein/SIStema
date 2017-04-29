@@ -331,7 +331,7 @@ def check_group(request, group_name):
     if lock is not None:
         messages.add_message(
             request, messages.INFO,
-            'Вам необходимо допроверить выбранную работу или отказаться от проверки'
+            'Вам необходимо допроверить выбранную работу или отказаться от проверки'
         )
         return redirect(
             'school:entrance:check_users_task',
