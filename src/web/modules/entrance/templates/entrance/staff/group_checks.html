@@ -53,7 +53,7 @@
                         <th>Баллы</th>
                         <th>Кем проверено</th>
                         <th>Комментарий</th>
-                        <th>Скачать</th>
+                        <th><span class="fa fa-download" title="Скачать решение"></span></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -75,8 +75,8 @@
                             <td>{{ check.checked_by.get_full_name }}</td>
                             <td><i>{{ check.comment|truncatewords:10 }}</i></td>
                             <td>
-                                <a href="{% url 'school:entrance:user_solution' request.school.short_name check.solution.id %}" class="visible-on-row-hover">
-                                    Скачать
+                                <a href="{% url 'school:entrance:user_solution' request.school.short_name check.solution.id %}" class="visible-on-row-hover" title="Скачать решение">
+                                    <span class="fa fa-download"></span>
                                 </a>
                             </td>
                         </tr>
