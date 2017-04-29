@@ -191,3 +191,16 @@ tr:hover .visible-on-row-hover {
 .cursor-pointer {
     cursor: pointer;
 }
+
+/* Overflows */
+.overflow-x-hidden {
+    overflow-x: hidden;
+}
+
+.overflow-y-hidden {
+    overflow-y: hidden;
+}
+
+.overflow-hidden {
+    overflow: hidden;
+}
