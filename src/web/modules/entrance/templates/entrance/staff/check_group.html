@@ -34,10 +34,12 @@
                         {{ task.text|markdown|truncatewords_html:20 }}
 
                         <p class="mt15">
-                            <a href="{% url 'school:entrance:check_task' request.school.short_name group.short_name task.id %}"
-                               class="btn btn-sm {% ifequal task.checked_solutions_count task.solutions_count %}disabled btn-success{% else %}btn-info{% endifequal %} mr10">
-                                Начать проверку
-                            </a>
+                            {% ifnotequal task.checked_solutions_count task.solutions_count %}
+                                <a href="{% url 'school:entrance:check_task' request.school.short_name group.short_name task.id %}"
+                                   class="btn btn-sm btn-info mr10">
+                                    Начать проверку
+                                </a>
+                            {% endifnotequal %}
 
                             {% if task.checked_solutions_count > 0 %}
                                 <nobr class="ib mt10">
@@ -47,7 +49,7 @@
                                     </a>
                                 </nobr>
                             {% endif %}
-                        </p>
+                        </span>
                     </div>
                 </div>
             </div>
