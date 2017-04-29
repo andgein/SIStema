@@ -7,22 +7,29 @@
 {% block title %}{{ user_for_checking.get_full_name }}{% endblock %}
 
 {% block topbar_left %}
-    <div class="fs16 fw600 mt10 mb5">
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            <a href="{% url 'school:entrance:check' request.school.short_name %}">Проверка вступительной работы</a>
+        </li>
         {% if checking_group %}
-            Группа {{ checking_group.name }}, {{ user_for_checking.get_full_name }}
-        {% else %}
-            {{ user_for_checking.get_full_name }}, вступительная работа
+            <li class="crumb-link">
+                <a href="{% url 'school:entrance:check_group' request.school.short_name group.short_name %}">Группа {{ group.name }}</a>
+            </li>
         {% endif %}
+        <li class="crumb-trail">
+            {{ user_for_checking.get_full_name }}
+        </li>
+    </ol>
+{% endblock %}
 
-        <form method="POST" action="{% url 'school:entrance:change_group' request.school.short_name user_for_checking.id %}" class="form form-horizontal form-inline ib pull-right">
-            {% csrf_token %}
-            <div class="form-group form-group-sm">
-                {{ move_into_checking_group_form|get_item:'group_id' }}
-                <button class="btn btn-sm btn-default">Переложить</button>
-            </div>
-        </form>
-
-    </div>
+{% block topbar_right %}
+    <form method="POST" action="{% url 'school:entrance:change_group' request.school.short_name user_for_checking.id %}" class="form form-horizontal form-inline ib mr10">
+        {% csrf_token %}
+        <div class="form-group form-group-sm">
+            {{ move_into_checking_group_form|get_item:'group_id' }}
+            <button class="btn btn-sm btn-default ml10">Переложить</button>
+        </div>
+    </form>
 {% endblock %}
 
 {% block content %}
@@ -109,7 +116,7 @@
                                     <a href="#" class="internal-page-link fs12 ml10" data-toggle="modal" data-target="#tasks__program__{{ program_task.id }}">{{ program_task.user_solutions|length }} попыт{{ program_task.user_solutions|length|russian_pluralize:'ка,ки,ок' }}</a>
                                 {% endif %}
                             </div>
-                            <div class="fs10 mb10">
+                            <div class="fs10 mb10 text-muted">
                                 Уровни:
                                 {% for entrance_level in program_task.entrancelevel_set.all %}
                                     <span class="">{{ entrance_level.name }}</span>{% if not forloop.last %}, {% endif %}
@@ -161,13 +168,13 @@
                     <span class="panel-title">Общая информация</span>
                     <div class="mr10 pull-right fs12">
                         <a href="{% url 'school:entrance:user_profile' request.school.short_name user_for_checking.id %}"
-                           target="_blank" class="ml10" title="Откроется в новом окне">
+                           target="_blank" class="ml10" title="Откроется в новой вкладке">
                             Профиль</a>
                         <a href="{% url 'school:entrance:user_questionnaire' request.school.short_name user_for_checking.id 'enrollee' %}"
-                           target="_blank" class="ml10" title="Откроется в новом окне">
+                           target="_blank" class="ml10" title="Откроется в новой вкладке">
                             Анкета поступающего</a>
                         <a href="{% url 'school:entrance:user_topics' request.school.short_name user_for_checking.id %}"
-                           target="_blank" class="ml10" title="Откроется в новом окне">
+                           target="_blank" class="ml10" title="Откроется в новой вкладке">
                             Тематическая анкета</a>
                     </div>
                 </div>
@@ -197,27 +204,30 @@
                 </div>
                 <div class="panel-body">
                     {% for file_task in file_tasks %}
-                        <div class="fs14 fw600 mb5">
-                            {{ forloop.counter }}. {{ file_task.title }}
+                        <div class="fs14">
+                            {{ forloop.counter }}.
+                            <span class="fw600">
+                                {% if file_task.last_solution %}
+                                    <a href="{% url 'school:entrance:user_solution' request.school.short_name file_task.last_solution.id %}" title="Скачать решение">{{ file_task.title }}</a>
+                                {% else %}
+                                    {{ file_task.title }}
+                                {% endif %}
+                            </span>
                             {% if file_task.last_solution %}
-                                <span class="fw400 text-muted ml10">{{ file_task.last_solution.created_at }}</span>
-                                <div class="mv5">
-                                    <a href="{% url 'school:entrance:user_solution' request.school.short_name file_task.last_solution.id %}" title="Скачать решение" class="btn btn-xs btn-default">
-                                        <span class="fa fa-download"></span> Скачать
-                                    </a>
-                                    <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=user_for_checking.id task_id=file_task.id %}" title="Оценить решение" class="btn btn-xs btn-success">
-                                        Оценить
-                                    </a>
-                                </div>
-                                {% if file_task.checks %}
-                                    <div class="fs12 fw400">
-                                        {% for check in file_task.checks %}
+                                <div class="fs12 text-muted">{{ file_task.last_solution.created_at }}</div>
+                                <div class="fs12 mv10">
+                                    {% for check in file_task.checks %}
+                                        <div class="mb5">
                                             <b>{{ check.checked_by.get_full_name }}:</b>
                                             {{ check.score }} балл{{ check.score|russian_pluralize:',а,ов' }}{% if check.comment %}, <i>«{{ check.comment }}»</i>{% endif %}
-                                            <span class="text-muted ml10">{{ check.created_at }}</span>
-                                        {% endfor %}
+                                            <span class="fs11 text-muted pull-right">{{ check.created_at }}</span>
+                                        </div>
+                                    {% endfor %}
+                                    <div class="mb5">
+                                        <b>{{ user.get_full_name }}:</b>
+                                        <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=user_for_checking.id task_id=file_task.id %}" title="Оценить решение">оценить</a>
                                     </div>
-                                {% endif %}
+                                </div>
                             {% else %}
                                 <span class="fs12 fw400">(не сдана)</span>
                             {% endif %}

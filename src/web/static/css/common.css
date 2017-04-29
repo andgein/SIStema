@@ -55,6 +55,28 @@ a.text-danger:active {
     color: #9e2f1d;
 }
 
+/* Visibility */
+.visible-on-parent-hover,
+.visible-on-grandparent-hover {
+    display: none;
+}
+
+*:hover > .visible-on-parent-hover {
+    display: initial;
+}
+
+*:hover > * > .visible-on-grandparent-hover {
+    display: initial;
+}
+
+.visible-on-row-hover {
+    display: none;
+}
+
+tr:hover .visible-on-row-hover {
+    display: initial;
+}
+
 /* Navbar */
 .navbar {
     background-color: #fafafa;
@@ -78,6 +100,12 @@ a.text-danger:active {
     font-weight: 400;
     letter-spacing: 0.5px;
     float: left;
+}
+
+/* Topbar */
+.breadcrumb > li.crumb-active  {
+    color: #555;
+    font-size: 18px;
 }
 
 /* Hijack */
@@ -157,4 +185,9 @@ a.text-danger:active {
 
 .tabs-left > li:last-child > a.tabs-group {
     border-bottom-width: 0;
+}
+
+/* Cursor */
+.cursor-pointer {
+    cursor: pointer;
 }

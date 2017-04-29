@@ -1,8 +1,6 @@
-from django.conf import settings
+from constance import config
 from django.db import models, transaction
 from django.utils import timezone
-
-from constance import config
 
 import schools.models
 import users.models

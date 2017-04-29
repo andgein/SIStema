@@ -143,7 +143,7 @@ class CheckingLockAdmin(admin.ModelAdmin):
 @admin.register(models.CheckedSolution)
 class CheckedSolutionAdmin(admin.ModelAdmin):
     list_display = ('id', 'solution', 'checked_by', 'score', 'comment', 'created_at')
-    list_filter = (('scored_by', admin.RelatedOnlyFieldListFilter), )
+    list_filter = (('checked_by', admin.RelatedOnlyFieldListFilter), )
 
 
 @admin.register(models.CheckingComment)

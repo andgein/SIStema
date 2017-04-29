@@ -4,21 +4,37 @@
 {% load range %}
 {% load number_to_text %}
 {% load math %}
+{% load markdown_deux_tags %}
 
 {% block title %}{{ user_for_checking.get_full_name }}, «{{ task.title }}»{% endblock %}
 
 {% block topbar_left %}
-    <div class="fs16 fw600 mt10 mb5">
-        Группа {{ group.name }}, {{ user_for_checking.get_full_name }}, «{{ task.title }}»
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            <a href="{% url 'school:entrance:check' request.school.short_name %}">Проверка вступительной работы</a>
+        </li>
+        {% if checking_group %}
+            <li class="crumb-link">
+                <a href="{% url 'school:entrance:check_group' request.school.short_name group.short_name %}">Группа {{ group.name }}</a>
+            </li>
+        {% endif %}
+        <li class="crumb-link">
+            <a href="{% url 'school:entrance:enrolling_user' request.school.short_name user_for_checking.id %}">{{ user_for_checking.get_full_name }}</a>
+        </li>
+        <li class="crumb-trail">
+            «{{ task.title }}»
+        </li>
+    </ol>
+{% endblock %}
 
-        <form method="POST" action="{% url 'school:entrance:change_group' request.school.short_name user_for_checking.id %}" class="form form-horizontal form-inline ib pull-right">
-            {% csrf_token %}
-            <div class="form-group form-group-sm">
-                {{ put_into_checking_group_form|get_item:'group_id' }}
-                <button class="btn btn-sm btn-default">Переложить</button>
-            </div>
-        </form>
-    </div>
+{% block topbar_right %}
+    <form method="POST" action="{% url 'school:entrance:change_group' request.school.short_name user_for_checking.id %}" class="form form-horizontal form-inline ib mr10">
+        {% csrf_token %}
+        <div class="form-group form-group-sm">
+            {{ move_into_checking_group_form|get_item:'group_id' }}
+            <button class="btn btn-sm btn-default ml10">Переложить</button>
+        </div>
+    </form>
 {% endblock %}
 
 {% block content %}
@@ -39,37 +55,36 @@
         <div class="col-xs-12 col-md-6">
             <div class="panel">
                 <div class="panel-heading">
-                    <span class="panel-title">Проверка решения</span>
+                    <span class="panel-title" title="{{ task.title }}">
+                        {{ task.title|truncatechars:30 }}
+                        <span class="fs12 text-muted pull-right mr10">{{ last_solution.created_at }}</span>
+                    </span>
                 </div>
                 <div class="panel-body">
-                    <h4>Решение задачи «{{ task.title }}»</h4>
                     <p class="fs20">
                         <a href="{% url 'school:entrance:user_solution' request.school.short_name last_solution.id %}" title="Скачать решение">{{ last_solution.original_filename|default_if_none:'Решение' }}</a>
-                        <span class="fs12">({{ last_solution.created_at }})</span>
                     </p>
 
                     {% if locked_by_me %}
-                        <h4>Оценить решение</h4>
-                        <p>
-                            <div class="btn-group" data-toggle="buttons">
-                                {% with max_score=task.max_score|add:1 %}
-                                    {% mkrange max_score as marks_range %}
-                                    {% for mark in marks_range %}
-                                        <label class="btn btn-default {% if last_mark == mark %}active{% endif %}" onClick="$('#{{ task.mark_field_id }}').val('{{ mark }}')">
-                                            <input type="radio">{{ mark }}
-                                        </label>
-                                    {% endfor %}
-                                {% endwith %}
-                            </div>
-                        </p>
+                        <h3>Оценить решение</h3>
+                        <div class="btn-group mb20" data-toggle="buttons">
+                            {% with max_score=task.max_score|add:1 %}
+                                {% mkrange max_score as marks_range %}
+                                {% for mark in marks_range %}
+                                    <label class="btn btn-default {% if last_mark == mark %}active{% endif %} w40" onClick="$('#{{ task.mark_field_id }}').val('{{ mark }}')">
+                                        <input type="radio" class="cursor-pointer">{{ mark }}
+                                    </label>
+                                {% endfor %}
+                            {% endwith %}
+                        </div>
 
                         <div class="admin-form">
                             <form action="" method="POST">
                                 {% csrf_token %}
                                 {{ mark_form }}
 
-                                <button type="submit" class="btn btn-success mt10">Сохранить</button>
-                                <button type="submit" name="refuse" class="btn btn-danger mt10 pull-right">Отказаться от&nbsp;проверки</button>
+                                <button type="submit" class="btn btn-success mt15">Сохранить</button>
+                                <button type="submit" name="refuse" class="btn btn-danger mt15 pull-right">Отказаться от&nbsp;проверки</button>
                             </form>
                         </div>
                     {% else %}
@@ -79,26 +94,52 @@
                     {% endif %}
                 </div>
             </div>
+
+            <div class="panel-group">
+                <div class="panel">
+                    <div class="panel-heading">
+                        <a class="accordion-toggle accordion-icon link-unstyled collapsed" data-toggle="collapse" href="#entrance-checking__statement" title="Нажмите, чтобы развернуть">
+                            Условие задачи
+                        </a>
+                    </div>
+                    <div class="panel-collapse collapse" id="entrance-checking__statement" style="height: 0px;">
+                        <div class="panel-body">
+                            {{ task.text|markdown }}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="col-xs-12 col-md-6">
+            {% if task.checking_criteria %}
+                <div class="panel">
+                    <div class="panel-heading">
+                        <span class="panel-title">Критерии проверки</span>
+                    </div>
+                    <div class="panel-body">
+                        {{ task.checking_criteria|markdown }}
+                    </div>
+                </div>
+            {% endif %}
+
             {% if checks %}
                 <div class="panel">
                     <div class="panel-heading">
                         <span class="panel-title">Предудыщие проверки</span>
                     </div>
-                    <div class="panel-body ptn pbn">
+                    <div class="panel-body pt10">
                         {% for check in checks %}
                             <h4>
-                                {{ forloop.revcounter }}. {{ check.checked_by.get_full_name }}
+                                <span class="fw400">{{ forloop.revcounter }}.</span> {{ check.checked_by.get_full_name }}
                                 <span class="label label-sm ml5 mr10 label-{% ifequal check.score task.max_score %}success{% else %}{% ifequal check.score 0 %}danger{% else %}warning{% endifequal %}{% endifequal %}">
                                     {{ check.score }} балл{{ check.score|russian_pluralize:',а,ов' }}
                                 </span>
-                                <small class="">{{ check.created_at }}</small>
+                                <span class="pull-right fs12 fw400 text-muted">{{ check.created_at }}</span>
                             </h4>
 
                             {% if check.comment %}
-                                <blockquote class="blockquote-thin">
+                                <blockquote class="blockquote-thin pv5">
                                     <p class="fs14">
                                         {{ check.comment|linebreaksbr }}
                                     </p>

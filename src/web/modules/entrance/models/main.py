@@ -92,7 +92,11 @@ class TestEntranceExamTask(EntranceExamTask):
         return re.fullmatch(self.correct_answer_re, solution) is not None
 
     def is_solved_by_user(self, user):
-        return self.solutions.filter(user=user).exists()
+        solutions = list(self.solutions.filter(user=user))
+        for solution in solutions:
+            if self.check_solution(solution.solution):
+                return True
+        return False
 
     def get_form(self, user_solutions, *args, **kwargs):
         initial = {}
@@ -113,6 +117,13 @@ class TestEntranceExamTask(EntranceExamTask):
 class FileEntranceExamTask(EntranceExamTask):
     template_file = 'file.html'
     type_title = 'Теоретические задачи'
+
+    checking_criteria = models.TextField(
+        default='',
+        blank=True,
+        help_text='Критерии выставления баллов для проверяющих. '
+                  'Поддерживается Markdown',
+    )
 
     def is_solved_by_user(self, user):
         return self.solutions.filter(user=user).exists()

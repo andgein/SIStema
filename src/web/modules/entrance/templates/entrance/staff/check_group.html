@@ -3,88 +3,132 @@
 {% load markdown_deux_tags %}
 {% load number_to_text %}
 
-{% block title %}Проверка вступительной работы, группы {{ group.name }}{% endblock %}
+{% block title %}Проверка вступительной работы, группа {{ group.name }}{% endblock %}
 
-{% block topbar %}{% endblock %}
+{% block topbar_left %}
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            <a href="{% url 'school:entrance:check' request.school.short_name %}">Проверка вступительной работы</a>
+        </li>
+        <li class="crumb-trail">Группа {{ group.name }}</li>
+    </ol>
+{% endblock %}
 
 {% block content %}
-    <h3 class="mb20">
-        Проверка вступительной работы, группа {{ group.name }}
-    </h3>
-
-    {% if tasks %}
-        <div class="panel">
-            <div class="panel-heading">
-                <ul class="nav panel-tabs-border panel-tabs panel-tabs-left">
-                    {% for task in tasks %}
-                        <li class="{{ forloop.first|yesno:'active,' }}">
-                            <a href="#entrance__checking_problem__{{ task.id }}"
-                               data-toggle="tab"
-                               aria-expanded="true"
-                               title="{{ task.title }}"
-                            >
-                                {{ forloop.counter }}
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="panel-body">
-                <div class="tab-content pn br-n">
-                    {% for task in tasks%}
-                        <div id="entrance__checking_problem__{{ task.id }}" class="tab-pane {{ forloop.first|yesno:'active,' }}">
-                            <h3 class="mtn mb20">«{{ task.title }}»</h3>
-
-                            <h4>Условие</h4>
-                            {{ task.text|markdown }}
-
-                            <h4>Проверка</h4>
-                            <p class="text-muted">
-                                Проверено {{ task.checked_solutions_count }} из {{ task.solutions_count }} работ{{ task.solutions_count|russian_pluralize:'ы,,' }}
-                            </p>
-                            <p>
-                                <a href="{% url 'school:entrance:check_task' request.school.short_name group.short_name task.id %}"
-                                   class="btn btn-sm {% ifequal task.checked_solutions_count task.solutions_count %}disabled btn-default{% else %}btn-success{% endifequal %}
-                                   ">
-                                    Перейти к&nbsp;проверке
-                                </a>
-                            </p>
-
-                            {% if task.checks %}
-                                <h4>Последние проверки</h4>
-                                <table class="table table-condensed">
-                                    <thead>
-                                        <tr>
-                                            <th>№</th>
-                                            <th>Дата и время</th>
-                                            <th>Школьник</th>
-                                            <th>Баллы</th>
-                                            <th>Кем проверено</th>
-                                            <th>Комментарий</th>
-                                        </tr>
-                                    </thead>
-                                    {% for check in task.checks %}
-                                        <tr>
-                                            <td>{{ forloop.counter }}</td>
-                                            <td>{{ check.created_at }}</td>
-                                            <td>
-                                                <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=check.solution.user_id task_id=task.id %}">
-                                                    {{ check.solution.user.get_full_name }}
-                                                </a>
-                                            </td>
-                                            <td class="{% ifequal check.score task.max_score %}text-success{% else %}text-danger{% endifequal %}">{{ check.score }} {% if forloop.first %}балл{{ check.score|russian_pluralize:',а,ов' }}{% endif %}</td>
-                                            <td>{{ check.checked_by.get_full_name }}</td>
-                                            <td><i>{{ check.comment|truncatewords:10 }}</i></td>
-                                        </tr>
-                                    {% endfor %}
-                                </table>
-                            {% endif %}
+    <div class="row">
+        {% for task in tasks %}
+            <div class="col-xs-12 col-md-6 col-lg-4">
+                <div class="panel panel-{% ifequal task.checked_solutions_count task.solutions_count %}success{% else %}info{% endifequal %}">
+                    <div class="panel-heading">
+                        <span class="panel-title" title="{{ task.title }}">{{ task.title|truncatechars:22 }}</span>
+                        <div class="widget-menu pull-right mr10">
+                            <span class="label label-sm bg-white text-{% ifequal task.checked_solutions_count task.solutions_count %}success{% else %}info{% endifequal %}" title="Проверено {{ task.checked_solutions_count }} из {{ task.solutions_count }} решени{{ task.solutions_count|russian_pluralize:'я,й,й' }}">
+                                {{ task.checked_solutions_count }} из {{ task.solutions_count }}
+                            </span>
                         </div>
-                    {% endfor %}
+                    </div>
+                    <div class="panel-body">
+                        <h4 class="mtn">
+                            <a href="#" class="internal-page-link" data-toggle="modal" data-target="#entrance-checking__statement__{{ task.id }}">Условие</a>
+                        </h4>
+                        {{ task.text|markdown|truncatewords_html:20 }}
+
+                        <p class="mt15">
+                            <a href="{% url 'school:entrance:check_task' request.school.short_name group.short_name task.id %}"
+                               class="btn btn-sm {% ifequal task.checked_solutions_count task.solutions_count %}disabled btn-success{% else %}btn-info{% endifequal %} mr10">
+                                Начать проверку
+                            </a>
+
+                            {% if task.checked_solutions_count > 0 %}
+                                <nobr class="ib mt10">
+                                    <a href="#" data-toggle="modal" data-target="#entrance-checking__checks__{{ task.id }}"
+                                       class="internal-page-link">
+                                        Проверенные решения
+                                    </a>
+                                </nobr>
+                            {% endif %}
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
-    {% else %}
+
+            <div id="entrance-checking__statement__{{ task.id }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;  </button>
+                            <h4 class="modal-title">{{ task.title }}</h4>
+                        </div>
+                        <div class="modal-body">
+                            {{ task.text|markdown }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="entrance-checking__checks__{{ task.id }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;  </button>
+                            <h4 class="modal-title">Проверки задачи «{{ task.title }}»</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted">
+                                Всего проверено
+                                <a href="{% url 'school:entrance:task_checks' request.school.short_name group.short_name task.id %}" title="Смотреть все проверенные решения">
+                                    {{ task.checked_solutions_count }}&nbsp;решени{{ task.checked_solutions_count|russian_pluralize:'е,я,й' }}
+                                </a>
+                            </p>
+                            <table class="table table-condensed">
+                                <thead>
+                                    <tr>
+                                        <th>№</th>
+                                        <th>Дата и время</th>
+                                        <th>Школьник</th>
+                                        <th>Баллы</th>
+                                        <th>Кем проверено</th>
+                                        <th>Комментарий</th>
+                                    </tr>
+                                </thead>
+                                {% for check in task.checks %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=check.solution.user_id task_id=task.id %}">
+                                                {{ check.created_at }}
+                                            </a>
+                                        </td>
+                                        <td>{{ check.solution.user.get_full_name }}</td>
+                                        <td class="{% ifequal check.score task.max_score %}text-success{% else %}text-danger{% endifequal %}">
+                                            {{ check.score }}
+                                        </td>
+                                        <td>{{ check.checked_by.get_full_name }}</td>
+                                        <td><i>{{ check.comment|truncatewords:10 }}</i></td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if forloop.counter|divisibleby:2 %}
+                <div class="clearfix visible-md-block"></div>
+            {% endif %}
+            {% if forloop.counter|divisibleby:3 %}
+                <div class="clearfix visible-lg-block"></div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if not tasks %}
         <div class="text-muted">
             В этой группе нет задач для проверки.
             <a href="{% url 'school:entrance:check' request.school.short_name %}">Вернуться назад</a>.

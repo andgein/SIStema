@@ -4,67 +4,62 @@
 
 {% block title %}Проверка вступительной работы{% endblock %}
 
-{% block topbar %}{% endblock %}
+{% block topbar_left %}
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            Проверка вступительной работы
+        </li>
+    </ol>
+{% endblock %}
 
 {% block content %}
-    <h3 class="mb20">
-        Проверка вступительной работы
-    </h3>
 
-    <div class="panel">
-        <div class="panel-heading">
-            <ul class="nav panel-tabs-border panel-tabs panel-tabs-left">
-                {% for group in checking_groups %}
-                    <li class="{{ forloop.first|yesno:'active,' }}">
-                        <a href="#entrance__checking_group__{{ group.short_name }}"
-                           data-toggle="tab"
-                           aria-expanded="true"
-                        >
-                            {{ group.name }}
-                            <span class="label label-sm label-{{ group.users|yesno:'primary,default' }} ml5">{{ group.users|length }}</span>
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div class="panel-body">
-            <div class="tab-content pn br-n">
-                {% for group in checking_groups %}
-                    <div id="entrance__checking_group__{{ group.short_name }}" class="tab-pane {{ forloop.first|yesno:'active,' }}">
-                        {% if group.users %}
-                            <p>
-                                <a href="{% url 'school:entrance:check_group' school_name=request.school.short_name group_name=group.short_name %}"
-                                   class="btn btn-success btn-sm">
-                                    Перейти к&nbsp;проверке {{ group.name }}
-                                </a>
-                            </p>
-
-                            {% if group.tasks.exists %}
-                                <p>
-                                    <b>Задачи для&nbsp;проверки:</b>
-                                    {% for task in group.tasks.all %}
-                                        «{{ task.title }}»{{ forloop.last|yesno:'.,&#44'|safe }}
+    <div class="row">
+        {% for group in checking_groups %}
+            <div class="col-xs-12 col-md-6 col-lg-4">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <span class="panel-title">{{ group.name|truncatechars:27 }}</span>
+                        <div class="widget-menu pull-right mr10">
+                            <span class="label label-sm bg-white text-info" title="В этой группе {{ group.group_users|length }} школьник{{ group.group_users|length|russian_pluralize:',а,ов' }}">{{ group.group_users|length }}</span>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        {% if group.group_users %}
+                            {% if group.group_tasks %}
+                                <h4 class="mtn">Задачи для&nbsp;проверки</h4>
+                                <ul class="pl20">
+                                    {% for task in group.group_tasks %}
+                                        <li>{{ task.title }}
                                     {% endfor %}
-                                </p>
+                                </ul>
                             {% endif %}
 
-                            <ol>
-                                {% for user in group.users|slice:':20' %}
-                                    <li>
-                                        <a href="{% url 'school:entrance:enrolling_user' request.school.short_name user.user.id %}">{{ user.user.get_full_name }}</a>, {{ user.user.email }}
-                                    </li>
-                                {% endfor %}
-                            </ol>
-
-                            <p class="text-muted">
-                                Всего {{ group.users|length }} школьник{{ group.users|length|russian_pluralize:',а,ов' }}
+                            <p class="mt15 mbn">
+                                <a href="{% url 'school:entrance:check_group' school_name=request.school.short_name group_name=group.short_name %}"
+                                   class="btn btn-info btn-sm">
+                                    Начать проверку
+                                </a>
                             </p>
                         {% else %}
-                            <div class="text-muted">Нет школьников для проверки</div>
+                            <div class="text-muted">Пустая группа. Добавьте школьников в&nbsp;группу, чтобы начать проверку.</div>
                         {% endif %}
                     </div>
-                {% endfor %}
+                    {% if group.group_users %}
+                        <div class="panel-footer p15">
+                            <a href="{% url 'school:entrance:checking_group_users' school_name=request.school.short_name group_name=group.short_name %}" class="btn btn-sm btn-default mr10">Школьники</a>
+                            <a href="{% url 'school:entrance:checking_group_checks' school_name=request.school.short_name group_name=group.short_name %}" class="btn btn-sm btn-default">Проверенные работы</a>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-        </div>
+
+            {% if forloop.counter|divisibleby:2 %}
+                <div class="clearfix visible-md-block"></div>
+            {% endif %}
+            {% if forloop.counter|divisibleby:3 %}
+                <div class="clearfix visible-lg-block"></div>
+            {% endif %}
+        {% endfor %}
     </div>
 {% endblock %}

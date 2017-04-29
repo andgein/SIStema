@@ -26,7 +26,10 @@ urlpatterns = [
 
     url(r'^check/$', staff_views.check, name='check'),
     url(r'^check/(?P<group_name>[^/]+)/$', staff_views.check_group, name='check_group'),
+    url(r'^check/(?P<group_name>[^/]+)/users/$', staff_views.checking_group_users, name='checking_group_users'),
+    url(r'^check/(?P<group_name>[^/]+)/checks/$', staff_views.checking_group_checks, name='checking_group_checks'),
     url(r'^check/(?P<group_name>[^/]+)/task(?P<task_id>[^/]+)/$', staff_views.check_task, name='check_task'),
+    url(r'^check/(?P<group_name>[^/]+)/task(?P<task_id>[^/]+)/checks/$', staff_views.task_checks, name='task_checks'),
     url(r'^check/(?P<group_name>[^/]+)/task(?P<task_id>[^/]+)/user(?P<user_id>[^/]+)/$', staff_views.check_users_task, name='check_users_task'),
     url(r'^check/task(?P<task_id>[^/]+)/user(?P<user_id>[^/]+)/$', staff_views.check_users_task, name='check_users_task'),
     url(r'^solution/(?P<solution_id>\d+)/$', staff_views.solution, name='user_solution'),

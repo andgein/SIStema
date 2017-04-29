@@ -13,9 +13,12 @@
 
         <section id="content_wrapper">
             {% block topbar %}
-                <header id="topbar" class="">
+                <header id="topbar" class="alt">
                     <div class="topbar-left">
                         {% block topbar_left %}{% endblock %}
+                    </div>
+                    <div class="topbar-right">
+                        {% block topbar_right %}{% endblock %}
                     </div>
                 </header>
             {% endblock %}

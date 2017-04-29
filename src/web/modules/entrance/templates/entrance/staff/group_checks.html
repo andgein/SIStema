@@ -1,0 +1,90 @@
+{% extends 'staff_layout.html' %}
+
+{% load number_to_text %}
+{% load dict_tags %}
+
+{% block title %}Проверка вступительной работы, группа {{ group.name }}{% endblock %}
+
+{% block topbar_left %}
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            <a href="{% url 'school:entrance:check' request.school.short_name %}">Проверка вступительной работы</a>
+        </li>
+        {% if task %}
+            <li class="crumb-link">
+                <a href="{% url 'school:entrance:check_group' request.school.short_name group.short_name %}">Группа {{ group.name }}</a>
+            </li>
+            <li class="crumb-trail">Задача «{{ task.title }}»</li>
+        {% else %}
+            <li class="crumb-link">
+                <a href="{% url 'school:entrance:check_group' request.school.short_name group.short_name %}">Группа {{ group.name }}</a>
+            </li>
+            <li class="crumb-trail">Проверенные решения</li>
+        {% endif %}
+    </ol>
+{% endblock %}
+
+{% block content %}
+
+    {% if not checks %}
+        <p class="text-muted">
+            В&nbsp;этой группе ничего не проверено. <a href="javascript:history.go(-1)">Вернуться назад</a>.
+        </p>
+    {% else %}
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    Проверенные решения
+                    {% if task %}по&nbsp;задаче «{{ task.title }}»{% else %}в&nbsp;группе{% endif %}
+                    <span class="label label-sm bg-info ml10">{{ checks|length }} провер{{ checks|length|russian_pluralize:'ка,ки,ок' }}</span>
+                </div>
+            </div>
+            <div class="panel-body">
+
+                <table class="table table-condensed">
+                    <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Дата и время</th>
+                        <th>Школьник</th>
+                        {% if not task %}
+                            <th>Задача</th>
+                        {% endif %}
+                        <th>Баллы</th>
+                        <th>Кем проверено</th>
+                        <th>Комментарий</th>
+                        <th>Скачать</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for check in checks %}
+                        <tr>
+                            <td>{{ forloop.revcounter }}</td>
+                            <td>
+                                <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=check.solution.user_id task_id=check.solution.task.id %}">
+                                    {{ check.created_at }}
+                                </a>
+                            </td>
+                            <td>{{ check.solution.user.get_full_name }}</td>
+                            {% if not task %}
+                                <td>{{ check.solution.task.title }}</td>
+                            {% endif %}
+                            <td class="{% ifequal check.score check.solution.task.max_score %}text-success{% else %}text-danger{% endifequal %}">
+                                {{ check.score }}
+                            </td>
+                            <td>{{ check.checked_by.get_full_name }}</td>
+                            <td><i>{{ check.comment|truncatewords:10 }}</i></td>
+                            <td>
+                                <a href="{% url 'school:entrance:user_solution' request.school.short_name check.solution.id %}" class="visible-on-row-hover">
+                                    Скачать
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

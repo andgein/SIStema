@@ -1,0 +1,74 @@
+{% extends 'staff_layout.html' %}
+
+{% load number_to_text %}
+{% load dict_tags %}
+
+{% block title %}Проверка вступительной работы, группа {{ group.name }}{% endblock %}
+
+{% block topbar_left %}
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            <a href="{% url 'school:entrance:check' request.school.short_name %}">Проверка вступительной работы</a>
+        </li>
+        <li class="crumb-link">
+            <a href="{% url 'school:entrance:check_group' request.school.short_name group.short_name %}">Группа {{ group.name }}</a>
+        </li>
+        <li class="crumb-trail">Школьники</li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+    {% if not users %}
+        <p class="text-muted">
+            В&nbsp;этой группе нет школьников. <a href="javascript:history.go(-1)">Вернуться назад</a>.
+        </p>
+    {% else %}
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    Школьники в&nbsp;группе
+                    <span class="label label-sm bg-info ml10">{{ users|length }} человек{{ users|length|russian_pluralize:',а,' }}</span>
+                </div>
+            </div>
+            <div class="panel-body">
+
+                <table class="table table-condensed">
+                    <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Школьник</th>
+                        <th>Город</th>
+                        <th>Класс и школа</th>
+                        <th>Проверено задач</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><a href="{% url 'school:entrance:enrolling_user' request.school.short_name user.id %}">{{ user.get_full_name }}</a></td>
+                            <td>
+                                {% if user.profile.city %}
+                                    {{ user.profile.city }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {# TODO: Show class for this school, not current #}
+                                {% if user.profile.current_class and user.profile.school_name%}
+                                    {{ user.profile.current_class }}, {{ user.profile.school_name }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ checked_tasks_count_by_user|get_item:user.id }} из {{ solved_tasks_count_by_user|get_item:user.id }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

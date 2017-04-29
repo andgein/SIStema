@@ -1,13 +1,14 @@
-import datetime
 import operator
+import random
+import collections
 
+from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.http.response import HttpResponseNotFound, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.http import require_POST
-from django.contrib import messages
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 import frontend.icons
 import frontend.table
@@ -186,7 +187,8 @@ def check(request):
 
     checking_groups = request.school.entrance_checking_groups.all()
     for group in checking_groups:
-        group.users = list(group.actual_users)
+        group.group_users = list(group.actual_users)
+        group.group_tasks = list(group.tasks.order_by('order'))
 
     return render(request, 'entrance/staff/check.html', {
         'checking_groups': checking_groups,
@@ -339,7 +341,7 @@ def check_group(request, group_name):
             task_id=lock.task_id
         )
 
-    tasks = list(group.tasks.all())
+    tasks = list(group.tasks.order_by('order'))
     group_users_ids = list(group.actual_users.values_list('user_id', flat=True))
     for task in tasks:
         task.solutions_count = len(set(
@@ -354,11 +356,120 @@ def check_group(request, group_name):
         task.checked_solutions_count = len(set(
             task.checks.values_list('solution__user_id', flat=True)
         ))
-        task.checks = list(task.checks)
+        task.checks = list(task.checks.order_by('-created_at')[:20])
 
     return render(request, 'entrance/staff/check_group.html', {
         'group': group,
         'tasks': tasks,
+    })
+
+
+@sistema.staff.only_staff
+def checking_group_users(request, group_name):
+    group = get_object_or_404(
+        models.CheckingGroup,
+        school=request.school,
+        short_name=group_name,
+    )
+
+    users = [u.user for u in group.actual_users.prefetch_related('user__profile')]
+    tasks = list(group.tasks.order_by('order'))
+    users_ids = [u.id for u in users]
+    tasks_ids = [t.id for t in tasks]
+
+    solutions = list(models.FileEntranceExamTaskSolution.objects.filter(
+        user_id__in=users_ids,
+        task_id__in=tasks_ids,
+    ))
+    checks = list(models.CheckedSolution.objects.filter(
+        solution__user_id__in=users_ids,
+        solution__task_id__in=tasks_ids,
+    ).prefetch_related('solution'))
+
+    solutions_by_user = group_by(solutions, lambda s: s.user_id)
+    solved_tasks_count_by_user = {
+        user_id: len({s.task_id for s in solutions})
+        for user_id, solutions in solutions_by_user.items()
+    }
+    checks_by_user = group_by(checks, lambda c: c.solution.user_id)
+    checked_tasks_count_by_user = {
+        user_id: len({c.solution.task_id for c in checks})
+        for user_id, checks in checks_by_user.items()
+    }
+
+    return render(request, 'entrance/staff/group_users.html', {
+        'group': group,
+        'users': users,
+        'tasks': tasks,
+        'solutions': solutions,
+        'checks': checks,
+        'solved_tasks_count_by_user':
+            collections.defaultdict(int, solved_tasks_count_by_user),
+        'checked_tasks_count_by_user':
+            collections.defaultdict(int, checked_tasks_count_by_user),
+    })
+
+
+@sistema.staff.only_staff
+def checking_group_checks(request, group_name):
+    group = get_object_or_404(
+        models.CheckingGroup,
+        school=request.school,
+        short_name=group_name,
+    )
+
+    users = [u.user for u in
+             group.actual_users.prefetch_related('user__profile')]
+    tasks = list(group.tasks.order_by('order'))
+    users_ids = [u.id for u in users]
+    tasks_ids = [t.id for t in tasks]
+
+    checks = list(
+        models.CheckedSolution.objects.filter(
+            solution__user_id__in=users_ids,
+            solution__task_id__in=tasks_ids,
+        ).order_by('-created_at')
+         .prefetch_related('solution__user')
+         .prefetch_related('solution__task')
+    )
+
+    return render(request, 'entrance/staff/group_checks.html', {
+        'group': group,
+        'users': users,
+        'tasks': tasks,
+        'checks': checks,
+    })
+
+
+@sistema.staff.only_staff
+def task_checks(request, group_name, task_id):
+    group = get_object_or_404(
+        models.CheckingGroup,
+        school=request.school,
+        short_name=group_name,
+    )
+    task = get_object_or_404(models.FileEntranceExamTask, id=task_id)
+    if task not in group.tasks.all():
+        return HttpResponseNotFound()
+
+    users = [u.user for u in
+             group.actual_users.prefetch_related('user__profile')]
+    users_ids = [u.id for u in users]
+
+    checks = list(
+        models.CheckedSolution.objects.filter(
+            solution__user_id__in=users_ids,
+            solution__task_id=task_id,
+        ).order_by('-created_at')
+         .prefetch_related('solution__user')
+         .prefetch_related('solution__task')
+    )
+
+    return render(request, 'entrance/staff/group_checks.html', {
+        'group': group,
+        'users': users,
+        'task': task,
+        'checks': checks,
     })
 
 
@@ -387,16 +498,16 @@ def check_task(request, group_name, task_id):
             solution__task=task
         ).values_list('solution__user_id', flat=True))
 
-        users_to_check = (
+        users_for_checking = (
             group.actual_users
             .exclude(user_id__in=locked_users_ids)
             .exclude(user_id__in=already_checked_users_ids)
             .filter(user_id__in=task_users_ids)
         )
 
-        user_for_checking = users_to_check.first()
+        count = users_for_checking.count()
 
-        if user_for_checking is None:
+        if count == 0:
             messages.add_message(
                 request, messages.INFO,
                 'Все решения задачи «%s» проверены' % (task.title, )
@@ -406,7 +517,8 @@ def check_task(request, group_name, task_id):
                             group_name=group_name,
                             )
 
-        user_for_checking = user_for_checking.user
+        # Getting the random user for checking
+        user_for_checking = users_for_checking[random.randint(0, count - 1)].user
         models.CheckingLock.objects.create(
             user=user_for_checking,
             task=task,
@@ -450,7 +562,7 @@ def check_users_task(request, task_id, user_id, group_name=None):
             task=task,
         ).first()
         if lock is None:
-            models.CheckingLock.objects.create(
+            lock = models.CheckingLock.objects.create(
                 user_id=user_id,
                 task_id=task_id,
                 locked_by=request.user,
@@ -540,7 +652,7 @@ def check_users_task(request, task_id, user_id, group_name=None):
         user=user
     )
 
-    put_into_checking_group_form = forms.MoveIntoCheckingGroupForm(request.school)
+    move_into_checking_group_form = forms.MoveIntoCheckingGroupForm(request.school)
 
     return render(request, 'entrance/staff/check_users_task.html', {
         'group': group,
@@ -557,7 +669,7 @@ def check_users_task(request, task_id, user_id, group_name=None):
         'last_mark': last_mark,
         'checking_comments': checking_comments,
 
-        'put_into_checking_group_form': put_into_checking_group_form,
+        'move_into_checking_group_form': move_into_checking_group_form,
         'mark_form': mark_form
     })
 
