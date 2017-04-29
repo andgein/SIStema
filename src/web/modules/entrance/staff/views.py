@@ -372,7 +372,7 @@ def checking_group_users(request, group_name):
         short_name=group_name,
     )
 
-    users = [u.user for u in group.actual_users.prefetch_related('user__profile')]
+    users = [u.user for u in group.actual_users.select_related('user__profile')]
     tasks = list(group.tasks.order_by('order'))
     users_ids = [u.id for u in users]
     tasks_ids = [t.id for t in tasks]
@@ -384,7 +384,7 @@ def checking_group_users(request, group_name):
     checks = list(models.CheckedSolution.objects.filter(
         solution__user_id__in=users_ids,
         solution__task_id__in=tasks_ids,
-    ).prefetch_related('solution'))
+    ).select_related('solution'))
 
     solutions_by_user = group_by(solutions, lambda s: s.user_id)
     solved_tasks_count_by_user = {
@@ -419,7 +419,7 @@ def checking_group_checks(request, group_name):
     )
 
     users = [u.user for u in
-             group.actual_users.prefetch_related('user__profile')]
+             group.actual_users.select_related('user__profile')]
     tasks = list(group.tasks.order_by('order'))
     users_ids = [u.id for u in users]
     tasks_ids = [t.id for t in tasks]
@@ -429,8 +429,8 @@ def checking_group_checks(request, group_name):
             solution__user_id__in=users_ids,
             solution__task_id__in=tasks_ids,
         ).order_by('-created_at')
-         .prefetch_related('solution__user')
-         .prefetch_related('solution__task')
+         .select_related('solution__user')
+         .select_related('solution__task')
     )
 
     return render(request, 'entrance/staff/group_checks.html', {
