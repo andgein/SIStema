@@ -449,11 +449,11 @@ def task_checks(request, group_name, task_id):
         short_name=group_name,
     )
     task = get_object_or_404(models.FileEntranceExamTask, id=task_id)
-    if task not in group.tasks.all():
+    if not group.tasks.filter(id=task.id).exists():
         return HttpResponseNotFound()
 
     users = [u.user for u in
-             group.actual_users.prefetch_related('user__profile')]
+             group.actual_users.select_related('user__profile')]
     users_ids = [u.id for u in users]
 
     checks = list(
@@ -461,8 +461,8 @@ def task_checks(request, group_name, task_id):
             solution__user_id__in=users_ids,
             solution__task_id=task_id,
         ).order_by('-created_at')
-         .prefetch_related('solution__user')
-         .prefetch_related('solution__task')
+         .select_related('solution__user')
+         .select_related('solution__task')
     )
 
     return render(request, 'entrance/staff/group_checks.html', {
@@ -505,9 +505,9 @@ def check_task(request, group_name, task_id):
             .filter(user_id__in=task_users_ids)
         )
 
-        count = users_for_checking.count()
+        users_count = users_for_checking.count()
 
-        if count == 0:
+        if users_count == 0:
             messages.add_message(
                 request, messages.INFO,
                 'Все решения задачи «%s» проверены' % (task.title, )
@@ -517,8 +517,9 @@ def check_task(request, group_name, task_id):
                             group_name=group_name,
                             )
 
-        # Getting the random user for checking
-        user_for_checking = users_for_checking[random.randint(0, count - 1)].user
+        # Get the random user for checking
+        user_index = random.randint(0, users_count - 1)
+        user_for_checking = users_for_checking[user_index].user
         models.CheckingLock.objects.create(
             user=user_for_checking,
             task=task,
