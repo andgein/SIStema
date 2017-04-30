@@ -52,7 +52,7 @@
             {% for clone in clone_accounts %}
                 <a href="{% url 'school:entrance:enrolling_user' request.school.short_name clone.id %}">
                     {{ clone.get_full_name }}
-                </a>
+                </a>{% if not forloop.last %},{% endif %}
             {% endfor %}
         </div>
     {% endif %}
@@ -217,7 +217,7 @@
                                 <a href="{% url 'school:entrance:enrolling_user' status.school.short_name user_for_checking.id %}">
                                     {{ status.school.short_name }}
                                 </a> -
-                                {{ status.is_enrolled|yesno:"Зачислен,Не зачислен" }},
+                                {{ status.is_enrolled|yesno:"Зачислен,Не зачислен" }}{% if not forloop.last %},{% endif %}
                             {% endfor %}
                         </div>
                     {% endif %}

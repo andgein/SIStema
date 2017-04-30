@@ -253,7 +253,7 @@ class UserSummary:
             question_short_name='a_ml'
         ).exists()
 
-        entrance_statuses = models.EntranceStatus.objects.filter(user=user).all()
+        entrance_statuses = list(models.EntranceStatus.objects.filter(user=user))
 
         return cls(class_number, school_name, city, previous_parallels, a_ml, entrance_reason_text, entrance_statuses)
 
@@ -261,7 +261,7 @@ class UserSummary:
 def _find_clones(user):
     if not hasattr(user, 'profile'):
         return []
-    similar_accounts = search_utils.SimilarAccountSearcher(user.profile).search(False)
+    similar_accounts = search_utils.SimilarAccountSearcher(user.profile).search(strict=False)
     return [similar_user for similar_user in similar_accounts if user.id != similar_user.id]
 
 
