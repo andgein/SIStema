@@ -34,7 +34,11 @@ def cache(seconds = 900):
     return doCache
 # TODO: to here
 
-@cache(10 * 60)
+# TODO(artemtab): I've made this timeout 10 days long as a workaround for
+#     checking 2017. We need to be able to see and export enrolling table
+#     without waiting forever. There shouldn't be any harm in doing that,
+#     because entrance levels do not change after exam is over.
+@cache(10 * 24 * 60 * 60)
 def get_base_entrance_level(school, user):
     override = (models.EntranceLevelOverride.objects
                 .filter(school=school, user=user).first())

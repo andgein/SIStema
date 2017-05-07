@@ -12,8 +12,13 @@ from django.views.decorators.http import require_POST
 import django.urls
 
 from frontend.table.utils import A, TableDataSource
-from modules.ejudge.models import CheckingResult
+from modules.ejudge import models as ejudge_models
+from modules.entrance import models
+from modules.entrance import upgrades
+from modules.entrance import utils
+from modules.entrance.staff import forms
 from sistema.helpers import group_by, respond_as_attachment, nested_query_list
+from users import search_utils
 import frontend.icons
 import frontend.table
 import modules.topics.views as topics_views
@@ -22,13 +27,6 @@ import questionnaire.views
 import sistema.staff
 import users.models
 import users.views
-from modules.ejudge import models as ejudge_models
-from modules.entrance import models
-from modules.entrance import upgrades
-from modules.entrance import utils
-from modules.entrance.staff import forms
-from sistema.helpers import group_by, respond_as_attachment, nested_query_list
-from users import search_utils
 
 
 class EnrollingUsersTable(frontend.table.Table):

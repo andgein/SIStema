@@ -1,5 +1,6 @@
 from django.conf.urls import url, include
 from . import views
+from .export import ExportCompleteEnrollingTable
 
 urlpatterns = [
     url(r'^enrolling/$', views.enrolling, name='enrolling'),
@@ -21,6 +22,9 @@ urlpatterns = [
     url(r'^enrolling/(?P<user_id>\d+)/change_group/$',
         views.change_group,
         name='change_group'),
+    url(r'^enrolling/export/$',
+        ExportCompleteEnrollingTable.as_view(),
+        name='export_complete_enrolling_table'),
 
     url(r'^solution/(?P<solution_id>\d+)/$',
         views.solution,
