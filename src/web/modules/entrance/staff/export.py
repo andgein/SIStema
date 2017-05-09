@@ -67,99 +67,135 @@ class ExportCompleteEnrollingTable(django.views.View):
         return response
 
     def get_enrolling_columns(self, request, enrollees):
-        return [
-            LinkExcelColumn(
-                name='id',
-                cell_width=5,
-                data=[user.id for user in enrollees],
-                data_urls=[
-                    request.build_absolute_uri(django.urls.reverse(
-                        'school:entrance:enrolling_user',
-                        args=(request.school.short_name, user.id)))
-                    for user in enrollees
-                ],
-            ),
-            LinkExcelColumn(
-                name='Фамилия',
-                data=[user.profile.last_name for user in enrollees],
-                data_urls=[getattr(user.profile.poldnev_person, 'url', '')
-                           for user in enrollees],
-            ),
-            PlainExcelColumn(
-                name='Имя',
-                data=[user.profile.first_name for user in enrollees],
-            ),
-            PlainExcelColumn(
-                name='Отчество',
-                data=[user.profile.middle_name for user in enrollees],
-            ),
-            PlainExcelColumn(
-                name='Город',
-                data=[user.profile.city for user in enrollees],
-            ),
-            PlainExcelColumn(
-                name='Класс',
-                cell_width=7,
-                data=[user.profile.get_class() for user in enrollees],
-            ),
-            PlainExcelColumn(
-                name='Школа',
-                data=[user.profile.school_name for user in enrollees],
-            ),
-            PlainExcelColumn(
-                name='История',
-                data=self.get_history_for_users(request.school, enrollees),
-            ),
-            PlainExcelColumn(
-                name='История (poldnev.ru)',
-                data=self.get_poldnev_history_for_users(enrollees),
-            ),
-            PlainExcelColumn(
-                name='Уровень',
-                data=self.get_entrance_level_for_users(request.school,
-                                                       enrollees),
-            ),
-            PlainExcelColumn(
-                name='Апгрейд',
-                data=self.get_max_upgrade_for_users(request.school, enrollees),
-            ),
-            PlainExcelColumn(
-                name='Язык (основной)',
-                data=self.get_main_language_for_users(request.school,
-                                                      enrollees),
-            ),
-            # Языки вступительной
-            # Автоматическое зачисление
-            # Баллы
-            PlainExcelColumn(
-                name='Смена',
-                data=self.get_session_for_users(request.school, enrollees),
-            ),
-            PlainExcelColumn(
-                name='Другая смена',
-                data=self.get_other_session_for_users(request.school,
-                                                      enrollees),
-            ),
-            # Оценки
-            # Комментарии
-            ExcelMultiColumn(
-                name='Олимпиады',
-                subcolumns=[
-                    PlainExcelColumn(
-                        name='Информатика',
-                        cell_width=30,
-                        data=self.get_informatics_olympiads_for_users(
-                            request.school, enrollees),
-                    ),
-                    PlainExcelColumn(
-                        name='Математика',
-                        cell_width=30,
-                        data=self.get_math_olympiads_for_users(request.school,
-                                                               enrollees),
-                    ),
-                ],
-            )
-        ]
+        columns = []
+
+        columns.append(LinkExcelColumn(
+            name='id',
+            cell_width=5,
+            data=[user.id for user in enrollees],
+            data_urls=[
+                request.build_absolute_uri(django.urls.reverse(
+                    'school:entrance:enrolling_user',
+                    args=(request.school.short_name, user.id)))
+                for user in enrollees
+            ],
+        ))
+
+        columns.append(LinkExcelColumn(
+            name='Фамилия',
+            data=[user.profile.last_name for user in enrollees],
+            data_urls=[getattr(user.profile.poldnev_person, 'url', '')
+                       for user in enrollees],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Имя',
+            data=[user.profile.first_name for user in enrollees],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Отчество',
+            data=[user.profile.middle_name for user in enrollees],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Город',
+            data=[user.profile.city for user in enrollees],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Класс',
+            cell_width=7,
+            data=[user.profile.get_class() for user in enrollees],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Школа',
+            data=[user.profile.school_name for user in enrollees],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='История',
+            data=self.get_history_for_users(request.school, enrollees),
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='История (poldnev.ru)',
+            data=self.get_poldnev_history_for_users(enrollees),
+        ))
+
+        # TODO: commented out because it significantly slows down local
+        #       testing. I will uncomment it before merging the pull
+        #       request.
+        #columns.append(PlainExcelColumn(
+        #    name='Уровень',
+        #    data=self.get_entrance_level_for_users(request.school, enrollees),
+        #))
+
+        columns.append(PlainExcelColumn(
+            name='Апгрейд',
+            data=self.get_max_upgrade_for_users(request.school, enrollees),
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Язык (основной)',
+            data=self.get_main_language_for_users(request.school, enrollees),
+        ))
+
+        # Языки вступительной
+
+        # Автоматическое зачисление
+
+        # TODO(artemtab): set of metrics to show shouldn't be hardcoded, but
+        #     defined for each school/exam somewhere in the database.
+        metrics = (models.EntranceUserMetric.objects
+                   .filter(exam__school=request.school,
+                           name__in=["C'", "C", "B'", "B", "A'", "A"]))
+        if metrics:
+            subcolumns = [
+                PlainExcelColumn(
+                    name=metric.name,
+                    cell_width=5,
+                    data=list(metric.values_for_users(enrollees))
+                )
+                for metric in metrics
+            ]
+            columns.append(ExcelMultiColumn(name='Баллы',
+                                            subcolumns=subcolumns))
+
+        columns.append(PlainExcelColumn(
+            name='Смена',
+            data=self.get_session_for_users(request.school, enrollees),
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Другая смена',
+            data=self.get_other_session_for_users(request.school, enrollees),
+        ))
+
+        # Оценки
+
+        # Комментарии
+
+        columns.append(ExcelMultiColumn(
+            name='Олимпиады',
+            subcolumns=[
+                PlainExcelColumn(
+                    name='Информатика',
+                    cell_width=30,
+                    data=self.get_informatics_olympiads_for_users(
+                        request.school, enrollees),
+                ),
+                PlainExcelColumn(
+                    name='Математика',
+                    cell_width=30,
+                    data=self.get_math_olympiads_for_users(request.school,
+                                                           enrollees),
+                ),
+            ],
+        ))
+
+        return columns
 
     @cached_property
     def answer_variant_by_id(self):
@@ -369,7 +405,7 @@ class ExcelMultiColumn(ExcelColumn):
             sheet.merge_range(irow,
                               icol,
                               irow,
-                              icol + self.width,
+                              icol + self.width - 1,
                               self.name,
                               self.header_format)
         else:
