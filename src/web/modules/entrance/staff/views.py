@@ -25,6 +25,7 @@ import users.views
 from modules.ejudge import models as ejudge_models
 from modules.entrance import models
 from modules.entrance import upgrades
+from modules.entrance import utils
 from modules.entrance.staff import forms
 from sistema.helpers import group_by, respond_as_attachment, nested_query_list
 from users import search_utils
@@ -89,14 +90,6 @@ class EnrollingUsersTable(frontend.table.Table):
 
     def search_column_name(self, qs, query):
         pass
-
-
-def get_enrolling_users_ids(school):
-    return models.EntranceStatus.objects.filter(
-        school=school
-    ).exclude(
-        status=models.EntranceStatus.Status.NOT_PARTICIPATED
-    ).values_list('user_id', flat=True)
 
 
 @sistema.staff.only_staff
@@ -720,7 +713,7 @@ def _get_ejudge_task_accepted_solutions(school, solution_model):
 
 @sistema.staff.only_staff
 def initial_auto_reject(request):
-    users_ids = list(get_enrolling_users_ids(request.school))
+    users_ids = list(utils.get_enrolling_users_ids(request.school))
 
     practice_users_ids = set(_get_ejudge_task_accepted_solutions(
         request.school, models.ProgramEntranceExamTaskSolution

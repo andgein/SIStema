@@ -12,6 +12,7 @@ import users.models as users_models
 
 from . import checking as checking_models
 from . import main as main_models
+from modules.entrance import utils
 
 
 class EntranceUserMetric(polymorphic.models.PolymorphicModel):
@@ -55,12 +56,7 @@ class EntranceUserMetric(polymorphic.models.PolymorphicModel):
 
         cached_value_by_user_id = cache.get(self.cache_key)
         if cached_value_by_user_id is None:
-            users_to_cache = (
-                users_models.User.objects
-                .filter(entrance_statuses__school=self.exam.school)
-                .exclude(entrance_statuses__status=
-                         main_models.EntranceStatus.Status.NOT_PARTICIPATED)
-            )
+            users_to_cache = utils.get_enrolling_users(self.exam.school)
             cached_value_by_user_id = {
                 user.id: value
                 for user, value in zip(users_to_cache,
