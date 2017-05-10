@@ -214,6 +214,10 @@ class ExportCompleteEnrollingTable(django.views.View):
                     data=[entrance_status_by_user_id[user.id].public_comment
                           for user in enrollees],
                 ),
+                PlainExcelColumn(
+                    name='Приватный комментарий',
+                    data=[],
+                ),
             ],
         ))
 
