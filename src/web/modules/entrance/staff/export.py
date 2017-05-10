@@ -11,6 +11,7 @@ import django.views
 from modules.entrance import models
 from modules.entrance import upgrades
 import questionnaire.models
+import modules.study_results.models as study_results_models
 import sistema.staff
 import users.models
 
@@ -144,6 +145,8 @@ class ExportCompleteEnrollingTable(django.views.View):
 
         # Языки вступительной
 
+        # Группы проверки
+
         # Автоматическое зачисление
 
         # TODO(artemtab): set of metrics to show shouldn't be hardcoded, but
@@ -173,7 +176,23 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=self.get_other_session_for_users(request.school, enrollees),
         ))
 
-        # Оценки
+        # TODO(artemtab): we need some way to define for each school the
+        #     the previous ones in the database.
+        columns.append(ExcelMultiColumn(
+            name='Оценки 2016',
+            subcolumns=[
+                PlainExcelColumn(
+                    name='Лето',
+                    cell_width=7,
+                    data=self.get_marks_for_users('2016', enrollees),
+                ),
+                PlainExcelColumn(
+                    name='Зима',
+                    cell_width=7,
+                    data=self.get_marks_for_users('2016.winter', enrollees),
+                ),
+            ],
+        ))
 
         # Комментарии
 
@@ -311,6 +330,18 @@ class ExportCompleteEnrollingTable(django.views.View):
         math_olympiads_by_user = {answer.user: answer.answer
                                   for answer in math_olympiads_answers}
         return [math_olympiads_by_user.get(user, '') for user in enrollees]
+
+    def get_marks_for_users(self, school_short_name, enrollees):
+        results = (
+            study_results_models.StudyResult.objects
+            .filter(school_participant__user__in=enrollees,
+                    school_participant__school__short_name=school_short_name)
+        )
+        marks_by_user_id = {
+            result.school_participant.user_id: '{} / {}'.format(
+                result.theory, result.practice)
+            for result in results}
+        return [marks_by_user_id.get(user.id, '') for user in enrollees]
 
 
 class ExcelColumn:
