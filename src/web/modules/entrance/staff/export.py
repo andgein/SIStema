@@ -142,13 +142,10 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=self.get_ok_languages_for_users(request.school, enrollees),
         ))
 
-        # TODO: commented out because it significantly slows down local
-        #       testing. I will uncomment it before merging the pull
-        #       request.
-        #columns.append(PlainExcelColumn(
-        #    name='Уровень',
-        #    data=self.get_entrance_level_for_users(request.school, enrollees),
-        #))
+        columns.append(PlainExcelColumn(
+            name='Уровень',
+            data=self.get_entrance_level_for_users(request.school, enrollees),
+        ))
 
         columns.append(PlainExcelColumn(
             name='Апгрейд',
