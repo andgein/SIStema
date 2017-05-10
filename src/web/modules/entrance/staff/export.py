@@ -146,9 +146,10 @@ class ExportCompleteEnrollingTable(django.views.View):
 
         # Языки вступительной
 
-        # Группы проверки
-
-        # Автоматическое зачисление
+        columns.append(PlainExcelColumn(
+            name='Группы проверки',
+            data=self.get_checking_groups_for_users(request.school, enrollees),
+        ))
 
         # TODO(artemtab): set of metrics to show shouldn't be hardcoded, but
         #     defined for each school/exam somewhere in the database.
@@ -376,6 +377,21 @@ class ExportCompleteEnrollingTable(django.views.View):
                       for comment in comments_by_user_id[user.id])
             for user in enrollees
         ]
+
+    def get_checking_groups_for_users(self, school, enrollees):
+        user_in_groups = (
+            models.UserInCheckingGroup.objects
+            .filter(user__in=enrollees,
+                    is_actual=True,
+                    group__school=school)
+            .order_by('group_id')
+            .select_related('group')
+        )
+        groups_by_user_id = collections.defaultdict(list)
+        for user_in_group in user_in_groups:
+            groups_by_user_id[user_in_group.user_id].append(user_in_group.group)
+        return [', '.join(group.name for group in groups_by_user_id[user.id])
+                for user in enrollees]
 
 
 class ExcelColumn:

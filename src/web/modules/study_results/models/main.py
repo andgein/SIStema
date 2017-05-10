@@ -49,12 +49,12 @@ class AbstractComment(polymorphic.models.PolymorphicModel):
 
 class StudyComment(AbstractComment):
     def verbose_type(self):
-        return 'Комментарий по учёбе'
+        return 'Учёба'
 
 
 class SocialComment(AbstractComment):
     def verbose_type(self):
-        return 'Комментарий по внеучебной деятельности'
+        return 'Внеучебная деятельность'
 
 
 class AsWinterParticipantComment(AbstractComment):
