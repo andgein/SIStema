@@ -116,6 +116,8 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=[user.profile.school_name for user in enrollees],
         ))
 
+        # Основание для поступления
+
         columns.append(PlainExcelColumn(
             name='История',
             data=self.get_history_for_users(request.school, enrollees),
@@ -125,6 +127,13 @@ class ExportCompleteEnrollingTable(django.views.View):
             name='История (poldnev.ru)',
             data=self.get_poldnev_history_for_users(enrollees),
         ))
+
+        columns.append(PlainExcelColumn(
+            name='Язык (основной)',
+            data=self.get_main_language_for_users(request.school, enrollees),
+        ))
+
+        # Языки вступительной
 
         # TODO: commented out because it significantly slows down local
         #       testing. I will uncomment it before merging the pull
@@ -139,12 +148,7 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=self.get_max_upgrade_for_users(request.school, enrollees),
         ))
 
-        columns.append(PlainExcelColumn(
-            name='Язык (основной)',
-            data=self.get_main_language_for_users(request.school, enrollees),
-        ))
-
-        # Языки вступительной
+        # Summary
 
         columns.append(PlainExcelColumn(
             name='Группы проверки',
@@ -155,7 +159,8 @@ class ExportCompleteEnrollingTable(django.views.View):
         #     defined for each school/exam somewhere in the database.
         metrics = (models.EntranceUserMetric.objects
                    .filter(exam__school=request.school,
-                           name__in=["C'", "C", "B'", "B", "A'", "A"]))
+                           name__in=["C'", "C", "B'", "B", "A'", "A"])
+                   .order_by('name'))
         if metrics:
             subcolumns = [
                 PlainExcelColumn(
@@ -176,6 +181,36 @@ class ExportCompleteEnrollingTable(django.views.View):
         columns.append(PlainExcelColumn(
             name='Другая смена',
             data=self.get_other_session_for_users(request.school, enrollees),
+        ))
+
+        # Итог (параллель, смена, публичный и приватный комментарий)
+        entrance_status_by_user_id = self.get_entrance_status_by_user_id(
+            request.school, enrollees)
+        columns.append(ExcelMultiColumn(
+            name='Итог',
+            subcolumns=[
+                PlainExcelColumn(
+                    name='Параллель',
+                    cell_width=8,
+                    data=[getattr(entrance_status_by_user_id[user.id].parallel,
+                                  'name',
+                                  '')
+                          for user in enrollees],
+                ),
+                PlainExcelColumn(
+                    name='Смена',
+                    cell_width=7,
+                    data=[getattr(entrance_status_by_user_id[user.id].session,
+                                  'name',
+                                  '')
+                          for user in enrollees],
+                ),
+                PlainExcelColumn(
+                    name='Комментарий',
+                    data=[entrance_status_by_user_id[user.id].public_comment
+                          for user in enrollees],
+                ),
+            ],
         ))
 
         # TODO(artemtab): we need some way to define for each school the
@@ -392,6 +427,15 @@ class ExportCompleteEnrollingTable(django.views.View):
             groups_by_user_id[user_in_group.user_id].append(user_in_group.group)
         return [', '.join(group.name for group in groups_by_user_id[user.id])
                 for user in enrollees]
+
+    def get_entrance_status_by_user_id(self, school, enrollees):
+        entrance_statuses = (
+            models.EntranceStatus.objects
+            .filter(school=school, user__in=enrollees)
+            .select_related('session', 'parallel')
+        )
+        return {entrance_status.user_id: entrance_status
+                for entrance_status in entrance_statuses}
 
 
 class ExcelColumn:
