@@ -1,3 +1,4 @@
+import collections
 import enum
 import itertools
 
@@ -194,7 +195,22 @@ class ExportCompleteEnrollingTable(django.views.View):
             ],
         ))
 
-        # Комментарии
+        columns.append(ExcelMultiColumn(
+            name='Комментарии 2016',
+            subcolumns=[
+                PlainExcelColumn(
+                    name='Лето',
+                    cell_width=30,
+                    data=self.get_study_comments_for_users('2016', enrollees),
+                ),
+                PlainExcelColumn(
+                    name='Зима',
+                    cell_width=30,
+                    data=self.get_study_comments_for_users('2016.winter',
+                                                           enrollees),
+                ),
+            ],
+        ))
 
         columns.append(ExcelMultiColumn(
             name='Олимпиады',
@@ -342,6 +358,24 @@ class ExportCompleteEnrollingTable(django.views.View):
                 result.theory, result.practice)
             for result in results}
         return [marks_by_user_id.get(user.id, '') for user in enrollees]
+
+    def get_study_comments_for_users(self, school_short_name, enrollees):
+        comments = (
+            study_results_models.AbstractComment.objects
+            .filter(study_result__school_participant__user__in=enrollees,
+                    study_result__school_participant__school__short_name=
+                    school_short_name)
+            .select_related('study_result__school_participant')
+        )
+        comments_by_user_id = collections.defaultdict(list)
+        for comment in comments:
+            user_id = comment.study_result.school_participant.user_id
+            comments_by_user_id[user_id].append(comment)
+        return [
+            '\n'.join('[{}] {}'.format(comment.verbose_type(), comment.comment)
+                      for comment in comments_by_user_id[user.id])
+            for user in enrollees
+        ]
 
 
 class ExcelColumn:
