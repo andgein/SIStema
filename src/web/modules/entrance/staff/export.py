@@ -187,6 +187,13 @@ class ExportCompleteEnrollingTable(django.views.View):
 
         entrance_status_by_user_id = self.get_entrance_status_by_user_id(
             request.school, enrollees)
+        status_repr = {
+            models.EntranceStatus.Status.NOT_PARTICIPATED: '!',
+            models.EntranceStatus.Status.AUTO_REJECTED: 'ТО',
+            models.EntranceStatus.Status.NOT_ENROLLED: 'X',
+            models.EntranceStatus.Status.ENROLLED: '+',
+            models.EntranceStatus.Status.PARTICIPATING: '',
+        }
         columns.append(ExcelMultiColumn(
             name='Итог',
             subcolumns=[
@@ -205,6 +212,15 @@ class ExportCompleteEnrollingTable(django.views.View):
                                   'name',
                                   '')
                           for user in enrollees],
+                ),
+                PlainExcelColumn(
+                    name='Статус',
+                    cell_width=5,
+                    data=[
+                        status_repr.get(
+                            entrance_status_by_user_id[user.id].status)
+                        for user in enrollees
+                    ],
                 ),
                 PlainExcelColumn(
                     name='Комментарий',
