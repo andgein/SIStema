@@ -273,10 +273,11 @@ class ExportCompleteEnrollingTable(django.views.View):
 
         return columns
 
-    @cached_property
-    def answer_variant_by_id(self):
-        variants = (questionnaire.models.ChoiceQuestionnaireQuestionVariant
-                    .objects.all())
+    def get_answer_variant_by_id(self, school):
+        variants = (
+            questionnaire.models.ChoiceQuestionnaireQuestionVariant.objects
+            .filter(question__questionnaire__school=school)
+        )
         return {str(var.id): var for var in variants}
 
 
@@ -288,8 +289,9 @@ class ExportCompleteEnrollingTable(django.views.View):
                     question_short_name='previous_parallels')
             .order_by('user__id', 'answer')
         )
+        answer_variant_by_id = self.get_answer_variant_by_id(school)
         history_by_user = {
-            user: ', '.join(self.answer_variant_by_id[ans.answer].text
+            user: ', '.join(answer_variant_by_id[ans.answer].text
                             for ans in answers)
             for user, answers in itertools.groupby(previous_parallel_answers,
                                                    lambda ans: ans.user)
@@ -344,8 +346,9 @@ class ExportCompleteEnrollingTable(django.views.View):
                     questionnaire__school=school,
                     question_short_name='want_to_session')
         )
+        answer_variant_by_id = self.get_answer_variant_by_id(school)
         session_by_user = {
-            answer.user: self.answer_variant_by_id[answer.answer].text
+            answer.user: answer_variant_by_id[answer.answer].text
             for answer in session_answers
         }
         return [session_by_user.get(user, '') for user in enrollees]
@@ -370,8 +373,9 @@ class ExportCompleteEnrollingTable(django.views.View):
                     questionnaire__school=school,
                     question_short_name='entrance_reason')
         )
+        answer_variant_by_id = self.get_answer_variant_by_id(school)
         entrance_reason_by_user = {
-            answer.user: self.answer_variant_by_id[answer.answer].text
+            answer.user: answer_variant_by_id[answer.answer].text
             for answer in entrance_reason_answers
         }
         return [entrance_reason_by_user.get(user, '') for user in enrollees]
