@@ -12,6 +12,7 @@ import django.views
 from modules.entrance import models
 from modules.entrance import upgrades
 import questionnaire.models
+import modules.ejudge.models as ejudge_models
 import modules.study_results.models as study_results_models
 import sistema.staff
 import users.models
@@ -136,7 +137,10 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=self.get_main_language_for_users(request.school, enrollees),
         ))
 
-        # Языки вступительной
+        columns.append(PlainExcelColumn(
+            name='Языки ОК\'ов',
+            data=self.get_ok_languages_for_users(request.school, enrollees),
+        ))
 
         # TODO: commented out because it significantly slows down local
         #       testing. I will uncomment it before merging the pull
@@ -150,8 +154,6 @@ class ExportCompleteEnrollingTable(django.views.View):
             name='Апгрейд',
             data=self.get_max_upgrade_for_users(request.school, enrollees),
         ))
-
-        # Summary
 
         columns.append(PlainExcelColumn(
             name='Группы проверки',
@@ -451,6 +453,21 @@ class ExportCompleteEnrollingTable(django.views.View):
         )
         return {entrance_status.user_id: entrance_status
                 for entrance_status in entrance_statuses}
+
+    def get_ok_languages_for_users(self, school, enrollees):
+        OK = ejudge_models.CheckingResult.Result.OK
+        ok_solutions = (
+            models.ProgramEntranceExamTaskSolution.objects
+            .filter(task__exam__school=school,
+                    user__in=enrollees,
+                    ejudge_queue_element__submission__result__result=OK)
+            .select_related('language')
+        )
+        languages_by_user_id = collections.defaultdict(set)
+        for solution in ok_solutions:
+            languages_by_user_id[solution.user_id].add(solution.language.name)
+        return ['\n'.join(sorted(languages_by_user_id[user.id]))
+                for user in enrollees]
 
 
 class ExcelColumn:
