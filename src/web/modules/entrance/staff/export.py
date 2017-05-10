@@ -116,7 +116,10 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=[user.profile.school_name for user in enrollees],
         ))
 
-        # Основание для поступления
+        columns.append(PlainExcelColumn(
+            name='Основание для поступления',
+            data=self.get_entrance_reason_for_users(request.school, enrollees),
+        ))
 
         columns.append(PlainExcelColumn(
             name='История',
@@ -183,7 +186,6 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=self.get_other_session_for_users(request.school, enrollees),
         ))
 
-        # Итог (параллель, смена, публичный и приватный комментарий)
         entrance_status_by_user_id = self.get_entrance_status_by_user_id(
             request.school, enrollees)
         columns.append(ExcelMultiColumn(
@@ -357,6 +359,19 @@ class ExportCompleteEnrollingTable(django.views.View):
             for answer in other_session_answers
         }
         return [other_session_by_user.get(user, '') for user in enrollees]
+
+    def get_entrance_reason_for_users(self, school, enrollees):
+        entrance_reason_answers = (
+            questionnaire.models.QuestionnaireAnswer.objects
+            .filter(user__in=enrollees,
+                    questionnaire__school=school,
+                    question_short_name='entrance_reason')
+        )
+        entrance_reason_by_user = {
+            answer.user: self.answer_variant_by_id[answer.answer].text
+            for answer in entrance_reason_answers
+        }
+        return [entrance_reason_by_user.get(user, '') for user in enrollees]
 
     def get_informatics_olympiads_for_users(self, school, enrollees):
         informatics_olympiads_answers = (
