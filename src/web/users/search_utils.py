@@ -199,8 +199,7 @@ class SimilarAccountSearcher(object):
         self._candidates = list(models.User.objects
                                 .select_related('profile', 'poldnev_person')
                                 .filter(is_active=True)
-                                .filter(expr)
-                                .all())
+                                .filter(expr))
         self._apply_filter(self._last_name_matched, True)
         self._apply_filter(self._good_match, True)
         if not first_name and not birth_date and len(self._candidates) > 1:

@@ -55,7 +55,7 @@ class SistemaTextarea(forms.Textarea):
         return self.fa_type.replace(r'"', r'\"')
 
     def render(self, name, value, attrs=None):
-        attrs = copy.deepcopy(attrs) or {}
+        attrs = self.build_attrs(attrs)
         attrs['class'] = attrs.get('class', '') + ' gui-textarea'
 
         base_rendered = super().render(name, value, attrs=attrs)

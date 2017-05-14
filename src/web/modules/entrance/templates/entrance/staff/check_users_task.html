@@ -163,24 +163,14 @@
                 </div>
             {% endif %}
 
-            {% if checking_comments %}
-                <div class="panel">
-                    <div class="panel-heading">
-                        <span class="panel-title">Общие комментарии</span>
-                    </div>
-                    <div class="panel-body">
-                        {% for comment in checking_comments %}
-                            <h4>
-                                {{ comment.commented_by.get_full_name }}
-                                <small>{{ comment.created_at }}</small>
-                            </h4>
-                            <p>
-                                <i>{{ comment.comment|linebreaksbr }}</i>
-                            </p>
-                        {% endfor %}
-                    </div>
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="panel-title">Общие комментарии</span>
                 </div>
-            {% endif %}
+                <div class="panel-body pt5">
+                    {% include 'entrance/staff/_checking_comments.html' with user=user_for_checking %}
+                </div>
+            </div>
         </div>
     </div>
 

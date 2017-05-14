@@ -204,3 +204,12 @@ tr:hover .visible-on-row-hover {
 .overflow-hidden {
     overflow: hidden;
 }
+
+/* Forms */
+.admin-form .gui-textarea.one-line {
+    height: 42px;
+}
+
+.admin-form .gui-textarea.one-line:focus {
+    height: 120px;
+}

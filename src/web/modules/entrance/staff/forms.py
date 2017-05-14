@@ -71,3 +71,22 @@ class MoveIntoCheckingGroupForm(forms.Form):
         groups = models.CheckingGroup.objects.filter(school=school)
         groups = [(g.id, g.name) for g in groups]
         self.fields['group_id'] = forms.ChoiceField(widget=forms.Select(), choices=list(groups))
+
+
+class AddCheckingCommentForm(forms.Form):
+    comment = forms.CharField(
+        required=True,
+        error_messages={
+            'required': 'Напишите комментарий',
+        },
+        label='',
+        label_suffix='',
+        widget=frontend.forms.SistemaTextarea(
+            fa='comment',
+            attrs={
+                'placeholder': 'Добавить комментарий',
+                'class': 'one-line',
+                'rows': 1
+            },
+        )
+    )

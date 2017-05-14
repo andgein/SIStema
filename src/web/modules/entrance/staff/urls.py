@@ -53,6 +53,10 @@ urlpatterns = [
         views.check_users_task,
         name='check_users_task'),
 
+    url(r'^add_comment/user(?P<user_id>[^/]+)/$',
+        views.add_comment,
+        name='add_comment'),
+
     url(r'^initial/auto_reject/$',
         views.initial_auto_reject,
         name='initial.auto_reject'),

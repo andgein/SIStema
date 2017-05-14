@@ -1,0 +1,22 @@
+{% load date %}
+
+{% for comment in checking_comments %}
+    <h4>
+        {{ comment.commented_by.get_full_name }}
+        <small title="{{ comment.created_at }}">{{ comment.created_at|without_year }}</small>
+    </h4>
+    <p>
+        <i>{{ comment.comment|linebreaksbr }}</i>
+    </p>
+{% endfor %}
+<h4>
+    {{ request.user.get_full_name }}
+</h4>
+<div class="admin-form">
+    <form method="POST" action="{% url 'school:entrance:add_comment' request.school.short_name user.id %}">
+        {% csrf_token %}
+        {{ add_checking_comment_form }}
+        <input type="hidden" name="next" value="{{ request.path }}"/>
+        <button type="submit" class="btn btn-success mt10">Добавить</button>
+    </form>
+</div>

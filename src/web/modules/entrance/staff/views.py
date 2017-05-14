@@ -3,6 +3,7 @@ import operator
 import random
 
 from django.contrib import messages
+from django.core import urlresolvers
 from django.db import transaction
 from django.db.models import F
 from django.http.response import HttpResponseNotFound, JsonResponse
@@ -10,6 +11,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 import django.urls
+from django.utils.http import is_safe_url
 
 from frontend.table.utils import A, TableDataSource
 from modules.ejudge import models as ejudge_models
@@ -272,7 +274,11 @@ def check_user(request, user, group=None):
 
     move_into_checking_group_form = forms.MoveIntoCheckingGroupForm(request.school)
 
-    checking_comments = user.entrance_checking_comments.filter(school=request.school).order_by('created_at')
+    checking_comments = user.entrance_checking_comments.filter(
+        school=request.school
+    ).order_by('created_at')
+
+    add_checking_comment_form = forms.AddCheckingCommentForm()
 
     return render(request, 'entrance/staff/check_user.html', {
         'group': group,
@@ -285,6 +291,7 @@ def check_user(request, user, group=None):
         'program_tasks': program_tasks,
 
         'checking_comments': checking_comments,
+        'add_checking_comment_form': add_checking_comment_form,
         'move_into_checking_group_form': move_into_checking_group_form,
 
         'user_summary': UserSummary.summary_for_user(request.school, user),
@@ -651,6 +658,7 @@ def check_users_task(request, task_id, user_id, group_name=None):
     )
 
     move_into_checking_group_form = forms.MoveIntoCheckingGroupForm(request.school)
+    add_checking_comment_form = forms.AddCheckingCommentForm()
 
     return render(request, 'entrance/staff/check_users_task.html', {
         'group': group,
@@ -666,6 +674,7 @@ def check_users_task(request, task_id, user_id, group_name=None):
         'checks': checks,
         'last_mark': last_mark,
         'checking_comments': checking_comments,
+        'add_checking_comment_form': add_checking_comment_form,
 
         'move_into_checking_group_form': move_into_checking_group_form,
         'mark_form': mark_form
@@ -700,6 +709,34 @@ def solution(request, solution_id):
         )
 
     return HttpResponseNotFound()
+
+
+@sistema.staff.only_staff
+@require_POST
+def add_comment(request, user_id):
+    next = request.POST.get('next', '')
+    if not is_safe_url(next, request.get_host()):
+        next = urlresolvers.reverse('school:entrance:enrolling_user', kwargs={
+            'school_name': request.school.short_name,
+            'user_id': user_id,
+        })
+
+    form = forms.AddCheckingCommentForm(data=request.POST)
+    if form.is_valid():
+        models.CheckingComment.objects.create(
+            school=request.school,
+            user_id=user_id,
+            comment=form.cleaned_data['comment'],
+            commented_by=request.user,
+        )
+    else:
+        messages.add_message(
+            request,
+            messages.ERROR,
+            form['comment'].errors[0]
+        )
+
+    return redirect(next)
 
 
 def _get_ejudge_task_accepted_solutions(school, solution_model):
