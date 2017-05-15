@@ -25,10 +25,11 @@ class AbstractQuestionnaireBlockAdmin(
         'short_name',
         'order',
     )
-    list_filter = ('questionnaire',)
+    list_filter = ('questionnaire', PolymorphicChildModelFilter)
     ordering = ('questionnaire', 'order')
 
 
+@admin.register(models.AbstractQuestionnaireQuestion)
 @admin.register(models.MarkdownQuestionnaireBlock)
 @admin.register(models.TextQuestionnaireQuestion)
 @admin.register(models.YesNoQuestionnaireQuestion)
