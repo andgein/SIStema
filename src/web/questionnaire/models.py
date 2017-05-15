@@ -32,6 +32,7 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
         return '%s. %s' % (self.questionnaire, self.short_name)
 
     class Meta:
+        verbose_name = 'questionnaire block'
         unique_together = [('short_name', 'questionnaire'), ('questionnaire', 'order')]
         ordering = ('questionnaire_id', 'order')
 
