@@ -714,9 +714,9 @@ def solution(request, solution_id):
 @sistema.staff.only_staff
 @require_POST
 def add_comment(request, user_id):
-    next = request.POST.get('next', '')
-    if not is_safe_url(next, request.get_host()):
-        next = urlresolvers.reverse('school:entrance:enrolling_user', kwargs={
+    redirect_url = request.POST.get('next', '')
+    if not is_safe_url(redirect_url, request.get_host()):
+        redirect_url = urlresolvers.reverse('school:entrance:enrolling_user', kwargs={
             'school_name': request.school.short_name,
             'user_id': user_id,
         })
@@ -736,7 +736,7 @@ def add_comment(request, user_id):
             form['comment'].errors[0]
         )
 
-    return redirect(next)
+    return redirect(redirect_url)
 
 
 def _get_ejudge_task_accepted_solutions(school, solution_model):
