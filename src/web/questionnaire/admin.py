@@ -34,7 +34,7 @@ class AbstractQuestionnaireBlockAdmin(
 @admin.register(models.TextQuestionnaireQuestion)
 @admin.register(models.YesNoQuestionnaireQuestion)
 @admin.register(models.DateQuestionnaireQuestion)
-class AbstractQuestionnaireQuestionChildAdmin(PolymorphicChildModelAdmin):
+class AbstractQuestionnaireBlockChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractQuestionnaireBlock
 
 
