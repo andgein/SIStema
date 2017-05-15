@@ -1,5 +1,9 @@
 from django.contrib import admin
+from polymorphic.admin import (PolymorphicChildModelAdmin,
+                               PolymorphicChildModelFilter,
+                               PolymorphicParentModelAdmin)
 
+import sistema.polymorphic
 from . import models
 
 
@@ -10,25 +14,38 @@ class QuestionnaireAdmin(admin.ModelAdmin):
 admin.site.register(models.Questionnaire, QuestionnaireAdmin)
 
 
-class AbstractQuestionnaireBlockAdmin(admin.ModelAdmin):
-    list_display = ('id', 'short_name', 'questionnaire', 'order')
+@admin.register(models.AbstractQuestionnaireBlock)
+class AbstractQuestionnaireBlockAdmin(
+        sistema.polymorphic.PolymorphicParentModelAdmin
+):
+    base_model = models.AbstractQuestionnaireBlock
+    list_display = (
+        'id',
+        'questionnaire',
+        'short_name',
+        'order',
+    )
     list_filter = ('questionnaire',)
-    ordering = ('order',)
+    ordering = ('questionnaire', 'order')
 
 
-admin.site.register(models.MarkdownQuestionnaireBlock, AbstractQuestionnaireBlockAdmin)
+@admin.register(models.MarkdownQuestionnaireBlock)
+@admin.register(models.TextQuestionnaireQuestion)
+@admin.register(models.YesNoQuestionnaireQuestion)
+@admin.register(models.DateQuestionnaireQuestion)
+class AbstractQuestionnaireQuestionChildAdmin(PolymorphicChildModelAdmin):
+    base_model = models.AbstractQuestionnaireBlock
 
 
-class AbstractQuestionnaireQuestionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'short_name', 'is_required', 'questionnaire', 'order')
-    list_filter = ('questionnaire', 'is_required')
-    ordering = ('order',)
+class ChoiceQuestionnaireQuestionVariantInline(admin.StackedInline):
+    model = models.ChoiceQuestionnaireQuestionVariant
+    extra = 1
 
 
-admin.site.register(models.ChoiceQuestionnaireQuestion, AbstractQuestionnaireQuestionAdmin)
-admin.site.register(models.TextQuestionnaireQuestion, AbstractQuestionnaireQuestionAdmin)
-admin.site.register(models.YesNoQuestionnaireQuestion, AbstractQuestionnaireQuestionAdmin)
-admin.site.register(models.DateQuestionnaireQuestion, AbstractQuestionnaireQuestionAdmin)
+@admin.register(models.ChoiceQuestionnaireQuestion)
+class ChoiceQuestionnaireQuestionQuestionChildAdmin(PolymorphicChildModelAdmin):
+    base_model = models.AbstractQuestionnaireBlock
+    inlines = (ChoiceQuestionnaireQuestionVariantInline,)
 
 
 class ChoiceQuestionnaireQuestionVariantAdmin(admin.ModelAdmin):
