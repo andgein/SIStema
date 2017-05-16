@@ -40,7 +40,6 @@ $(document).ready(function() {
             paging: paging,
             serverSide: true,
             processing: true,
-            searchDelay: 800,  // In ms
             order: [],  // TODO: order by the first orderable column
             ajax: function(data, callback, settings) {
                 var args = {
@@ -93,8 +92,14 @@ $(document).ready(function() {
         $table.DataTable(tableOptions);
 
         // Set up global search
+        var search = $.fn.dataTable.util.throttle(
+          function(val) {
+              $table.DataTable().search(val).draw();
+          },
+          400  // Delay in ms
+        );
         $this.find('.global-search').keyup(function() {
-          $table.DataTable().search($(this).val()).draw();
+          search($(this).val());
         });
     });
 });
