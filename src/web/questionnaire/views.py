@@ -93,23 +93,22 @@ def questionnaire_for_user(request, user, questionnaire_name):
 
     # Typing dynamics form
     typing_dynamics_form = None
-    print(questionnaire.should_record_typing_dynamics)
-    if questionnaire.should_record_typing_dynamics:
+    if questionnaire.should_record_typing_dynamics and request.user == user:
+        # We record typing dynamics only in the case when questionnaire is
+        # filled by the user himself, but not by admin.
         if request.method == 'POST':
             typing_dynamics_form = forms.QuestionnaireTypingDynamicsForm(
                 data=request.POST)
-            print(request.POST)
             if typing_dynamics_form.is_valid():
-                # TODO: validate JSON
-                print(typing_dynamics_form.cleaned_data['typing_data'])
-                print(type(typing_dynamics_form.cleaned_data['typing_data']))
+                # TODO(artemtab): validate JSON
                 models.QuestionnaireTypingDynamics.objects.create(
                     user=user,
                     questionnaire=questionnaire,
                     typing_data=typing_dynamics_form.cleaned_data['typing_data'],
                 )
             else:
-                # TODO: log some error?
+                # TODO(artemtab): most probably the typing data is too large.
+                #                 Log some error?
                 pass
         else:
             typing_dynamics_form = forms.QuestionnaireTypingDynamicsForm()
