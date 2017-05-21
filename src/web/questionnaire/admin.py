@@ -7,11 +7,9 @@ import sistema.polymorphic
 from . import models
 
 
+@admin.register(models.Questionnaire)
 class QuestionnaireAdmin(admin.ModelAdmin):
     list_display = ('id', 'short_name', 'title', 'school', 'session')
-
-
-admin.site.register(models.Questionnaire, QuestionnaireAdmin)
 
 
 @admin.register(models.AbstractQuestionnaireBlock)
@@ -57,15 +55,13 @@ class ChoiceQuestionnaireQuestionQuestionChildAdmin(PolymorphicChildModelAdmin):
                ChoiceQuestionnaireQuestionVariantInline,)
 
 
+@admin.register(models.ChoiceQuestionnaireQuestionVariant)
 class ChoiceQuestionnaireQuestionVariantAdmin(admin.ModelAdmin):
     list_display = ('id', 'question', 'text')
     list_filter = ('question',)
 
 
-admin.site.register(models.ChoiceQuestionnaireQuestionVariant,
-                    ChoiceQuestionnaireQuestionVariantAdmin)
-
-
+@admin.register(models.UserQuestionnaireStatus)
 class UserQuestionnaireStatusAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'questionnaire', 'status')
     list_filter = ('questionnaire', 'status')
@@ -79,11 +75,15 @@ class UserQuestionnaireStatusAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(models.UserQuestionnaireStatus, UserQuestionnaireStatusAdmin)
-
-
+@admin.register(models.QuestionnaireAnswer)
 class QuestionnaireAnswerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'questionnaire', 'question_short_name', 'answer')
+    list_display = (
+        'id',
+        'user',
+        'questionnaire',
+        'question_short_name',
+        'answer',
+    )
     list_filter = ('questionnaire',)
     search_fields = (
         '=user__username',
@@ -95,4 +95,14 @@ class QuestionnaireAnswerAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(models.QuestionnaireAnswer, QuestionnaireAnswerAdmin)
+@admin.register(models.QuestionnaireTypingDynamics)
+class QuestionnaireTypingDynamicsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'questionnaire', 'created_at')
+    list_filter = ('questionnaire',)
+    search_fields = (
+        '=id',
+        '=user__id',
+        'user__email',
+        'user__profile__first_name',
+        'user__profile__last_name',
+    )

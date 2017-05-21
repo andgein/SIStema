@@ -13,6 +13,7 @@
     <script type="text/javascript" src="{% static 'vendor/plugins/moment/moment.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'vendor/plugins/datepicker/js/bootstrap-datetimepicker.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'questionnaire/js/show-conditions.js' %}"></script>
+    <script type="text/javascript" src="{% static 'questionnaire/js/typing-dynamics.js' %}"></script>
     <script type="text/javascript">
         $(document).ready(function() {
             {% for block_id, options in show_conditions.items %}
@@ -90,6 +91,9 @@
                         </div>
 
                         {% if not is_closed %}
+                            {% if typing_dynamics_form %}
+                              {{ typing_dynamics_form.typing_data }}
+                            {% endif %}
                             <div class="panel-footer p25 text-right">
                                 <button type="submit" class="button btn-success">Отправить</button>
                             </div>

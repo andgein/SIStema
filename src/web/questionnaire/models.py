@@ -11,6 +11,7 @@ from django.db import models
 
 import frontend.forms
 import schools.models
+import sistema.models
 import users.models
 from sistema.helpers import group_by
 from . import forms
@@ -20,11 +21,14 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
     questionnaire = models.ForeignKey('Questionnaire',
                                       on_delete=models.CASCADE)
 
-    short_name = models.CharField(max_length=100,
-                                  help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием')
+    short_name = models.CharField(
+        max_length=100,
+        help_text='Используется в урлах. Лучше обойтись латинскими буквами, '
+                  'цифрами и подчёркиванием')
 
-    order = models.IntegerField(help_text='Блоки выстраиваются по возрастанию порядка',
-                                default=0)
+    order = models.IntegerField(
+        default=0,
+        help_text='Блоки выстраиваются по возрастанию порядка')
 
     is_question = False
 
@@ -33,7 +37,8 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
 
     class Meta:
         verbose_name = 'questionnaire block'
-        unique_together = [('short_name', 'questionnaire'), ('questionnaire', 'order')]
+        unique_together = [('short_name', 'questionnaire'),
+                           ('questionnaire', 'order')]
         ordering = ('questionnaire_id', 'order')
 
 
@@ -235,6 +240,8 @@ class Questionnaire(models.Model):
                   'вопросе при загрузке страницы',
     )
 
+    should_record_typing_dynamics = models.BooleanField(default=False)
+
     def __str__(self):
         if self.school is not None:
             return '%s. %s' % (self.school, self.title)
@@ -264,7 +271,9 @@ class Questionnaire(models.Model):
         if attrs is None:
             attrs = {}
 
-        fields = {}
+        fields = {
+            'prefix': self.get_prefix(),
+        }
 
         is_first = True
         for question in self.questions:
@@ -274,17 +283,29 @@ class Questionnaire(models.Model):
                     question_attrs['autofocus'] = 'autofocus'
                 is_first = False
 
-            fields[question.short_name] = question.get_form_field(question_attrs)
+            fields[question.short_name] = (
+                question.get_form_field(question_attrs))
 
-        form_class = type('%sForm' % self.short_name.title(), (forms.QuestionnaireForm,), fields)
+        form_class = type('%sForm' % self.short_name.title(),
+                          (forms.QuestionnaireForm,),
+                          fields)
         return form_class
+
+    def get_prefix(self):
+        return 'questionnaire.' + self.short_name
 
     def get_absolute_url(self):
         if self.school is None:
-            return urlresolvers.reverse('questionnaire', kwargs={'questionnaire_name': self.short_name})
+            return urlresolvers.reverse(
+                'questionnaire',
+                kwargs={'questionnaire_name': self.short_name},
+            )
         else:
-            return urlresolvers.reverse('school:questionnaire', kwargs={'questionnaire_name': self.short_name,
-                                                                        'school_name': self.school.short_name})
+            return urlresolvers.reverse(
+                'school:questionnaire',
+                kwargs={'questionnaire_name': self.short_name,
+                        'school_name': self.school.short_name}
+            )
 
     def is_filled_by(self, user):
         user_status = self.statuses.filter(user=user).first()
@@ -348,3 +369,27 @@ class QuestionnaireBlockShowCondition(models.Model):
 
     def __str__(self):
         return 'Show %s only if %s' % (self.block, self.need_to_be_checked)
+
+
+# Used to evalute fraction of accounts where different persons filled
+# questionnairies for students and parents. The estimation will be biased, but
+# we will probably be able to measure changes in the next year comparing with
+# the current one.
+class QuestionnaireTypingDynamics(models.Model):
+    user = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    questionnaire = models.ForeignKey(
+        Questionnaire,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    typing_data = sistema.models.CompressedTextField(
+        help_text='JSON с данными о нажатиях клавиш'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -33,3 +33,12 @@ class TypedMultipleChoiceFieldForChoiceQuestion(ChoiceQuestionField, forms.Typed
 
 class TypedChoiceFieldForChoiceQuestion(ChoiceQuestionField, forms.TypedChoiceField):
     pass
+
+
+class QuestionnaireTypingDynamicsForm(forms.Form):
+    prefix = 'typing-dynamics'
+
+    # TODO(artemtab): look into compressing data before sending
+    # We send about 100 characters for each keypress
+    typing_data = forms.CharField(max_length=10000 * 100,
+                                  widget=forms.HiddenInput())

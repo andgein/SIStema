@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, get_object_or_404, redirect
 
+from . import forms
 from . import models
 
 
@@ -19,7 +20,8 @@ def save_questionnaire_answers(user, questionnaire, form):
         if isinstance(answer, (tuple, list)):
             answer_list = answer
         elif isinstance(answer, (datetime.date, datetime.datetime)):
-            answer_list = [answer.strftime(settings.SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT)]
+            answer_list = [answer.strftime(
+                settings.SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT)]
         elif answer is None:  # For not-filled dates i.e.
             answer_list = []
         else:
@@ -32,11 +34,13 @@ def save_questionnaire_answers(user, questionnaire, form):
                                        answer=answer
                                        ).save()
 
-    models.UserQuestionnaireStatus.objects.update_or_create(questionnaire=questionnaire,
-                                                            user=user,
-                                                            defaults={
-                                                                'status': models.UserQuestionnaireStatus.Status.FILLED
-                                                            })
+    models.UserQuestionnaireStatus.objects.update_or_create(
+        questionnaire=questionnaire,
+        user=user,
+        defaults={
+            'status': models.UserQuestionnaireStatus.Status.FILLED
+        },
+    )
 
 
 def _get_user_questionnaire_answers(user, questionnaire):
@@ -67,21 +71,50 @@ def _get_user_questionnaire_answers(user, questionnaire):
 
 def questionnaire_for_user(request, user, questionnaire_name):
     if hasattr(request, 'school'):
-        qs = models.Questionnaire.objects.filter(school=request.school, short_name=questionnaire_name)
+        qs = (models.Questionnaire.objects
+              .filter(school=request.school, short_name=questionnaire_name))
         # If questionnaire with this name exists for the school, use it,
         # otherwise use common questionnaire (with school = None)
         if qs.exists():
             questionnaire = qs.first()
         else:
-            questionnaire = get_object_or_404(models.Questionnaire, school__isnull=True, short_name=questionnaire_name)
+            questionnaire = get_object_or_404(models.Questionnaire,
+                                              school__isnull=True,
+                                              short_name=questionnaire_name)
     else:
-        questionnaire = get_object_or_404(models.Questionnaire, school__isnull=True, short_name=questionnaire_name)
+        questionnaire = get_object_or_404(models.Questionnaire,
+                                          school__isnull=True,
+                                          short_name=questionnaire_name)
 
     form_class = questionnaire.get_form_class()
 
     # There are no closed questionnaires for staff users
     is_closed = questionnaire.is_closed() and not request.user.is_staff
 
+    # Typing dynamics form
+    typing_dynamics_form = None
+    print(questionnaire.should_record_typing_dynamics)
+    if questionnaire.should_record_typing_dynamics:
+        if request.method == 'POST':
+            typing_dynamics_form = forms.QuestionnaireTypingDynamicsForm(
+                data=request.POST)
+            print(request.POST)
+            if typing_dynamics_form.is_valid():
+                # TODO: validate JSON
+                print(typing_dynamics_form.cleaned_data['typing_data'])
+                print(type(typing_dynamics_form.cleaned_data['typing_data']))
+                models.QuestionnaireTypingDynamics.objects.create(
+                    user=user,
+                    questionnaire=questionnaire,
+                    typing_data=typing_dynamics_form.cleaned_data['typing_data'],
+                )
+            else:
+                # TODO: log some error?
+                pass
+        else:
+            typing_dynamics_form = forms.QuestionnaireTypingDynamicsForm()
+
+    # Main questionnaire form
     if request.method == 'POST':
         form = form_class(data=request.POST)
         if is_closed:
@@ -93,7 +126,9 @@ def questionnaire_for_user(request, user, questionnaire_name):
             else:
                 return redirect('home')
     else:
-        questionnaire_answers = _get_user_questionnaire_answers(user, questionnaire)
+
+        questionnaire_answers = _get_user_questionnaire_answers(user,
+                                                                questionnaire)
         if questionnaire_answers:
             form = form_class(initial=questionnaire_answers)
         else:
@@ -106,6 +141,7 @@ def questionnaire_for_user(request, user, questionnaire_name):
         # Need for dict() because a bug: https://code.djangoproject.com/ticket/16335
         'show_conditions': dict(questionnaire.show_conditions),
         'form': form,
+        'typing_dynamics_form': typing_dynamics_form,
         'already_filled': already_filled,
         'is_closed': is_closed,
     })
@@ -118,13 +154,20 @@ def questionnaire(request, questionnaire_name):
 
 @login_required
 def reset(request, questionnaire_name):
-    questionnaire = get_object_or_404(models.Questionnaire, school__isnull=True, short_name=questionnaire_name)
+    questionnaire = get_object_or_404(models.Questionnaire,
+                                      school__isnull=True,
+                                      short_name=questionnaire_name)
 
-    models.QuestionnaireAnswer.objects.filter(user=request.user, questionnaire=questionnaire).delete()
-    models.UserQuestionnaireStatus.objects.update_or_create(questionnaire=questionnaire,
-                                                            user=request.user,
-                                                            defaults={
-                                                                'status': models.UserQuestionnaireStatus.Status.NOT_FILLED
-                                                            })
+    models.QuestionnaireAnswer.objects.filter(
+        user=request.user,
+        questionnaire=questionnaire
+    ).delete()
+    models.UserQuestionnaireStatus.objects.update_or_create(
+        questionnaire=questionnaire,
+        user=request.user,
+        defaults={
+            'status': models.UserQuestionnaireStatus.Status.NOT_FILLED
+        },
+    )
 
     return redirect(questionnaire)
