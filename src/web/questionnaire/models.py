@@ -125,6 +125,8 @@ class ChoiceQuestionnaireQuestionVariant(models.Model):
                                  on_delete=models.CASCADE,
                                  related_name='variants')
 
+    order = models.PositiveIntegerField(default=0)
+
     # If variant is disabled it shows as gray and can't be selected
     is_disabled = models.BooleanField(default=False)
 
@@ -146,7 +148,8 @@ class ChoiceQuestionnaireQuestion(AbstractQuestionnaireQuestion):
         if attrs is None:
             attrs = {}
 
-        choices = ((v.id, {'label': v.text, 'disabled': v.is_disabled}) for v in self.variants.all())
+        choices = ((v.id, {'label': v.text, 'disabled': v.is_disabled})
+                   for v in self.variants.order_by('order', 'id'))
 
         attrs['inline'] = self.is_inline
         if self.is_multiple:

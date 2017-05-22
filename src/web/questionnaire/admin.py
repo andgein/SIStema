@@ -41,6 +41,7 @@ class AbstractQuestionnaireBlockChildAdmin(PolymorphicChildModelAdmin):
 class ChoiceQuestionnaireQuestionVariantInline(admin.StackedInline):
     model = models.ChoiceQuestionnaireQuestionVariant
     extra = 1
+    ordering = ('order',)
 
 
 @admin.register(models.ChoiceQuestionnaireQuestion)
