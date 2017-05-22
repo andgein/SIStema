@@ -29,6 +29,11 @@ class AbstractQuestionnaireBlockAdmin(
     ordering = ('questionnaire', 'order')
 
 
+class QuestionnaireBlockShowConditionInline(admin.StackedInline):
+    model = models.QuestionnaireBlockShowCondition
+    extra = 1
+
+
 @admin.register(models.AbstractQuestionnaireQuestion)
 @admin.register(models.MarkdownQuestionnaireBlock)
 @admin.register(models.TextQuestionnaireQuestion)
@@ -36,6 +41,7 @@ class AbstractQuestionnaireBlockAdmin(
 @admin.register(models.DateQuestionnaireQuestion)
 class AbstractQuestionnaireBlockChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractQuestionnaireBlock
+    inlines = (QuestionnaireBlockShowConditionInline,)
 
 
 class ChoiceQuestionnaireQuestionVariantInline(admin.StackedInline):
@@ -46,7 +52,8 @@ class ChoiceQuestionnaireQuestionVariantInline(admin.StackedInline):
 @admin.register(models.ChoiceQuestionnaireQuestion)
 class ChoiceQuestionnaireQuestionQuestionChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractQuestionnaireBlock
-    inlines = (ChoiceQuestionnaireQuestionVariantInline,)
+    inlines = (QuestionnaireBlockShowConditionInline,
+               ChoiceQuestionnaireQuestionVariantInline,)
 
 
 class ChoiceQuestionnaireQuestionVariantAdmin(admin.ModelAdmin):
@@ -88,11 +95,3 @@ class QuestionnaireAnswerAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.QuestionnaireAnswer, QuestionnaireAnswerAdmin)
-
-
-class QuestionnaireBlockShowConditionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'block', 'need_to_be_checked')
-    list_filter = ('block__questionnaire',)
-
-
-admin.site.register(models.QuestionnaireBlockShowCondition, QuestionnaireBlockShowConditionAdmin)
