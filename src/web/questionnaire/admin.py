@@ -38,7 +38,7 @@ class AbstractQuestionnaireBlockChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractQuestionnaireBlock
 
 
-class ChoiceQuestionnaireQuestionVariantInline(admin.StackedInline):
+class ChoiceQuestionnaireQuestionVariantInline(admin.TabularInline):
     model = models.ChoiceQuestionnaireQuestionVariant
     extra = 1
     ordering = ('order',)
