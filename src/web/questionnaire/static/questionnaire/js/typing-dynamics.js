@@ -3,8 +3,8 @@ $(document).ready(function() {
     var typingData = {};
 
     $('[name=' + inputName + ']').each(function(i, input) {
-        $input = $(input);
-        $form = $input.closest('form');
+        var $input = $(input);
+        var $form = $input.closest('form');
         $form.find('[type=text], textarea').keyup(function(e) {
             var name = $(this).attr('name');
             typingData[name] = typingData[name] || [];
