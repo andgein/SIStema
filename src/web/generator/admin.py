@@ -1,4 +1,6 @@
 from django.contrib import admin
+from polymorphic.admin import (PolymorphicInlineSupportMixin,
+                               StackedPolymorphicInline)
 
 from . import models
 
@@ -84,20 +86,37 @@ class LineTableStyleCommandAdmin(admin.ModelAdmin):
     list_filter = ('table', 'command_name')
 
 
+class AbstractDocumentBlockInline(StackedPolymorphicInline):
+    class ParagraphInline(StackedPolymorphicInline.Child):
+        model = models.Paragraph
+
+    class PageBreakInline(StackedPolymorphicInline.Child):
+        model = models.PageBreak
+
+    class SpacerInline(StackedPolymorphicInline.Child):
+        model = models.Spacer
+
+    class ImageInline(StackedPolymorphicInline.Child):
+        model = models.Image
+
+    class TableInline(StackedPolymorphicInline.Child):
+        model = models.Table
+
+    model = models.AbstractDocumentBlock
+    child_inlines = (
+        ParagraphInline,
+        PageBreakInline,
+        SpacerInline,
+        ImageInline,
+        TableInline,
+    )
+    ordering = ('order',)
+
+
 @admin.register(models.Document)
-class DocumentAdmin(admin.ModelAdmin):
+class DocumentAdmin(PolymorphicInlineSupportMixin, admin.ModelAdmin):
     list_display = ('id', 'name', 'page_size')
-
-
-@admin.register(models.Paragraph)
-@admin.register(models.PageBreak)
-@admin.register(models.Spacer)
-@admin.register(models.Image)
-@admin.register(models.Table)
-class AbstractDocumentBlockAdmin(admin.ModelAdmin):
-    list_display = ('id', 'document', 'order')
-    list_filter = (('document', admin.RelatedOnlyFieldListFilter), )
-    ordering = ('document', 'order')
+    inlines = (AbstractDocumentBlockInline,)
 
 
 @admin.register(models.TableRow)

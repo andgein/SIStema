@@ -1,7 +1,6 @@
 from django.contrib import admin
 from polymorphic.admin import (PolymorphicChildModelAdmin,
-                               PolymorphicChildModelFilter,
-                               PolymorphicParentModelAdmin)
+                               PolymorphicChildModelFilter)
 
 import sistema.polymorphic
 from . import models

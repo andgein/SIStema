@@ -263,6 +263,7 @@ class AbstractDocumentBlock(polymorphic.models.PolymorphicModel,
     )
 
     class Meta:
+        verbose_name = 'document block'
         unique_together = ('document', 'order')
         ordering = ('document', 'order')
 
