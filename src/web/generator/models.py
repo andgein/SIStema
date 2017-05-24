@@ -36,9 +36,11 @@ class Color(djchoices.DjangoChoices):
     RED = djchoices.ChoiceItem(reportlab.lib.colors.red.hexval(), 'Red')
     GREEN = djchoices.ChoiceItem(reportlab.lib.colors.green.hexval(), 'Green')
     BLUE = djchoices.ChoiceItem(reportlab.lib.colors.blue.hexval(), 'Blue')
-    YELLOW = djchoices.ChoiceItem(reportlab.lib.colors.yellow.hexval(), 'Yellow')
+    YELLOW = djchoices.ChoiceItem(reportlab.lib.colors.yellow.hexval(),
+                                  'Yellow')
     CYAN = djchoices.ChoiceItem(reportlab.lib.colors.cyan.hexval(), 'Cyan')
-    MAGENTA = djchoices.ChoiceItem(reportlab.lib.colors.magenta.hexval(), 'Magenta')
+    MAGENTA = djchoices.ChoiceItem(reportlab.lib.colors.magenta.hexval(),
+                                   'Magenta')
     BROWN = djchoices.ChoiceItem(reportlab.lib.colors.brown.hexval(), 'Brown')
 
 
@@ -90,7 +92,8 @@ class Font(models.Model):
         return self.name
 
     def get_reportlab_font(self):
-        return reportlab.pdfbase.ttfonts.TTFont(self.name, self.get_filename_abspath())
+        return reportlab.pdfbase.ttfonts.TTFont(self.name,
+                                                self.get_filename_abspath())
 
     def register_in_reportlab(self):
         reportlab.pdfbase.pdfmetrics.registerFont(self.get_reportlab_font())
@@ -110,17 +113,45 @@ class Font(models.Model):
 class FontFamily(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
-    normal = models.ForeignKey(Font, null=True, default=None, blank=True,
-                               help_text='Обычное начертание', related_name='+')
+    normal = models.ForeignKey(
+        Font,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None,
+        help_text='Обычное начертание',
+        related_name='+',
+    )
 
-    bold = models.ForeignKey(Font, null=True, default=None, blank=True,
-                             help_text='Полужирное начертание', related_name='+')
+    bold = models.ForeignKey(
+        Font,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None,
+        help_text='Полужирное начертание',
+        related_name='+',
+    )
 
-    italic = models.ForeignKey(Font, null=True, default=None, blank=True,
-                               help_text='Курсивное начертание', related_name='+')
+    italic = models.ForeignKey(
+        Font,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None,
+        help_text='Курсивное начертание',
+        related_name='+',
+    )
 
-    bold_italic = models.ForeignKey(Font, null=True, default=None, blank=True,
-                                    help_text='Полужирное курсивное начертание', related_name='+')
+    bold_italic = models.ForeignKey(
+        Font,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None,
+        help_text='Полужирное курсивное начертание',
+        related_name='+',
+    )
 
     def __str__(self):
         return self.name
@@ -155,13 +186,20 @@ class ParagraphStyle(models.Model):
 
     leading = models.FloatField()
 
-    alignment = models.PositiveIntegerField(choices=Alignment.choices, validators=[Alignment.validator])
+    alignment = models.PositiveIntegerField(
+        choices=Alignment.choices,
+        validators=[Alignment.validator],
+    )
 
     font = models.ForeignKey(Font, related_name='+')
 
     font_size = models.PositiveIntegerField()
 
-    bullet_font = models.ForeignKey(Font, related_name='+')
+    bullet_font = models.ForeignKey(
+        Font,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
     space_before = models.PositiveIntegerField()
 
@@ -173,23 +211,29 @@ class ParagraphStyle(models.Model):
         return self.name
 
     def get_reportlab_style(self):
-        return reportlab.lib.styles.ParagraphStyle(name=self.name,
-                                                   leading=self.leading,
-                                                   fontName=self.font.name,
-                                                   fontSize=self.font_size,
-                                                   bulletFontName=self.bullet_font.name,
-                                                   alignment=self.alignment,
-                                                   spaceBefore=self.space_before,
-                                                   spaceAfter=self.space_after,
-                                                   leftIndent=self.left_indent,
-                                                   )
+        return reportlab.lib.styles.ParagraphStyle(
+            name=self.name,
+            leading=self.leading,
+            fontName=self.font.name,
+            fontSize=self.font_size,
+            bulletFontName=self.bullet_font.name,
+            alignment=self.alignment,
+            spaceBefore=self.space_before,
+            spaceAfter=self.space_after,
+            leftIndent=self.left_indent,
+        )
 
 
 class Document(models.Model):
-    name = models.CharField(max_length=255,
-                            help_text='Не показывается школьникам. Например, «Договор 2016 с Берендеевыми Полянами»')
+    name = models.CharField(
+        max_length=255,
+        help_text='Не показывается школьникам. Например, «Договор 2016 с '
+                  'Берендеевыми Полянами»',
+    )
 
-    page_size = models.CharField(max_length=20, choices=PageSize.choices, validators=[PageSize.validator])
+    page_size = models.CharField(max_length=20,
+                                 choices=PageSize.choices,
+                                 validators=[PageSize.validator])
 
     left_margin = models.IntegerField(default=0)
 
@@ -203,23 +247,34 @@ class Document(models.Model):
         return self.name
 
 
-class AbstractDocumentBlock(polymorphic.models.PolymorphicModel, ProcessedByVisitor):
-    document = models.ForeignKey(Document, null=True, default=None, blank=True, related_name='blocks')
+class AbstractDocumentBlock(polymorphic.models.PolymorphicModel,
+                            ProcessedByVisitor):
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=None,
+        related_name='blocks',
+    )
 
-    order = models.PositiveIntegerField(help_text='Блоки выстраиваются по возрастанию порядка')
+    order = models.PositiveIntegerField(
+        help_text='Блоки выстраиваются по возрастанию порядка',
+    )
 
     class Meta:
         unique_together = ('document', 'order')
         ordering = ('document', 'order')
 
     def get_reportlab_block(self, visitor=None):
-        raise NotImplementedError('Child should implement its own get_reportlab_block()')
+        raise NotImplementedError(
+            'Child should implement its own get_reportlab_block()')
 
 
 class Paragraph(AbstractDocumentBlock):
     text = models.TextField()
 
-    style = models.ForeignKey(ParagraphStyle)
+    style = models.ForeignKey(ParagraphStyle, on_delete=models.CASCADE)
 
     bulletText = models.TextField(default=None, null=True, blank=True)
 
@@ -230,8 +285,7 @@ class Paragraph(AbstractDocumentBlock):
         self._process_by_visitor(visitor)
         return reportlab.platypus.Paragraph(self.text,
                                             self.style.get_reportlab_style(),
-                                            self.bulletText
-                                            )
+                                            self.bulletText)
 
 
 class Spacer(AbstractDocumentBlock):
@@ -258,20 +312,31 @@ class Image(AbstractDocumentBlock):
     filename = relativefilepathfield.fields.RelativeFilePathField(
         path=django.db.migrations.writer.SettingsReference(
             settings.SISTEMA_GENERATOR_ASSETS_DIR,
-            'SISTEMA_GENERATOR_ASSETS_DIR'
+            'SISTEMA_GENERATOR_ASSETS_DIR',
         ),
         recursive=True
     )
 
-    width = models.PositiveIntegerField(null=True, default=None, blank=True,
-                                        help_text='В пунктах. Оставьте пустым, чтобы взять размеры самой картинки')
+    width = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        default=None,
+        help_text='В пунктах. Оставьте пустым, чтобы взять размеры самой '
+                  'картинки',
+    )
 
-    height = models.PositiveIntegerField(null=True, default=None, blank=True,
-                                         help_text='В пунктах. Оставьте пустым, чтобы взять размеры самой картинки')
+    height = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        default=None,
+        help_text='В пунктах. Оставьте пустым, чтобы взять размеры самой '
+                  'картинки',
+    )
 
     def get_reportlab_block(self, visitor=None):
         self._process_by_visitor(visitor)
-        return reportlab.platypus.Image(self.get_filename_abspath(), width=self.width, height=self.height)
+        return reportlab.platypus.Image(
+            self.get_filename_abspath(), width=self.width, height=self.height)
 
 
 class Table(AbstractDocumentBlock):
@@ -294,7 +359,8 @@ class Table(AbstractDocumentBlock):
 class TableRow(models.Model, ProcessedByVisitor):
     table = models.ForeignKey(Table, related_name='rows')
 
-    order = models.PositiveIntegerField(help_text='Строки упорядочиваются по возрастанию порядка')
+    order = models.PositiveIntegerField(
+        help_text='Строки упорядочиваются по возрастанию порядка')
 
     class Meta:
         ordering = ('table', 'order')
@@ -305,7 +371,8 @@ class TableRow(models.Model, ProcessedByVisitor):
 
     def get_reportlab_row(self, visitor):
         self._process_by_visitor(visitor)
-        return [c.get_reportlab_block(visitor) for c in self.cells.order_by('order')]
+        return [c.get_reportlab_block(visitor)
+                for c in self.cells.order_by('order')]
 
 
 class TableCell(models.Model, ProcessedByVisitor):
@@ -313,7 +380,8 @@ class TableCell(models.Model, ProcessedByVisitor):
 
     block = models.ForeignKey(AbstractDocumentBlock, related_name='+')
 
-    order = models.PositiveIntegerField(help_text='Ячейки упорядочиваются по возрастанию порядка')
+    order = models.PositiveIntegerField(
+        help_text='Ячейки упорядочиваются по возрастанию порядка')
 
     class Meta:
         ordering = ('row', 'order')
@@ -327,29 +395,43 @@ class TableCell(models.Model, ProcessedByVisitor):
         return self.block.get_reportlab_block(visitor)
 
 
-# See page 79 of documentation (https://www.reportlab.com/docs/reportlab-userguide.pdf) for all
-# available table style commands
+# See page 79 of documentation
+# (https://www.reportlab.com/docs/reportlab-userguide.pdf) for all available
+# table style commands
 # From this documentation:
-#   The commands passed to TableStyles come in three main groups which affect the table background,
-#   draw lines, or set cell styles.
+#   The commands passed to TableStyles come in three main groups which affect
+#   the table background, draw lines, or set cell styles.
 #
-#   The first element of each command is its identifier, the second and third arguments determine the cell
-#   coordinates of the box of cells which are affected with negative coordinates counting backwards from the
-#   limit values as in Python indexing. The coordinates are given as (column, row) which follows the
-#   spreadsheet 'A1' model, but not the more natural (for mathematicians) 'RC' ordering. The top left cell is (0, 0)
-#   the bottom right is (-1, -1). Depending on the command various extra (???) occur at indices beginning at 3
-#   on.
-
+#   The first element of each command is its identifier, the second and third
+#   arguments determine the cell coordinates of the box of cells which are
+#   affected with negative coordinates counting backwards from the limit values
+#   as in Python indexing. The coordinates are given as (column, row) which
+#   follows the spreadsheet 'A1' model, but not the more natural (for
+#   mathematicians) 'RC' ordering. The top left cell is (0, 0) the bottom right
+#   is (-1, -1). Depending on the command various extra (???) occur at indices
+#   beginning at 3 on.
 class AbstractTableStyleCommand(polymorphic.models.PolymorphicModel):
     table = models.ForeignKey(Table, related_name='style_commands')
 
-    start_column = models.IntegerField(help_text='Координаты начала: столбец', default=0)
+    start_column = models.IntegerField(
+        default=0,
+        help_text='Координаты начала: столбец',
+    )
 
-    start_row = models.IntegerField(help_text='Координаты начала: строка', default=0)
+    start_row = models.IntegerField(
+        default=0,
+        help_text='Координаты начала: строка',
+    )
 
-    stop_column = models.IntegerField(help_text='Координаты конца: столбец', default=-1)
+    stop_column = models.IntegerField(
+        default=-1,
+        help_text='Координаты конца: столбец',
+    )
 
-    stop_row = models.IntegerField(help_text='Координаты конца: строка', default=-1)
+    stop_row = models.IntegerField(
+        help_text='Координаты конца: строка',
+        default=-1,
+    )
 
     @property
     def start(self):
@@ -369,7 +451,7 @@ class AbstractTableStyleCommand(polymorphic.models.PolymorphicModel):
             self.start,
             self.stop,
             self.command_name,
-            ', '.join(map(str, self.params))
+            ', '.join(map(str, self.params)),
         )
 
     def get_reportlab_style_command(self):
@@ -405,7 +487,8 @@ class TextColorTableStyleCommand(CellFormattingTableStyleCommand):
 
     command_params = ['color']
 
-    color = models.CharField(max_length=20, choices=Color.choices, validators=[Color.validator])
+    color = models.CharField(
+        max_length=20, choices=Color.choices, validators=[Color.validator])
 
 
 class AlignmentTableStyleCommand(CellFormattingTableStyleCommand):
@@ -413,7 +496,8 @@ class AlignmentTableStyleCommand(CellFormattingTableStyleCommand):
 
     command_params = 'align'
 
-    align = models.CharField(max_length=20, choices=TableCellAlignment.choices,
+    align = models.CharField(max_length=20,
+                             choices=TableCellAlignment.choices,
                              validators=[TableCellAlignment.validator])
 
 
@@ -455,7 +539,8 @@ class LineTableStyleCommand(AbstractTableStyleCommand):
 
     thickness = models.FloatField(help_text='В пунктах')
 
-    color = models.CharField(max_length=20, choices=Color.choices, validators=[Color.validator])
+    color = models.CharField(
+        max_length=20, choices=Color.choices, validators=[Color.validator])
 
     def get_reportlab_command(self):
         return (self.command_name,
