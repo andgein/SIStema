@@ -40,54 +40,42 @@ class ParagraphStyleAdmin(admin.ModelAdmin):
     search_fields = ('name', )
 
 
-@admin.register(models.FontTableStyleCommand)
-class FontTableStyleCommandAdmin(admin.ModelAdmin):
-    list_display = ('id', 'table', 'start', 'stop', 'font', 'size')
-    list_filter = ('table', 'font')
+class AbstractTableStyleCommandInline(StackedPolymorphicInline):
+    class CellFormattingTableStyleCommandInline(StackedPolymorphicInline.Child):
+        model = models.CellFormattingTableStyleCommand
 
+    class FontTableStyleCommandInline(StackedPolymorphicInline.Child):
+        model = models.FontTableStyleCommand
 
-@admin.register(models.LeadingTableStyleCommand)
-class LeadingTableStyleCommandAdmin(admin.ModelAdmin):
-    list_display = ('id', 'table', 'start', 'stop', 'leading')
-    list_filter = ('table', )
+    class LeadingTableStyleCommandInline(StackedPolymorphicInline.Child):
+        model = models.LeadingTableStyleCommand
 
+    class TextColorTableStyleCommandInline(StackedPolymorphicInline.Child):
+        model = models.TextColorTableStyleCommand
 
-@admin.register(models.TextColorTableStyleCommand)
-class TextColorTableStyleCommandAdmin(admin.ModelAdmin):
-    list_display = ('id', 'table', 'start', 'stop', 'color')
-    list_filter = ('table', )
+    class AlignmentTableStyleCommandInline(StackedPolymorphicInline.Child):
+        model = models.AlignmentTableStyleCommand
 
+    class PaddingTableStyleCommandInline(StackedPolymorphicInline.Child):
+        model = models.PaddingTableStyleCommand
 
-@admin.register(models.AlignmentTableStyleCommand)
-class AlignmentTableStyleCommandAdmin(admin.ModelAdmin):
-    list_display = ('id', 'table', 'start', 'stop', 'align')
-    list_filter = ('table', )
+    class ValignTableStyleCommandInline(StackedPolymorphicInline.Child):
+        model = models.ValignTableStyleCommand
 
+    class LineTableStyleCommandInline(StackedPolymorphicInline.Child):
+        model = models.LineTableStyleCommand
 
-@admin.register(models.PaddingTableStyleCommand)
-class PaddingTableStyleCommandAdmin(admin.ModelAdmin):
-    list_display = ('id', 'table', 'start', 'stop', 'direction', 'padding')
-    list_filter = ('table', )
-
-
-@admin.register(models.ValignTableStyleCommand)
-class ValignTableStyleCommandAdmin(admin.ModelAdmin):
-    list_display = ('id', 'table', 'start', 'stop', 'direction')
-    list_filter = ('table', )
-
-
-@admin.register(models.LineTableStyleCommand)
-class LineTableStyleCommandAdmin(admin.ModelAdmin):
-    list_display = (
-        'id',
-        'table',
-        'start',
-        'stop',
-        'command_name',
-        'thickness',
-        'color',
+    model = models.AbstractTableStyleCommand
+    child_inlines = (
+       CellFormattingTableStyleCommandInline,
+       FontTableStyleCommandInline,
+       LeadingTableStyleCommandInline,
+       TextColorTableStyleCommandInline,
+       AlignmentTableStyleCommandInline,
+       PaddingTableStyleCommandInline,
+       ValignTableStyleCommandInline,
+       LineTableStyleCommandInline,
     )
-    list_filter = ('table', 'command_name')
 
 
 @admin.register(models.AbstractDocumentBlock)
@@ -116,9 +104,9 @@ class TableRowInline(admin.TabularInline):
 
 
 @admin.register(models.Table)
-class TableAdmin(PolymorphicChildModelAdmin):
+class TableAdmin(PolymorphicInlineSupportMixin, PolymorphicChildModelAdmin):
     base_model = models.AbstractDocumentBlock
-    inlines = (TableRowInline,)
+    inlines = (TableRowInline, AbstractTableStyleCommandInline)
 
 
 class TableCellInline(admin.TabularInline):
