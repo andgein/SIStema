@@ -434,6 +434,9 @@ class AbstractTableStyleCommand(polymorphic.models.PolymorphicModel):
         default=-1,
     )
 
+    class Meta:
+        verbose_name = 'table style command'
+
     @property
     def start(self):
         return self.start_column, self.start_row
