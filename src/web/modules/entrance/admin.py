@@ -193,18 +193,34 @@ class EntranceStatusAdmin(admin.ModelAdmin):
 
 @admin.register(models.AbstractAbsenceReason)
 class AbstractAbsenceReasonAdmin(
-    sistema.polymorphic.PolymorphicParentModelAdmin
+        sistema.polymorphic.PolymorphicParentModelAdmin
 ):
     base_model = models.AbstractAbsenceReason
-    list_display = ('id', 'get_class', 'school', 'user', 'created_by', 'public_comment',
-                    'private_comment', 'created_at')
-    list_filter = (('school', admin.RelatedOnlyFieldListFilter),
-                   ('created_by', admin.RelatedOnlyFieldListFilter),
-                   PolymorphicChildModelFilter)
-    search_fields = ('user__profile__first_name',
-                     'user__profile__last_name',
-                     'user__username',
-                     'public_comment')
+    list_display = (
+        'id',
+        'get_class',
+        'school',
+        'user',
+        'created_by',
+        'public_comment',
+        'private_comment',
+        'created_at',
+    )
+    list_filter = (
+        ('school', admin.RelatedOnlyFieldListFilter),
+        ('created_by', admin.RelatedOnlyFieldListFilter),
+        PolymorphicChildModelFilter,
+    )
+    search_fields = (
+        '=id',
+        '=user__id',
+        'user__profile__first_name',
+        'user__profile__last_name',
+        'user__username',
+        'user__email',
+        'public_comment',
+        'private_comment',
+    )
 
 
 @admin.register(models.RejectionAbsenceReason)
