@@ -1,10 +1,12 @@
 from django.contrib import admin
 
-from . import models
-import questionnaire.admin
+from polymorphic.admin import PolymorphicChildModelAdmin
+
+from modules.finance import models
 import modules.entrance.admin
-import users.models
 import modules.entrance.models
+import questionnaire.models
+import users.models
 
 
 class PaymentAmountAdmin(admin.ModelAdmin):
@@ -42,8 +44,9 @@ class DiscountAdmin(admin.ModelAdmin):
 admin.site.register(models.Discount, DiscountAdmin)
 
 
-admin.site.register(models.PaymentInfoQuestionnaireBlock,
-                    questionnaire.admin.AbstractQuestionnaireBlockAdmin)
+@admin.register(models.PaymentInfoQuestionnaireBlock)
+class PaymentInfoQuestionnaireBlockAdmin(PolymorphicChildModelAdmin):
+    base_model = questionnaire.models.AbstractQuestionnaireBlock
 
 
 class DocumentTypeAdmin(admin.ModelAdmin):
