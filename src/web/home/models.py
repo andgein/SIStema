@@ -19,5 +19,8 @@ class AbstractHomePageBlock(polymorphic.models.PolymorphicModel):
     # Override it in subclass to include some js files for your block
     js_files = []
 
+    class Meta:
+        verbose_name = 'home page block'
+
     def build(self, request):
         raise NotImplementedError()

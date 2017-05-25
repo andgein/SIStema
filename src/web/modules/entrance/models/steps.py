@@ -90,7 +90,7 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
     )
 
     class Meta:
-        verbose_name = 'Entrance step'
+        verbose_name = 'entrance step'
 
     """
     Override to False in your subclass if you don't want to see background

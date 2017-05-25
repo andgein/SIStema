@@ -1,11 +1,10 @@
 from django.contrib import admin
 from polymorphic.admin import (PolymorphicChildModelAdmin,
-                               PolymorphicChildModelFilter,
-                               PolymorphicParentModelAdmin)
+                               PolymorphicChildModelFilter)
 
+from modules.entrance import models
+import home.models
 import sistema.polymorphic
-from home.admin import AbstractHomePageBlockAdmin
-from . import models
 
 import users.models
 
@@ -25,7 +24,13 @@ class EntranceExamTaskAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 class EntranceExamTaskChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.EntranceExamTask
 
-admin.site.register(models.EntranceExam)
+
+@admin.register(models.EntranceExam)
+class EntranceExamAdmin(admin.ModelAdmin):
+    list_display = ('id', 'school', 'close_time')
+    list_filter = ('school',)
+    search_fields = ('=id',)
+    ordering = ('-school', 'id')
 
 
 @admin.register(models.EntranceLevel)
@@ -221,8 +226,9 @@ class AbsenceReasonChildAdmin(PolymorphicChildModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-admin.site.register(models.EntranceStepsHomePageBlock,
-                    AbstractHomePageBlockAdmin)
+@admin.register(models.EntranceStepsHomePageBlock)
+class EntranceStepsHomePageBlockAdmin(PolymorphicChildModelAdmin):
+    base_model = home.models.AbstractHomePageBlock
 
 
 class AbstractEntranceStepAdmin(PolymorphicChildModelAdmin):
