@@ -24,7 +24,6 @@ class ChoiceQuestionField(forms.Field):
                 qs = self.question.variants.filter(id=initial, disable_question_if_chosen=True)
             if qs.exists():
                 self.disabled = True
-                self.widget.attrs['disabled'] = True
 
 
 class TypedMultipleChoiceFieldForChoiceQuestion(ChoiceQuestionField, forms.TypedMultipleChoiceField):

@@ -114,8 +114,10 @@ def questionnaire_for_user(request, user, questionnaire_name):
             typing_dynamics_form = forms.QuestionnaireTypingDynamicsForm()
 
     # Main questionnaire form
+    questionnaire_answers = (
+        _get_user_questionnaire_answers(user, questionnaire) or None)
     if request.method == 'POST':
-        form = form_class(data=request.POST)
+        form = form_class(data=request.POST, initial=questionnaire_answers)
         if is_closed:
             form.add_error(None, 'Время заполнения анкеты вышло')
         elif form.is_valid():
@@ -125,13 +127,7 @@ def questionnaire_for_user(request, user, questionnaire_name):
             else:
                 return redirect('home')
     else:
-
-        questionnaire_answers = _get_user_questionnaire_answers(user,
-                                                                questionnaire)
-        if questionnaire_answers:
-            form = form_class(initial=questionnaire_answers)
-        else:
-            form = form_class()
+        form = form_class(initial=questionnaire_answers)
 
     already_filled = questionnaire.is_filled_by(user)
 
