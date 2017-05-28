@@ -225,16 +225,6 @@ admin.site.register(models.EntranceStepsHomePageBlock,
                     AbstractHomePageBlockAdmin)
 
 
-class EntranceStepChildAdmin(PolymorphicChildModelAdmin):
-    base_model = models.AbstractEntranceStep
-
-    list_display = ('id', 'school', 'order',
-                    'available_from_time', 'available_to_time',
-                    'available_after_step')
-    list_filter = (('school', admin.RelatedOnlyFieldListFilter), )
-    ordering = ('school', 'order')
-
-
 @admin.register(models.AbstractEntranceStep)
 class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.AbstractEntranceStep
@@ -244,39 +234,30 @@ class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
                     'available_from_time',
                     'available_to_time',
                     'available_after_step')
-    list_filter = (('school', admin.RelatedOnlyFieldListFilter),
-                   )
+    list_filter = (
+        ('school', admin.RelatedOnlyFieldListFilter),
+        PolymorphicChildModelFilter
+    )
     ordering = ('school', 'order')
 
 
 @admin.register(models.ConfirmProfileEntranceStep)
-class ConfirmProfileEntranceStepAdmin(EntranceStepChildAdmin):
-    base_model = models.ConfirmProfileEntranceStep
-
-
 @admin.register(models.EnsureProfileIsFullEntranceStep)
-class EnsureProfileIsFullEntranceStepAdmin(EntranceStepChildAdmin):
-    base_model = models.EnsureProfileIsFullEntranceStep
-
-
 @admin.register(models.FillQuestionnaireEntranceStep)
-class FillQuestionnaireEntranceStepAdmin(EntranceStepChildAdmin):
-    base_model = models.FillQuestionnaireEntranceStep
-
-
 @admin.register(models.SolveExamEntranceStep)
-class SolveExamEntranceStepAdmin(EntranceStepChildAdmin):
-    base_model = models.SolveExamEntranceStep
-
-
 @admin.register(models.ResultsEntranceStep)
-class ResultsEntranceStepAdmin(EntranceStepChildAdmin):
-    base_model = models.ResultsEntranceStep
-
-
 @admin.register(models.MakeUserParticipatingEntranceStep)
-class MakeUserParticipatingEntranceStepAdmin(EntranceStepChildAdmin):
-    base_model = models.MakeUserParticipatingEntranceStep
+class EntranceStepChildAdmin(PolymorphicChildModelAdmin):
+    base_model = models.AbstractEntranceStep
+
+    list_display = ('id', 'school', 'order',
+                    'available_from_time', 'available_to_time',
+                    'available_after_step')
+    list_filter = (
+        ('school', admin.RelatedOnlyFieldListFilter),
+        PolymorphicChildModelFilter
+    )
+    ordering = ('school', 'order')
 
 
 @admin.register(models.EntranceUserMetric)
