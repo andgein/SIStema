@@ -48,25 +48,28 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
         # It's here to avoid cyclic imports
         import modules.entrance.models as entrance_models
 
+        steps = self.school.entrance_steps.all()
+
+        enrolled_to_session = None
+        enrolled_to_parallel = None
+
         status = entrance_models.EntranceStatus.get_visible_status(
             self.school,
             user
         )
-        entranced_session = None if status is None else status.session
-        entranced_parallel = None if status is None else status.parallel
-        steps = entrance_models.AbstractEntranceStep.objects.filter(
-            school=self.school
-        )
-        # Filter only steps for these session and parallel
+        if status is not None and status.is_enrolled:
+            enrolled_to_session = status.session
+            enrolled_to_parallel = status.parallel
+        else:
+            # If user is not enrolled, filter out all steps
+            # marked as 'visible_only_for_enrolled'
+            steps = steps.filter(Q(visible_only_for_enrolled=False))
+
+        # Filter only steps for session and parallel which user has been enrolled in
         # (or steps with no defined session and parallel)
         steps = steps.filter(
-            Q(session__isnull=True) | Q(session=entranced_session))
+            Q(session__isnull=True) | Q(session=enrolled_to_session))
         steps = steps.filter(
-            Q(parallel__isnull=True) | Q(parallel=entranced_parallel))
-
-        # If user is not enrolled, filter out all steps
-        # marked as 'visible_only_for_enrolled'
-        if status is None or not status.is_enrolled:
-            steps = steps.filter(Q(visible_only_for_enrolled=False))
+            Q(parallel__isnull=True) | Q(parallel=enrolled_to_parallel))
 
         return steps.order_by('order')
