@@ -30,7 +30,7 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
                 rendered_block = render_to_string(template_file, {
                     'entrance_block': block,
                     'EntranceStepState': entrance_models.EntranceStepState
-                })
+                }, request=request)
 
                 # Minifying rendered block by removing spaces and newlines.
                 # Use 'html.parser' instead of 'html5lib' because html5lib adds

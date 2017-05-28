@@ -81,7 +81,7 @@ def russian_pluralize(value, arg='s'):
 def number_to_text(number, gender='male', return_text_for_zero=True):
     """ Supports numbers less than 1 000 000 000 """
 
-    if number == 0:
+    if number is None or number == 0:
         return 'ноль' if return_text_for_zero else ''
 
     text = []

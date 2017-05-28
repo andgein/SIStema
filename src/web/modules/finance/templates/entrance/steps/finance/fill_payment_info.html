@@ -1,8 +1,5 @@
 {% extends 'entrance/steps/fill_questionnaire.html' %}
 
-{% load stringcase %}
-{% load date %}
-
 {% block not_passed_text %}
     {% include 'entrance/steps/finance/_fill_payment_info_text.html' %}
 {% endblock %}
@@ -11,14 +8,14 @@
     {% include 'entrance/steps/finance/_fill_payment_info_text.html' %}
 {% endblock %}
 
-{% block not_passed_button_text %}
-    Заполнить информацию об оплате
+{% block not_passed_after_text %}
+    {% if entrance_block.payment_amount != None %}
+        {{ block.super }}
+    {% endif %}
 {% endblock %}
 
-{% block passed_button_text %}
-    Редактировать информацию об оплате
-{% endblock %}
-
-{% block passed_button_text__closed %}
-    Смотреть заполненную информацию об оплате
+{% block passed_after_text %}
+    {% if entrance_block.payment_amount != None %}
+        {{ block.super }}
+    {% endif %}
 {% endblock %}

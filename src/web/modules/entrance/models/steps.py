@@ -123,7 +123,8 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
 
     def get_state(self, user):
         """
-         Returns state of this step for user. You can override it in subclass
+         Returns state of this step for user. You can override it in subclass,
+         but do it carefully please
          :returns EntranceStepState
         """
         if not self.is_opened:

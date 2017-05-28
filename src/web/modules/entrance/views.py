@@ -25,6 +25,7 @@ import users.models
 from . import models
 from . import upgrades
 
+
 def get_entrance_level_and_tasks(school, user):
     base_level = upgrades.get_base_entrance_level(school, user)
     tasks = upgrades.get_entrance_tasks(school, user, base_level)

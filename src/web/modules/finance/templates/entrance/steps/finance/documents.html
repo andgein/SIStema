@@ -1,0 +1,37 @@
+{% extends 'entrance/steps/base.html' %}
+
+{% load stringcase %}
+{% load markdown_deux_tags %}
+
+{% block title %}Документы об&nbsp;оплате{% endblock %}
+
+{% block not_passed_text %}
+    {{ block.super }}
+
+    {% for document in entrance_block.documents %}
+        {% with document_type=document.document_type %}
+            {% if document.is_ready %}
+                <p>
+                    Вы&nbsp;можете скачать подготовленный для&nbsp;вас
+                    <a href="{% url 'school:finance:download' entrance_block.step.school.short_name document_type.short_name%}"><b>{{ document_type.name|lowerfirst }}</b></a>.
+                    {% if document_type.additional_information %}
+                        {{ document_type.additional_information }}
+                    {% endif %}
+                </p>
+            {% else %}
+                <p>
+                    Чтобы скачать <b>{{ document_type.name|lowerfirst }}</b> заполните в&nbsp;анкете следующие поля:
+                    <i>
+                        {% for question in document.not_answered_questions %}
+                            {% if not forloop.last and not forloop.first %};{% elif not forloop.first %}&nbsp;и&nbsp;{% endif %}
+                            {{ question|lowerfirst }}{% if forloop.last %}.{% endif %}<!--
+                        -->{% endfor %}
+                    </i>
+                </p>
+            {% endif %}
+        {% endwith %}
+    {% empty %}
+        {{ entrance_block.step.text_no_required_documents|markdown }}
+    {% endfor %}
+{% endblock %}
+

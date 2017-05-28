@@ -74,7 +74,7 @@ class AbstractQuestionnaireQuestion(AbstractQuestionnaireBlock):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.text
+        return '%s: %s' % (self.questionnaire, self.text)
 
 
 class TextQuestionnaireQuestion(AbstractQuestionnaireQuestion):

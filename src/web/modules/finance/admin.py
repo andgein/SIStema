@@ -76,3 +76,5 @@ admin.site.register(models.QuestionnaireVariantDocumentGenerationCondition,
 
 admin.site.register(models.FillPaymentInfoEntranceStep,
                     modules.entrance.admin.AbstractEntranceStepAdmin)
+admin.site.register(models.DocumentsEntranceStep,
+                    modules.entrance.admin.AbstractEntranceStepAdmin)

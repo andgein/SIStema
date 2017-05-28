@@ -1,10 +1,15 @@
 {% load stringcase %}
 {% load date %}
 
+<p>
+    {% if entrance_block.payment_amount == None %}
+        Для вас не&nbsp;установлен размер оргвзноса. Пожалуйста, напишите нам
+        на&nbsp;<a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=Не указан размер оргвзноса">{{ settings.SISTEMA_CONTACT_US_EMAIL }}</a>.
+    {% else %}
+        Размер оргвзноса с&nbsp;учётом скидок составляет <b>{{ entrance_block.payment_amount }} рублей</b>.
+    {% endif %}
+</p>
 {% if entrance_block.payment_amount %}
-    <p>
-        Размер оргвзноса для вас с учётом скидок составляет <b>{{ entrance_block.payment_amount }} рублей</b>.
-    </p>
     <p>
         {% if entrance_block.actual_discounts %}
             <b>Предоставленн{{ entrance_block.actual_discounts.count|pluralize:'ая,ые' }} скидк{{ entrance_block.actual_discounts.count|pluralize:'а,и' }}: </b>
