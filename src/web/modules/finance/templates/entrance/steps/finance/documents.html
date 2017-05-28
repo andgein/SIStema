@@ -22,9 +22,9 @@
                 <p>
                     Чтобы скачать <b>{{ document_type.name|lowerfirst }}</b> заполните в&nbsp;анкете следующие поля:
                     <i>
-                        {% for question in document.not_answered_questions %}
+                        {% for question in document.unanswered_questions %}
                             {% if not forloop.last and not forloop.first %};{% elif not forloop.first %}&nbsp;и&nbsp;{% endif %}
-                            {{ question|lowerfirst }}{% if forloop.last %}.{% endif %}<!--
+                            {{ question.text|lowerfirst }}{% if forloop.last %}.{% endif %}<!--
                         -->{% endfor %}
                     </i>
                 </p>

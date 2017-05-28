@@ -225,7 +225,7 @@ admin.site.register(models.EntranceStepsHomePageBlock,
                     AbstractHomePageBlockAdmin)
 
 
-class AbstractEntranceStepAdmin(PolymorphicChildModelAdmin):
+class EntranceStepChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractEntranceStep
 
     list_display = ('id', 'school', 'order',
@@ -250,32 +250,32 @@ class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 
 
 @admin.register(models.ConfirmProfileEntranceStep)
-class ConfirmProfileEntranceStepAdmin(AbstractEntranceStepAdmin):
+class ConfirmProfileEntranceStepAdmin(EntranceStepChildAdmin):
     base_model = models.ConfirmProfileEntranceStep
 
 
 @admin.register(models.EnsureProfileIsFullEntranceStep)
-class EnsureProfileIsFullEntranceStepAdmin(AbstractEntranceStepAdmin):
+class EnsureProfileIsFullEntranceStepAdmin(EntranceStepChildAdmin):
     base_model = models.EnsureProfileIsFullEntranceStep
 
 
 @admin.register(models.FillQuestionnaireEntranceStep)
-class FillQuestionnaireEntranceStepAdmin(AbstractEntranceStepAdmin):
+class FillQuestionnaireEntranceStepAdmin(EntranceStepChildAdmin):
     base_model = models.FillQuestionnaireEntranceStep
 
 
 @admin.register(models.SolveExamEntranceStep)
-class SolveExamEntranceStepAdmin(AbstractEntranceStepAdmin):
+class SolveExamEntranceStepAdmin(EntranceStepChildAdmin):
     base_model = models.SolveExamEntranceStep
 
 
 @admin.register(models.ResultsEntranceStep)
-class ResultsEntranceStepAdmin(AbstractEntranceStepAdmin):
+class ResultsEntranceStepAdmin(EntranceStepChildAdmin):
     base_model = models.ResultsEntranceStep
 
 
 @admin.register(models.MakeUserParticipatingEntranceStep)
-class MakeUserParticipatingEntranceStepAdmin(AbstractEntranceStepAdmin):
+class MakeUserParticipatingEntranceStepAdmin(EntranceStepChildAdmin):
     base_model = models.MakeUserParticipatingEntranceStep
 
 

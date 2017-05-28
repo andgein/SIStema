@@ -1,10 +1,9 @@
 from django.db import models
 
 import sistema.helpers
-from questionnaire import models as questionnaire_models
 from modules.entrance.models import steps
 from modules.finance import models as finance_models
-
+import questionnaire.models
 
 __all__ = ['FillPaymentInfoEntranceStep', 'DocumentsEntranceStep']
 
@@ -35,7 +34,6 @@ class DocumentsEntranceStep(steps.AbstractEntranceStep, steps.EntranceStepTextsM
         help_text='Текст, который показывается, если школьнику '
                   'не нужны никакие документы. Поддерживается Markdown.',
         blank=True,
-        default='',
     )
 
     document_types = models.ManyToManyField(
@@ -54,41 +52,39 @@ class DocumentsEntranceStep(steps.AbstractEntranceStep, steps.EntranceStepTextsM
 
         document_types = self._get_needed_document_types(user)
         block.documents = []
-        if len(document_types) == 0:
+        if not document_types:
             return block
 
-        has_ready_document = False
         for document_type in document_types:
-            not_answered_questions = self._get_not_answered_questions(user, document_type)
-            is_ready = len(not_answered_questions) == 0
+            unanswered_questions = self._get_unanswered_questions(user, document_type)
+            is_ready = not unanswered_questions
 
             block.documents.append({
                 'document_type': document_type,
                 'is_ready': is_ready,
-                'not_answered_questions': not_answered_questions,
+                'unanswered_questions': unanswered_questions,
             })
-            has_ready_document = has_ready_document or is_ready
 
         return block
 
     def _get_needed_document_types(self, user):
         document_types = self.document_types.all()
 
-        needed_documents = []
+        needed_document_types = []
         for document_type in document_types:
             if document_type.is_need_for_user(user):
-                needed_documents.append(document_type)
-        return needed_documents
+                needed_document_types.append(document_type)
+        return needed_document_types
 
     @staticmethod
-    def _get_not_answered_questions(user, document_type):
+    def _get_unanswered_questions(user, document_type):
         required_questions = list(document_type.required_questions.all())
-        required_questions_questionnaires_ids = {
+        required_questions_questionnaire_ids = {
             q.questionnaire_id for q in required_questions
         }
 
-        user_answers = questionnaire_models.QuestionnaireAnswer.objects.filter(
-            questionnaire_id__in=required_questions_questionnaires_ids,
+        user_answers = questionnaire.models.QuestionnaireAnswer.objects.filter(
+            questionnaire_id__in=required_questions_questionnaire_ids,
             question_short_name__in=[q.short_name for q in required_questions],
             user=user,
         ).exclude(answer='')
@@ -98,9 +94,9 @@ class DocumentsEntranceStep(steps.AbstractEntranceStep, steps.EntranceStepTextsM
             lambda answer: (answer.questionnaire_id, answer.question_short_name)
         )
 
-        not_answered_questions = []
+        unanswered_questions = []
         for question in required_questions:
             if (question.questionnaire_id, question.short_name) not in user_answers:
-                not_answered_questions.append(question)
+                unanswered_questions.append(question)
 
-        return [question.text for question in not_answered_questions]
+        return unanswered_questions

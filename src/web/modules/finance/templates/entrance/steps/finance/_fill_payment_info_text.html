@@ -3,10 +3,10 @@
 
 <p>
     {% if entrance_block.payment_amount == None %}
-        Для вас не&nbsp;установлен размер оргвзноса. Пожалуйста, напишите нам
-        на&nbsp;<a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=Не указан размер оргвзноса">{{ settings.SISTEMA_CONTACT_US_EMAIL }}</a>.
+        Для вас не&nbsp;установлена стоимость участия. Пожалуйста, напишите нам
+        на&nbsp;<a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=Не указана стоимость участия">{{ settings.SISTEMA_CONTACT_US_EMAIL }}</a>.
     {% else %}
-        Размер оргвзноса с&nbsp;учётом скидок составляет <b>{{ entrance_block.payment_amount }} рублей</b>.
+        Стоимость участия с&nbsp;учётом скидок составляет <b>{{ entrance_block.payment_amount }} рублей</b>.
     {% endif %}
 </p>
 {% if entrance_block.payment_amount %}

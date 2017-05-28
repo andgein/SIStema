@@ -124,7 +124,13 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
     def get_state(self, user):
         """
          Returns state of this step for user. You can override it in subclass,
-         but do it carefully please
+         but do it carefully please.
+         `get_state()` should always return EntranceStepState.
+          If step is closed by time, return NOT_OPENED or NOT_CLOSED.
+          If previous step is not passed return WAITING_FOR_OTHER_STEP
+
+          If you want just override PASSED/NOT_PASSED selection, don't override
+          `get_state`, override `is_passed` instead of it.
          :returns EntranceStepState
         """
         if not self.is_opened:

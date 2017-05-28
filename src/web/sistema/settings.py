@@ -61,7 +61,7 @@ INSTALLED_APPS = (
     'django_tables2',
 
     # Sistema core
-    'sistema',
+    'sistema.apps.SistemaConfig',
 
     # Sistema core modules
     'frontend',

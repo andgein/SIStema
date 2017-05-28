@@ -36,7 +36,6 @@ class DocumentType(models.Model):
                   'Например, «Распечатайте его в двух экземплярах, '
                   'подпишите со своей стороны и привезите в ЛКШ»',
         blank=True,
-        default=''
     )
 
     template = models.ForeignKey(
@@ -48,6 +47,7 @@ class DocumentType(models.Model):
     required_questions = models.ManyToManyField(
         questionnaire.models.AbstractQuestionnaireQuestion,
         related_name='+',
+        blank=True,
     )
 
     class Meta:

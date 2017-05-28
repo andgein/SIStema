@@ -158,7 +158,7 @@ admin.site.register(levels.EntranceLevelRequirement, EntranceLevelRequirementAdm
 
 
 admin.site.register(models.FillTopicsQuestionnaireEntranceStep,
-                    entrance_admin.AbstractEntranceStepAdmin)
+                    entrance_admin.EntranceStepChildAdmin)
 
 
 class QuestionForTopicAdmin(admin.ModelAdmin):
