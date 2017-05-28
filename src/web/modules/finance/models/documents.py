@@ -59,7 +59,7 @@ class DocumentType(models.Model):
     # Document is need for user if there is no generation conditions for it
     # or if it is satisfied at least one of them
     def is_need_for_user(self, user):
-        conditions = list(self.generation_conditions.all())
+        conditions = self.generation_conditions.all()
         if len(conditions) == 0:
             return True
 

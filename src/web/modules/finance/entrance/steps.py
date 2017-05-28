@@ -78,22 +78,29 @@ class DocumentsEntranceStep(steps.AbstractEntranceStep, steps.EntranceStepTextsM
 
     @staticmethod
     def _get_unanswered_questions(user, document_type):
-        required_questions = list(document_type.required_questions.all())
+        required_questions = document_type.required_questions.all()
         required_questions_questionnaire_ids = {
             q.questionnaire_id for q in required_questions
         }
 
+        # Collect non empty user answers for required questions.
+        # Some other answers may be collected (i.e. with the same short_name
+        # in other questionnaire).
+        # It's the easiest way to select all needed answers in one query
         user_answers = questionnaire.models.QuestionnaireAnswer.objects.filter(
             questionnaire_id__in=required_questions_questionnaire_ids,
             question_short_name__in=[q.short_name for q in required_questions],
             user=user,
         ).exclude(answer='')
 
+        # Group answers by (questionnaire_id, question_short_name). This pair
+        # defines question uniquely
         user_answers = sistema.helpers.group_by(
             user_answers,
             lambda answer: (answer.questionnaire_id, answer.question_short_name)
         )
 
+        # Find required questions which are not in the answers list
         unanswered_questions = []
         for question in required_questions:
             if (question.questionnaire_id, question.short_name) not in user_answers:
