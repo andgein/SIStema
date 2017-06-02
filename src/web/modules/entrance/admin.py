@@ -250,15 +250,6 @@ class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 class EntranceStepChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractEntranceStep
 
-    list_display = ('id', 'school', 'order',
-                    'available_from_time', 'available_to_time',
-                    'available_after_step')
-    list_filter = (
-        ('school', admin.RelatedOnlyFieldListFilter),
-        PolymorphicChildModelFilter
-    )
-    ordering = ('school', 'order')
-
 
 @admin.register(models.EntranceUserMetric)
 class EntranceUserMetricAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
