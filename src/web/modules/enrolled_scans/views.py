@@ -2,7 +2,7 @@ import operator
 
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponseNotFound
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404
 
 from modules.enrolled_scans import forms
 from sistema.helpers import group_by, respond_as_attachment
