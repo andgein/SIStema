@@ -26,7 +26,7 @@
                 {% else %}
                     Вы ещё <b>не загрузили</b> {{ requirement.name_genitive|lower }}. Сделайте это сейчас.
                 {% endif %}
-                <form method="POST" action="{% url 'school:entrance:enrolled_scans:scan' request.school.short_name requirement.short_name %}" enctype="multipart/form-data">
+                <form method="POST" action="{% url 'school:entrance:enrolled_scans:scans' request.school.short_name %}" enctype="multipart/form-data">
                     <div class="row mt10">
                         <div class="col-sm-3">
                             {% csrf_token %}

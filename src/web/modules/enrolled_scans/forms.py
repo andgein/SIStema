@@ -8,3 +8,12 @@ class EnrolledScanForm(forms.Form):
                                               required=True,
                                               label='',
                                               label_suffix='')
+
+    requirement_short_name = forms.CharField(widget=forms.HiddenInput())
+
+    def __init__(self, requirement_short_name=None, *args, **kwargs):
+        if requirement_short_name is not None:
+            initial = kwargs.get('initial', {})
+            initial['requirement_short_name'] = requirement_short_name
+            kwargs['initial'] = initial
+        super().__init__(*args, **kwargs)

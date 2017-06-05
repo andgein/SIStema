@@ -12,9 +12,17 @@ from . import models
 
 @login_required
 def scans(request):
-    requirements = list(models.EnrolledScanRequirement.objects.filter(school=request.school))
-    # Filter only needed for this user requirements
-    requirements = list(filter(lambda r: r.is_needed_for_user(request.user), requirements))
+    submitted_form = None
+    if request.method == 'POST':
+        submitted_form = forms.EnrolledScanForm(data=request.POST,
+                                                files=request.FILES)
+        if submitted_form.is_valid():
+            save_scan(request.school, request.user, submitted_form)
+
+    all_requirements = (models.EnrolledScanRequirement.objects
+                        .filter(school=request.school))
+    user_requirements = [r for r in all_requirements
+                         if r.is_needed_for_user(request.user)]
 
     user_scans = group_by(
         models.EnrolledScan.objects.filter(
@@ -24,39 +32,61 @@ def scans(request):
         operator.attrgetter('requirement_id')
     )
 
-    for requirement in requirements:
+    for requirement in user_requirements:
         if requirement.id in user_scans:
             requirement.user_scan = user_scans[requirement.id][0]
         else:
             requirement.user_scan = None
-        requirement.form = forms.EnrolledScanForm()
+
+        requirement.form = get_form_for_requirement(requirement, submitted_form)
 
     return render(request, 'enrolled_scans/scans.html', {
-        'requirements': requirements,
+        'requirements': user_requirements,
     })
 
 
 @login_required
 def scan(request, requirement_name):
-    requirement = get_object_or_404(models.EnrolledScanRequirement, school=request.school, short_name=requirement_name)
+    requirement = get_object_or_404(models.EnrolledScanRequirement,
+                                    school=request.school,
+                                    short_name=requirement_name)
 
-    if request.method == 'POST':
-        form = forms.EnrolledScanForm(data=request.POST, files=request.FILES)
-        if form.is_valid():
-            scan_file = form.cleaned_data['scan']
-            saved_file = sistema.uploads.save_file(scan_file, 'enrolled-scans')
-            models.EnrolledScan(
-                requirement=requirement,
-                user=request.user,
-                original_filename=scan_file.name,
-                filename=saved_file
-            ).save()
-        else:
-            raise Exception(form.errors)
-        # TODO: show error message
-        return redirect('school:entrance:enrolled_scans:scans', school_name=request.school.short_name)
-    else:
-        user_scan = models.EnrolledScan.objects.filter(requirement=requirement, user=request.user).first()
-        if user_scan is None:
-            return HttpResponseNotFound()
-        return respond_as_attachment(request, user_scan.filename, user_scan.original_filename)
+    user_scan = (models.EnrolledScan.objects
+                 .filter(requirement=requirement, user=request.user)
+                 .first())
+
+    if user_scan is None:
+        return HttpResponseNotFound()
+
+    return respond_as_attachment(
+        request, user_scan.filename, user_scan.original_filename)
+
+
+def save_scan(school, user, submitted_form):
+    scan_file = submitted_form.cleaned_data['scan']
+    requirement_short_name = (
+        submitted_form.cleaned_data['requirement_short_name'])
+
+    saved_file = sistema.uploads.save_file(scan_file, 'enrolled-scans')
+    requirement = (
+        models.EnrolledScanRequirement.objects
+        .filter(school=school, short_name=requirement_short_name)
+        .first()
+    )
+
+    models.EnrolledScan.objects.create(
+        requirement=requirement,
+        user=user,
+        original_filename=scan_file.name,
+        filename=saved_file
+    )
+
+
+def get_form_for_requirement(requirement, submitted_form):
+    if submitted_form is not None:
+        requirement_short_name = (
+            submitted_form.cleaned_data['requirement_short_name'])
+        if requirement_short_name == requirement.short_name:
+            return submitted_form
+
+    return forms.EnrolledScanForm(requirement.short_name)
