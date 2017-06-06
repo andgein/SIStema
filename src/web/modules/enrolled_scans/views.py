@@ -64,13 +64,11 @@ def scan(request, requirement_name):
 
 def save_scan(school, user, submitted_form):
     scan_file = submitted_form.cleaned_data['scan']
-    requirement_short_name = (
-        submitted_form.cleaned_data['requirement_short_name'])
 
     saved_file = sistema.uploads.save_file(scan_file, 'enrolled-scans')
     requirement = (
         models.EnrolledScanRequirement.objects
-        .filter(school=school, short_name=requirement_short_name)
+        .filter(school=school, id=submitted_form.cleaned_data['requirement_id'])
         .first()
     )
 
@@ -84,9 +82,7 @@ def save_scan(school, user, submitted_form):
 
 def get_form_for_requirement(requirement, submitted_form):
     if submitted_form is not None:
-        requirement_short_name = (
-            submitted_form.cleaned_data['requirement_short_name'])
-        if requirement_short_name == requirement.short_name:
+        if submitted_form.cleaned_data['requirement_id'] == requirement.id:
             return submitted_form
 
-    return forms.EnrolledScanForm(requirement.short_name)
+    return forms.EnrolledScanForm(requirement.id)

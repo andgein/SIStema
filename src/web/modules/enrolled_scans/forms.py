@@ -9,11 +9,11 @@ class EnrolledScanForm(forms.Form):
                                               label='',
                                               label_suffix='')
 
-    requirement_short_name = forms.CharField(widget=forms.HiddenInput())
+    requirement_id = forms.IntegerField(widget=forms.HiddenInput())
 
-    def __init__(self, requirement_short_name=None, *args, **kwargs):
-        if requirement_short_name is not None:
+    def __init__(self, requirement_id=None, *args, **kwargs):
+        if requirement_id is not None:
             initial = kwargs.get('initial', {})
-            initial['requirement_short_name'] = requirement_short_name
+            initial['requirement_id'] = requirement_id
             kwargs['initial'] = initial
         super().__init__(*args, **kwargs)
