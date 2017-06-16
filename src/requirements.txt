@@ -57,5 +57,6 @@ sqlparse==0.2.2
 toml==0.9.2
 trans==2.1.0
 webencodings==0.5
+wiki==0.2.4
 xlsxwriter==0.9.6
 zipstream==1.1.4

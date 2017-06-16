@@ -42,9 +42,10 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.humanize',
+    'django.contrib.messages',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'django.contrib.messages',
     'django.contrib.staticfiles',
 
     # External django modules
@@ -59,6 +60,17 @@ INSTALLED_APPS = (
     'constance',
     'constance.backends.database',
     'django_tables2',
+    'django_nyt',
+    'mptt',
+    'sekizai',
+    'sorl.thumbnail',
+    'wiki',
+    'wiki.plugins.attachments',
+    'wiki.plugins.help',
+    'wiki.plugins.images',
+    'wiki.plugins.links',
+    'wiki.plugins.macros',
+    'wiki.plugins.notifications',
 
     # Sistema core
     'sistema.apps.SistemaConfig',
@@ -122,6 +134,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django_settings_export.settings_export',
+
+                'sekizai.context_processors.sekizai',
 
                 'sistema.staff.staff_context_processor',
             ],
@@ -194,6 +208,15 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(PROJECT_DIR, 'static')
 ]
+
+
+# Wiki
+MEDIA_URL = '/media/'
+WIKI_ACCOUNT_HANDLING = False
+WIKI_ANONYMOUS = False
+
+def WIKI_CAN_READ(article, user):
+    return user.is_staff
 
 
 DATE_INPUT_FORMATS = (
