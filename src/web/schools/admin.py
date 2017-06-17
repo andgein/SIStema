@@ -5,6 +5,7 @@ from reversion.admin import VersionAdmin
 from . import models
 
 
+@admin.register(models.School)
 class SchoolAdmin(VersionAdmin):
     list_display = (
         'id',
@@ -15,6 +16,7 @@ class SchoolAdmin(VersionAdmin):
     )
 
 
+@admin.register(models.Session)
 class SessionAdmin(VersionAdmin):
     list_display = (
         'id',
@@ -28,6 +30,12 @@ class SessionAdmin(VersionAdmin):
     )
 
 
+class GroupInline(admin.TabularInline):
+    model = models.Group
+    extra = 0
+
+
+@admin.register(models.Parallel)
 class ParallelAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -40,7 +48,12 @@ class ParallelAdmin(admin.ModelAdmin):
         'school',
     )
 
+    inlines = (
+        GroupInline,
+    )
 
+
+@admin.register(models.SchoolParticipant)
 class SchoolParticipantAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -52,9 +65,3 @@ class SchoolParticipantAdmin(admin.ModelAdmin):
         'school',
         'parallel',
     )
-
-
-admin.site.register(models.School, SchoolAdmin)
-admin.site.register(models.Session, SessionAdmin)
-admin.site.register(models.Parallel, ParallelAdmin)
-admin.site.register(models.SchoolParticipant, SchoolParticipantAdmin)

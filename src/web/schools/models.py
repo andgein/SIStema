@@ -108,6 +108,7 @@ class Parallel(models.Model):
 
     name = models.CharField(max_length=100, help_text='Например, C\'')
 
+    # TODO(artemtab): should we make it a property which looks at groups?
     sessions = models.ManyToManyField(Session)
 
     class Meta:
@@ -115,6 +116,39 @@ class Parallel(models.Model):
 
     def __str__(self):
         return '%s.%s' % (self.school.name, self.name)
+
+
+class Group(models.Model):
+    session = models.ForeignKey(
+        Session,
+        on_delete=models.CASCADE,
+        related_name='groups',
+    )
+
+    parallel = models.ForeignKey(
+        Parallel,
+        on_delete=models.CASCADE,
+        related_name='groups',
+    )
+
+    short_name = models.CharField(
+        max_length=100,
+        help_text='Используется в урлах. Лучше обойтись латинскими буквами, '
+                  'цифрами и подчёркиванием. Например, c5.')
+
+    name = models.CharField(max_length=100, help_text='Например, C5')
+
+    class Meta:
+        unique_together = ('session', 'parallel', 'short_name')
+
+    def save(self, *args, **kwargs):
+        if self.parallel.school != self.session.school:
+            raise ValueError(
+                'Error while saving study group: parallel ({}) and session '
+                '({}) should belong to the same school.'
+                .format(self.parallel, self.session)
+            )
+        super().save(*args, **kwargs)
 
 
 class SchoolParticipant(models.Model):
