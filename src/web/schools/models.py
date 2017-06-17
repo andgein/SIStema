@@ -3,6 +3,9 @@
 from django.core import urlresolvers
 from django.db import models
 import django.utils.dateformat
+
+from constance import config
+
 import users.models
 
 
@@ -43,6 +46,23 @@ class School(models.Model):
         #                      school namespace.
         return urlresolvers.reverse('school:index',
                                     kwargs={'school_name': self.short_name})
+
+    def get_staff_url(self):
+        # TODO(Artem Tabolin): looks like schools app should know nothing about
+        #                      school namespace.
+        return urlresolvers.reverse('school:staff',
+                                    kwargs={'school_name': self.short_name})
+
+    def get_user_url(self):
+        # TODO(Artem Tabolin): looks like schools app should know nothing about
+        #                      school namespace.
+        return urlresolvers.reverse('school:user',
+                                    kwargs={'school_name': self.short_name})
+
+    @classmethod
+    def get_current_school(cls):
+        return cls.objects.get(
+            short_name=config.SISTEMA_CURRENT_SCHOOL_SHORT_NAME)
 
 
 class Session(models.Model):

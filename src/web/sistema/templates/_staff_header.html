@@ -40,13 +40,11 @@
                 <span class="caret caret-tp hidden-xs"></span>
             </a>
             <ul class="dropdown-menu list-group dropdown-persist w200" role="menu">
-                {% if request.school %}
                 <li class="list-group-item">
-                    <a href="{% url "school:user" request.school.short_name %}">
+                  <a href="{% if request.school %}{% url "school:user" request.school.short_name %}{% else %}{% url "user" %}{% endif %}">
                         <span class="fa fa-gears"></span> Интерфейс школьника
                     </a>
                 </li>
-                {% endif %}
                 <li class="list-group-item">
                     <a href="{% url "user:profile" %}">
                         <span class="fa fa-user"></span> Профиль
