@@ -20,7 +20,7 @@ urlpatterns = [
     url(r'^smartq/', include('modules.smartq.urls', namespace='smartq')),
 
     url(r'^hijack/', include('hijack.urls')),
-    url(r'^notifications/', django_nyt.urls.get_pattern),
+    url(r'^notifications/', django_nyt.urls.get_pattern()),
     url(r'^wiki/', wiki.urls.get_pattern()),
 
     url(r'', include('users.urls')),
