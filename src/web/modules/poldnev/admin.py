@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.utils import html
 
+import sistema.admin
+
 from . import models
 
 
-class SessionAdmin(admin.ModelAdmin):
+class SessionAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'poldnev_id',
         'name_as_url',
@@ -25,7 +27,7 @@ class SessionAdmin(admin.ModelAdmin):
 admin.site.register(models.Session, SessionAdmin)
 
 
-class PersonAdmin(admin.ModelAdmin):
+class PersonAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'poldnev_id',
         'first_name',
@@ -50,7 +52,7 @@ class PersonAdmin(admin.ModelAdmin):
 admin.site.register(models.Person, PersonAdmin)
 
 
-class ParallelAdmin(admin.ModelAdmin):
+class ParallelAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'id',
         'session',
@@ -74,7 +76,7 @@ class ParallelAdmin(admin.ModelAdmin):
 admin.site.register(models.Parallel, ParallelAdmin)
 
 
-class StudyGroupAdmin(admin.ModelAdmin):
+class StudyGroupAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'id',
         'parallel',
@@ -97,7 +99,7 @@ class StudyGroupAdmin(admin.ModelAdmin):
 admin.site.register(models.StudyGroup, StudyGroupAdmin)
 
 
-class HistoryEntryAdmin(admin.ModelAdmin):
+class HistoryEntryAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'id',
         'person',

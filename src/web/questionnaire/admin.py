@@ -1,19 +1,20 @@
 from django.contrib import admin
-from polymorphic.admin import (PolymorphicChildModelAdmin,
-                               PolymorphicChildModelFilter)
+from polymorphic.admin import PolymorphicChildModelFilter
 
-import sistema.polymorphic
+import sistema.admin
+import sistema.admin.polymorphic
+
 from . import models
 
 
 @admin.register(models.Questionnaire)
-class QuestionnaireAdmin(admin.ModelAdmin):
+class QuestionnaireAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'short_name', 'title', 'school', 'session')
 
 
 @admin.register(models.AbstractQuestionnaireBlock)
 class AbstractQuestionnaireBlockAdmin(
-        sistema.polymorphic.PolymorphicParentModelAdmin
+        sistema.admin.polymorphic.PolymorphicParentModelAdmin
 ):
     base_model = models.AbstractQuestionnaireBlock
     list_display = (
@@ -36,7 +37,9 @@ class QuestionnaireBlockShowConditionInline(admin.StackedInline):
 @admin.register(models.TextQuestionnaireQuestion)
 @admin.register(models.YesNoQuestionnaireQuestion)
 @admin.register(models.DateQuestionnaireQuestion)
-class AbstractQuestionnaireBlockChildAdmin(PolymorphicChildModelAdmin):
+class AbstractQuestionnaireBlockChildAdmin(
+        sistema.admin.polymorphic.PolymorphicChildModelAdmin
+):
     base_model = models.AbstractQuestionnaireBlock
     inlines = (QuestionnaireBlockShowConditionInline,)
 
@@ -48,20 +51,22 @@ class ChoiceQuestionnaireQuestionVariantInline(admin.TabularInline):
 
 
 @admin.register(models.ChoiceQuestionnaireQuestion)
-class ChoiceQuestionnaireQuestionQuestionChildAdmin(PolymorphicChildModelAdmin):
+class ChoiceQuestionnaireQuestionQuestionChildAdmin(
+        sistema.admin.polymorphic.PolymorphicChildModelAdmin
+):
     base_model = models.AbstractQuestionnaireBlock
     inlines = (QuestionnaireBlockShowConditionInline,
                ChoiceQuestionnaireQuestionVariantInline,)
 
 
 @admin.register(models.ChoiceQuestionnaireQuestionVariant)
-class ChoiceQuestionnaireQuestionVariantAdmin(admin.ModelAdmin):
+class ChoiceQuestionnaireQuestionVariantAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'question', 'text')
     list_filter = ('question',)
 
 
 @admin.register(models.UserQuestionnaireStatus)
-class UserQuestionnaireStatusAdmin(admin.ModelAdmin):
+class UserQuestionnaireStatusAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'user', 'questionnaire', 'status')
     list_filter = ('questionnaire', 'status')
     search_fields = (
@@ -75,7 +80,7 @@ class UserQuestionnaireStatusAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.QuestionnaireAnswer)
-class QuestionnaireAnswerAdmin(admin.ModelAdmin):
+class QuestionnaireAnswerAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'id',
         'user',
@@ -95,7 +100,7 @@ class QuestionnaireAnswerAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.QuestionnaireTypingDynamics)
-class QuestionnaireTypingDynamicsAdmin(admin.ModelAdmin):
+class QuestionnaireTypingDynamicsAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'user', 'questionnaire', 'created_at')
     list_filter = ('questionnaire',)
     search_fields = (

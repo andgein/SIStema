@@ -1,6 +1,6 @@
-from django.contrib import admin
+import sistema.admin
 
 
-class AbstractHomePageBlockAdmin(admin.ModelAdmin):
+class AbstractHomePageBlockAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'school', 'order')
     list_filter = ('school', )

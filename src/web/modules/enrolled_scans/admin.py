@@ -4,6 +4,8 @@ from polymorphic.admin import (StackedPolymorphicInline,
                                PolymorphicInlineSupportMixin)
 
 import modules.entrance.admin
+import sistema.admin
+
 from . import models
 
 
@@ -28,7 +30,7 @@ class EnrolledScanRequirementAdmin(PolymorphicInlineSupportMixin,
 
 
 @admin.register(models.EnrolledScan)
-class EnrolledScanAdmin(admin.ModelAdmin):
+class EnrolledScanAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'requirement', 'user')
     list_filter = ('requirement__school', 'requirement')
 

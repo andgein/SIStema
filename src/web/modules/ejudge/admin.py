@@ -4,11 +4,13 @@ import django.forms
 
 from dal import autocomplete
 
+import sistema.admin
+
 from . import models
 
 
 @admin.register(models.ProgrammingLanguage)
-class ProgrammingLanguageAdmin(admin.ModelAdmin):
+class ProgrammingLanguageAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'short_name', 'name', 'ejudge_id')
 
 
@@ -23,7 +25,7 @@ class QueueElementAdminForm(django.forms.ModelForm):
 
 
 @admin.register(models.QueueElement)
-class QueueElementAdmin(admin.ModelAdmin):
+class QueueElementAdmin(sistema.admin.ModelAdmin):
     form = QueueElementAdminForm
 
     list_display = (
@@ -55,7 +57,7 @@ class QueueElementAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.SolutionCheckingResult)
-class SolutionCheckingResultAdmin(admin.ModelAdmin):
+class SolutionCheckingResultAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'id',
         'result',
@@ -80,7 +82,7 @@ class SubmissionAdminForm(django.forms.ModelForm):
 
 
 @admin.register(models.Submission)
-class SubmissionAdmin(admin.ModelAdmin):
+class SubmissionAdmin(sistema.admin.ModelAdmin):
     form = SubmissionAdminForm
 
     list_display = (

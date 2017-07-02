@@ -1,9 +1,11 @@
 from django.contrib import admin
 
 from modules.study_results import models
+import sistema.admin
 
 
-class StudyResultAdmin(admin.ModelAdmin):
+@admin.register(models.StudyResult)
+class StudyResultAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'id',
         'school_participant',
@@ -21,5 +23,3 @@ class StudyResultAdmin(admin.ModelAdmin):
         'school_participant__user__last_name',
         'school_participant__user__username',
     )
-
-admin.site.register(models.StudyResult, StudyResultAdmin)

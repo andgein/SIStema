@@ -1,11 +1,15 @@
 from django.contrib import admin
+import django.forms
 
+from dal import autocomplete
 from hijack_admin.admin import HijackUserAdminMixin
 from reversion.admin import VersionAdmin
 
-from . import models
+from users import models
+import sistema.admin
 
 
+@admin.register(models.User)
 class UserAdmin(VersionAdmin, HijackUserAdminMixin):
     list_display = (
         'id',
@@ -37,6 +41,7 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
     )
 
 
+@admin.register(models.UserProfile)
 class UserProfileAdmin(VersionAdmin):
     list_display = (
         'user_id',
@@ -52,5 +57,8 @@ class UserProfileAdmin(VersionAdmin):
     )
 
 
-admin.site.register(models.User, UserAdmin)
-admin.site.register(models.UserProfile, UserProfileAdmin)
+sistema.admin.register_autocomplete_field_for_foreign_key(
+    models.User,
+    url='users_admin:user-autocomplete',
+    placeholder='Выберите пользователя',
+)

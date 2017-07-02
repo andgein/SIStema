@@ -1,30 +1,30 @@
 from django.contrib import admin
-from polymorphic.admin import (PolymorphicChildModelAdmin,
-                               PolymorphicChildModelFilter,
+from polymorphic.admin import (PolymorphicChildModelFilter,
                                PolymorphicInlineSupportMixin,
                                StackedPolymorphicInline)
 
-import sistema.polymorphic
+import sistema.admin
+import sistema.admin.polymorphic
 
 from . import models
 
 
 @admin.register(models.Font)
-class FontAdmin(admin.ModelAdmin):
+class FontAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'name', 'filename')
     search_fields = ('name', )
     list_display_links = ('id', 'name')
 
 
 @admin.register(models.FontFamily)
-class FontFamilyAdmin(admin.ModelAdmin):
+class FontFamilyAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'name', 'normal', 'bold', 'italic', 'bold_italic')
     search_fields = ('name', )
     list_display_links = ('id', 'name')
 
 
 @admin.register(models.ParagraphStyle)
-class ParagraphStyleAdmin(admin.ModelAdmin):
+class ParagraphStyleAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'id',
         'name',
@@ -67,20 +67,20 @@ class AbstractTableStyleCommandInline(StackedPolymorphicInline):
 
     model = models.AbstractTableStyleCommand
     child_inlines = (
-       CellFormattingTableStyleCommandInline,
-       FontTableStyleCommandInline,
-       LeadingTableStyleCommandInline,
-       TextColorTableStyleCommandInline,
-       AlignmentTableStyleCommandInline,
-       PaddingTableStyleCommandInline,
-       ValignTableStyleCommandInline,
-       LineTableStyleCommandInline,
+        CellFormattingTableStyleCommandInline,
+        FontTableStyleCommandInline,
+        LeadingTableStyleCommandInline,
+        TextColorTableStyleCommandInline,
+        AlignmentTableStyleCommandInline,
+        PaddingTableStyleCommandInline,
+        ValignTableStyleCommandInline,
+        LineTableStyleCommandInline,
     )
 
 
 @admin.register(models.AbstractDocumentBlock)
 class AbstractDocumentBlockAdmin(
-        sistema.polymorphic.PolymorphicParentModelAdmin
+        sistema.admin.polymorphic.PolymorphicParentModelAdmin
 ):
     base_model = models.AbstractDocumentBlock
     list_display = ('id', 'document', 'order')
@@ -92,7 +92,9 @@ class AbstractDocumentBlockAdmin(
 @admin.register(models.PageBreak)
 @admin.register(models.Spacer)
 @admin.register(models.Image)
-class AbstractDocumentBlockChildAdmin(PolymorphicChildModelAdmin):
+class AbstractDocumentBlockChildAdmin(
+        sistema.admin.polymorphic.PolymorphicChildModelAdmin
+):
     base_model = models.AbstractDocumentBlock
 
 
@@ -104,7 +106,8 @@ class TableRowInline(admin.TabularInline):
 
 
 @admin.register(models.Table)
-class TableAdmin(PolymorphicInlineSupportMixin, PolymorphicChildModelAdmin):
+class TableAdmin(PolymorphicInlineSupportMixin,
+                 sistema.admin.polymorphic.PolymorphicChildModelAdmin):
     base_model = models.AbstractDocumentBlock
     inlines = (TableRowInline, AbstractTableStyleCommandInline)
 
@@ -117,7 +120,7 @@ class TableCellInline(admin.TabularInline):
 
 
 @admin.register(models.TableRow)
-class TableRowAdmin(admin.ModelAdmin):
+class TableRowAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'table', 'order')
     list_filter = ('table', )
     ordering = ('table', 'order')
@@ -125,7 +128,7 @@ class TableRowAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.TableCell)
-class TableCellAdmin(admin.ModelAdmin):
+class TableCellAdmin(sistema.admin.ModelAdmin):
     list_display = ('id', 'row', 'order')
     list_filter = ('row__table', 'row',)
     ordering = ('row__table', 'row', 'order')
@@ -160,6 +163,6 @@ class AbstractDocumentBlockInline(StackedPolymorphicInline):
 
 
 @admin.register(models.Document)
-class DocumentAdmin(PolymorphicInlineSupportMixin, admin.ModelAdmin):
+class DocumentAdmin(PolymorphicInlineSupportMixin, sistema.admin.ModelAdmin):
     list_display = ('id', 'name', 'page_size')
     inlines = (AbstractDocumentBlockInline,)

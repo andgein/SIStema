@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import sizefield.models
-import sistema.polymorphic
+import sistema.admin.polymorphic
 
 
 def forwards_func(apps, schema_editor):
@@ -16,7 +16,7 @@ def forwards_func(apps, schema_editor):
                        'EntranceExamTaskSolution',
                        'EntranceLevelUpgradeRequirement']:
         model = apps.get_model('entrance', model_name)
-        children = sistema.polymorphic.get_all_inheritors(model)
+        children = sistema.admin.polymorphic.get_all_inheritors(model)
         for child in children:
             for obj in child.objects.all():
                 content_type = ContentType.objects.db_manager().get_for_model(

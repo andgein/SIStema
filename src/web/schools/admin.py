@@ -2,9 +2,11 @@ from django.contrib import admin
 
 from reversion.admin import VersionAdmin
 
-from . import models
+from schools import models
+import sistema.admin
 
 
+@admin.register(models.School)
 class SchoolAdmin(VersionAdmin):
     list_display = (
         'id',
@@ -15,6 +17,7 @@ class SchoolAdmin(VersionAdmin):
     )
 
 
+@admin.register(models.Session)
 class SessionAdmin(VersionAdmin):
     list_display = (
         'id',
@@ -28,7 +31,8 @@ class SessionAdmin(VersionAdmin):
     )
 
 
-class ParallelAdmin(admin.ModelAdmin):
+@admin.register(models.Parallel)
+class ParallelAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'id',
         'school',
@@ -41,7 +45,8 @@ class ParallelAdmin(admin.ModelAdmin):
     )
 
 
-class SchoolParticipantAdmin(admin.ModelAdmin):
+@admin.register(models.SchoolParticipant)
+class SchoolParticipantAdmin(sistema.admin.ModelAdmin):
     list_display = (
         'id',
         'school',
@@ -52,9 +57,3 @@ class SchoolParticipantAdmin(admin.ModelAdmin):
         'school',
         'parallel',
     )
-
-
-admin.site.register(models.School, SchoolAdmin)
-admin.site.register(models.Session, SessionAdmin)
-admin.site.register(models.Parallel, ParallelAdmin)
-admin.site.register(models.SchoolParticipant, SchoolParticipantAdmin)
