@@ -108,7 +108,6 @@ class Parallel(models.Model):
 
     name = models.CharField(max_length=100, help_text='Например, C\'')
 
-    # TODO(artemtab): should we make it a property which looks at groups?
     sessions = models.ManyToManyField(Session)
 
     class Meta:
