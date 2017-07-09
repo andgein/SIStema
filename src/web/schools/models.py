@@ -142,7 +142,7 @@ class Group(models.Model):
         unique_together = ('session', 'parallel', 'short_name')
 
     def save(self, *args, **kwargs):
-        if self.parallel.school != self.session.school:
+        if self.parallel.school_id != self.session.school_id:
             raise ValueError(
                 'Error while saving study group: parallel ({}) and session '
                 '({}) should belong to the same school.'
