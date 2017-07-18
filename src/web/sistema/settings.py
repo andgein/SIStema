@@ -218,6 +218,11 @@ WIKI_ANONYMOUS = False
 def WIKI_CAN_READ(article, user):
     return user.is_staff
 
+# Disable check on page creation whether it's address already used by non-wiki
+# urls. It needs to be disabled because any address conflicts with
+# /<school_short_name>/... pattern as school_short_name can be equal to "wiki".
+WIKI_CHECK_SLUG_URL_AVAILABLE = False
+
 
 DATE_INPUT_FORMATS = (
     '%d.%m.%Y', '%d.%m.%Y', '%d.%m.%y',  # '25.10.2006', '25.10.2006', '25.10.06'
