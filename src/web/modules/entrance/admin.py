@@ -247,6 +247,7 @@ class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 @admin.register(models.SolveExamEntranceStep)
 @admin.register(models.ResultsEntranceStep)
 @admin.register(models.MakeUserParticipatingEntranceStep)
+@admin.register(models.UserPaticipatedInSchoolEntranceStep)
 class EntranceStepChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractEntranceStep
 

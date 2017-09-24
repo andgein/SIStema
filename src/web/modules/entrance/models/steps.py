@@ -476,3 +476,31 @@ class MakeUserParticipatingEntranceStep(AbstractEntranceStep):
 
     def __str__(self):
         return 'Шаг, объявляющий школьника поступающим в ' + self.school.name
+
+
+class UserPaticipatedInSchoolEntranceStep(AbstractEntranceStep,
+                                          EntranceStepTextsMixIn):
+    """
+    Step considered as passed only if a user has participated in a specified
+    school.
+
+    Visible only if not passed.
+    """
+
+    template_file = 'user_participated_in_school.html'
+
+    school_to_check_participation = models.ForeignKey(
+        schools.models.School,
+        on_delete=models.CASCADE,
+        related_name='+',
+        help_text='Шаг будет считаться пройденным только если пользователь '
+                  'принимал участие в этой школе',
+    )
+
+    def is_visible(self, user):
+        return not self.is_passed(user)
+
+    def is_passed(self, user):
+        return (user.school_participations
+                .filter(school=self.school_to_check_participation)
+                .exists())
