@@ -504,3 +504,8 @@ class UserPaticipatedInSchoolEntranceStep(AbstractEntranceStep,
         return (user.school_participations
                 .filter(school=self.school_to_check_participation)
                 .exists())
+
+    def build(self, user):
+        block = super().build(user)
+        block.school_to_check_participation = self.school_to_check_participation
+        return block
