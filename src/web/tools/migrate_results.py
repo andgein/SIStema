@@ -13,7 +13,7 @@ Tool for moving the study results from csv, both summer and winter, and creating
 parallels for winter.
 
 Usage from manage.py shell:
-    from tools import populate_study_results
+    from tools.migrate_results import populate_study_results
     populate_study_results('2016.winter', 'winter_results.csv')
     populate_study_results('2016', 'july_results.csv')
 
@@ -37,7 +37,7 @@ def preprocess_mark(mark):
     return study_models.StudyResult.Evaluation.values[mark]
 
 
-def get_parallel_from_group(group):
+def get_parallel_from_group(group, school):
     parallel = group[0].lower()
     if parallel == 'c':
         if group[1] in '123':
@@ -47,7 +47,8 @@ def get_parallel_from_group(group):
     if int(group[1]) >= 7:
         parallel += '_prime'
     print(parallel, end=' ', flush=True)
-    return schools.models.Parallel.objects.get(short_name=parallel)
+    return schools.models.Parallel.objects.get(short_name=parallel,
+                                               school=school)
 
 
 def get_parallel(parallel, school):
@@ -81,9 +82,11 @@ def populate_study_results(school, input_file):
         school_participant, _ = (schools.models.SchoolParticipant.objects
             .get_or_create(user_id=column['sis_id'], school=school))
         if column.get(r'Группа'):
-            school_participant.parallel = get_parallel_from_group(column[r'Группа'])
+            school_participant.parallel = get_parallel_from_group(
+                column[r'Группа'], school)
         if column.get(r'Параллель'):
-            school_participant.parallel, _ = get_parallel(column[r'Параллель'], school)
+            school_participant.parallel, _ = get_parallel(
+                column[r'Параллель'], school)
         school_participant.save()
         study_result, _ = study_models.StudyResult.objects.get_or_create(
             school_participant=school_participant)
