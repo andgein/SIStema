@@ -5,6 +5,7 @@ from django.core import mail, validators
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from djchoices import choices
+import django.db.transaction
 
 
 class UserManager(auth_models.UserManager):
@@ -173,6 +174,13 @@ class UserProfile(models.Model):
     document_number = models.CharField('Номер документа', max_length=100, blank=True, default='')
 
     has_accepted_terms = models.BooleanField('Согласие на обработку персональных данных', default=False)
+
+    def save(self):
+        self.user.first_name = self.first_name
+        self.user.last_name = self.last_name
+        with django.db.transaction.atomic():
+            self.user.save()
+            super().save()
 
     def get_zero_class_year(self):
         return self._zero_class_year
