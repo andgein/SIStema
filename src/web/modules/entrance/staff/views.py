@@ -228,49 +228,8 @@ def _find_clones(user):
 
 
 def check_user(request, user, group=None):
-    entrance_exam = models.EntranceExam.objects.filter(school=request.school).first()
-    base_entrance_level = upgrades.get_base_entrance_level(request.school, user)
-    level_upgrades = models.EntranceLevelUpgrade.objects.filter(
-        upgraded_to__school=request.school,
-        user=user
-    )
-    tasks = upgrades.get_entrance_tasks(
-        request.school,
-        user,
-        base_entrance_level
-    )
-    tasks_solutions = group_by(
-        user.entrance_exam_solutions.filter(task__exam=entrance_exam).order_by('-created_at'),
-        operator.attrgetter('task_id')
-    )
-
-    for task in tasks:
-        task.user_solutions = tasks_solutions[task.id]
-        task.is_solved = task.is_solved_by_user(user)
-        if type(task) is models.TestEntranceExamTask:
-            if len(task.user_solutions) > 0:
-                task.last_try = task.user_solutions[0].solution
-                task.is_last_correct = task.check_solution(task.last_try)
-            else:
-                task.last_try = None
-                task.is_last_correct = None
-        if type(task) is models.FileEntranceExamTask:
-            if len(task.user_solutions) > 0:
-                task.last_solution = task.user_solutions[0]
-                task.checks = list(task.last_solution.checks.all())
-            else:
-                task.last_solution = None
-                task.checks = []
-
-    test_tasks = list(filter(
-        lambda t: type(t) is models.TestEntranceExamTask, tasks
-    ))
-    file_tasks = list(filter(
-        lambda t: type(t) is models.FileEntranceExamTask, tasks
-    ))
-    program_tasks = list(filter(
-        lambda t: isinstance(t, models.EjudgeEntranceExamTask), tasks
-    ))
+    entrance_exam = (
+        models.EntranceExam.objects.filter(school=request.school).first())
 
     move_into_checking_group_form = forms.MoveIntoCheckingGroupForm(request.school)
 
@@ -279,6 +238,55 @@ def check_user(request, user, group=None):
     ).order_by('created_at')
 
     add_checking_comment_form = forms.AddCheckingCommentForm()
+
+    base_entrance_level = None
+    level_upgrades = []
+    test_tasks = []
+    file_tasks = []
+    program_tasks = []
+    if entrance_exam is not None:
+        base_entrance_level = upgrades.get_base_entrance_level(request.school, user)
+        level_upgrades = models.EntranceLevelUpgrade.objects.filter(
+            upgraded_to__school=request.school,
+            user=user
+        )
+        tasks = upgrades.get_entrance_tasks(
+            request.school,
+            user,
+            base_entrance_level
+        )
+        tasks_solutions = group_by(
+            user.entrance_exam_solutions.filter(task__exam=entrance_exam).order_by('-created_at'),
+            operator.attrgetter('task_id')
+        )
+
+        for task in tasks:
+            task.user_solutions = tasks_solutions[task.id]
+            task.is_solved = task.is_solved_by_user(user)
+            if type(task) is models.TestEntranceExamTask:
+                if len(task.user_solutions) > 0:
+                    task.last_try = task.user_solutions[0].solution
+                    task.is_last_correct = task.check_solution(task.last_try)
+                else:
+                    task.last_try = None
+                    task.is_last_correct = None
+            if type(task) is models.FileEntranceExamTask:
+                if len(task.user_solutions) > 0:
+                    task.last_solution = task.user_solutions[0]
+                    task.checks = list(task.last_solution.checks.all())
+                else:
+                    task.last_solution = None
+                    task.checks = []
+
+        test_tasks = list(filter(
+            lambda t: type(t) is models.TestEntranceExamTask, tasks
+        ))
+        file_tasks = list(filter(
+            lambda t: type(t) is models.FileEntranceExamTask, tasks
+        ))
+        program_tasks = list(filter(
+            lambda t: isinstance(t, models.EjudgeEntranceExamTask), tasks
+        ))
 
     return render(request, 'entrance/staff/check_user.html', {
         'group': group,

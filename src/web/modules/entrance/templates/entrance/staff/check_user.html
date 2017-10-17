@@ -34,7 +34,9 @@
 
 {% block content %}
     <div class="mtn5 mb15">
-        Выданы задания уровня <span class="label label-sm label-{{ level_upgrades|yesno:'primary,success' }}">{{ base_entrance_level.name }}</span>
+        {% if base_entrance_level %}
+            Выданы задания уровня <span class="label label-sm label-{{ level_upgrades|yesno:'primary,success' }}">{{ base_entrance_level.name }}</span>
+        {% endif %}
         {% if level_upgrades %}
             , повышения до
             {% for upgrade in level_upgrades %}
@@ -206,9 +208,11 @@
                             <b>Не был в ЛКШ</b>
                         {% endif %}
                     </div>
-                    <div>
-                        <b>Основание для поступления:</b> {{ user_summary.entrance_reason_text }}
-                    </div>
+                    {% if user_summary.entrance_reason_text %}
+                        <div>
+                            <b>Основание для поступления:</b> {{ user_summary.entrance_reason_text }}
+                        </div>
+                    {% endif %}
                     <div><b>Хочет в A-ML:</b> {{ user_summary.a_ml|yesno:"Да,Нет" }}</div>
                     {% if user_summary.entrance_statuses %}
                         <div>
