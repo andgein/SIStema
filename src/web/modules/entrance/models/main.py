@@ -209,6 +209,7 @@ class EntranceExam(models.Model):
     school = models.OneToOneField(
         schools.models.School,
         on_delete=models.CASCADE,
+        related_name='entrance_exam',
     )
 
     close_time = models.DateTimeField(blank=True, default=None, null=True)

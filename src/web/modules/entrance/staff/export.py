@@ -127,109 +127,152 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=[user.profile.school_name for user in enrollees],
         ))
 
-        columns.append(PlainExcelColumn(
-            name='Основание для поступления',
-            data=self.get_entrance_reason_for_users(request.school, enrollees),
-        ))
+        if self.question_exists(request.school, 'entrance_reason'):
+            columns.append(PlainExcelColumn(
+                name='Основание для поступления',
+                data=self.get_choice_question_for_users(
+                    request.school, enrollees, 'entrance_reason'),
+            ))
 
-        columns.append(PlainExcelColumn(
-            name='История',
-            data=self.get_history_for_users(request.school, enrollees),
-        ))
+        if self.question_exists(request.school, 'previous_parallels'):
+            columns.append(PlainExcelColumn(
+                name='История',
+                data=self.get_history_for_users(request.school, enrollees),
+            ))
 
         columns.append(PlainExcelColumn(
             name='История (poldnev.ru)',
             data=self.get_poldnev_history_for_users(enrollees),
         ))
 
-        columns.append(PlainExcelColumn(
-            name='Язык (основной)',
-            data=self.get_main_language_for_users(request.school, enrollees),
-        ))
+        if self.question_exists(request.school, 'main_langauge'):
+            columns.append(PlainExcelColumn(
+                name='Язык (основной)',
+                data=self.get_text_question_for_users(
+                    request.school, enrollees, 'main_langauge'),
+            ))
 
-        columns.append(PlainExcelColumn(
-            name='Языки ОК\'ов',
-            data=self.get_ok_languages_for_users(request.school, enrollees),
-        ))
+        if self.question_exists(request.school, 'travel_pasport'):
+            columns.append(PlainExcelColumn(
+                name='Загран',
+                data=self.get_choice_question_for_users(
+                    request.school, enrollees, 'travel_pasport'),
+            ))
 
-        columns.append(PlainExcelColumn(
-            name='Уровень',
-            data=self.get_entrance_level_for_users(request.school, enrollees),
-        ))
+        if self.question_exists(request.school, 'visa'):
+            columns.append(PlainExcelColumn(
+                name='Виза',
+                data=self.get_choice_question_for_users(
+                    request.school, enrollees, 'visa'),
+            ))
 
-        columns.append(PlainExcelColumn(
-            name='Апгрейд',
-            data=self.get_max_upgrade_for_users(request.school, enrollees),
-        ))
+        if self.question_exists(request.school, 'visa_expiration'):
+            columns.append(PlainExcelColumn(
+                name='Срок действия визы',
+                data=self.get_text_question_for_users(
+                    request.school, enrollees, 'visa_expiration'),
+            ))
 
-        columns.append(PlainExcelColumn(
-            name='Группы проверки',
-            data=self.get_checking_groups_for_users(request.school, enrollees),
-        ))
+        if self.question_exists(request.school, 'fingerprints'):
+            columns.append(PlainExcelColumn(
+                name='Отпечатки',
+                data=self.get_choice_question_for_users(
+                    request.school, enrollees, 'fingerprints'),
+            ))
 
-        file_tasks = (
-            models.FileEntranceExamTask.objects
-            .annotate(entrance_levels_count=Count('entrance_levels'))
-            .filter(exam__school=request.school, entrance_levels_count__gt=0)
-            .order_by('order')
-        )
-        if file_tasks.exists():
-            subcolumns = [
-                PlainExcelColumn(
-                    name='{}: {}'.format(task.id, task.title),
-                    cell_width=5,
-                    data=self.get_file_task_score_for_users(task, enrollees)
-                )
-                for task in file_tasks
-            ]
-            columns.append(ExcelMultiColumn(name='Теория',
-                                            subcolumns=subcolumns))
+        if hasattr(request.school, 'entrance_exam'):
+            columns.append(PlainExcelColumn(
+                name='Языки ОК\'ов',
+                data=self.get_ok_languages_for_users(request.school, enrollees),
+            ))
 
-        program_tasks = (
-            models.ProgramEntranceExamTask.objects
-            .annotate(entrance_levels_count=Count('entrance_levels'))
-            .filter(exam__school=request.school, entrance_levels_count__gt=0)
-            .order_by('order')
-        )
-        if program_tasks.exists():
-            subcolumns = [
-                PlainExcelColumn(
-                    name='{}: {}'.format(task.id, task.title),
-                    cell_width=5,
-                    data=self.get_program_task_score_for_users(task, enrollees)
-                )
-                for task in program_tasks
-            ]
-            columns.append(ExcelMultiColumn(name='Практика',
-                                            subcolumns=subcolumns))
+            columns.append(PlainExcelColumn(
+                name='Уровень',
+                data=self.get_entrance_level_for_users(request.school,
+                                                       enrollees),
+            ))
 
-        # TODO(artemtab): set of metrics to show shouldn't be hardcoded, but
-        #     defined for each school/exam somewhere in the database.
-        metrics = (models.EntranceUserMetric.objects
-                   .filter(exam__school=request.school,
-                           name__in=["C'", "C", "B'", "B", "A'", "A"])
-                   .order_by('name'))
-        if metrics.exists():
-            subcolumns = [
-                PlainExcelColumn(
-                    name=metric.name,
-                    cell_width=5,
-                    data=list(metric.values_for_users(enrollees))
-                )
-                for metric in metrics
-            ]
-            columns.append(ExcelMultiColumn(name='Баллы',
-                                            subcolumns=subcolumns))
+            columns.append(PlainExcelColumn(
+                name='Апгрейд',
+                data=self.get_max_upgrade_for_users(request.school, enrollees),
+            ))
 
-        columns.append(PlainExcelColumn(
-            name='Смена',
-            data=self.get_session_for_users(request.school, enrollees),
-        ))
+            columns.append(PlainExcelColumn(
+                name='Группы проверки',
+                data=self.get_checking_groups_for_users(request.school,
+                                                        enrollees),
+            ))
 
-        columns.append(PlainExcelColumn(
-            name='Другая смена',
-            data=self.get_other_session_for_users(request.school, enrollees),
-        ))
+            file_tasks = (
+                models.FileEntranceExamTask.objects
+                .annotate(entrance_levels_count=Count('entrance_levels'))
+                .filter(exam__school=request.school,
+                        entrance_levels_count__gt=0)
+                .order_by('order')
+            )
+            if file_tasks.exists():
+                subcolumns = [
+                    PlainExcelColumn(
+                        name='{}: {}'.format(task.id, task.title),
+                        cell_width=5,
+                        data=self.get_file_task_score_for_users(task, enrollees)
+                    )
+                    for task in file_tasks
+                ]
+                columns.append(ExcelMultiColumn(name='Теория',
+                                                subcolumns=subcolumns))
+
+            program_tasks = (
+                models.ProgramEntranceExamTask.objects
+                .annotate(entrance_levels_count=Count('entrance_levels'))
+                .filter(exam__school=request.school,
+                        entrance_levels_count__gt=0)
+                .order_by('order')
+            )
+            if program_tasks.exists():
+                subcolumns = [
+                    PlainExcelColumn(
+                        name='{}: {}'.format(task.id, task.title),
+                        cell_width=5,
+                        data=self.get_program_task_score_for_users(task,
+                                                                   enrollees)
+                    )
+                    for task in program_tasks
+                ]
+                columns.append(ExcelMultiColumn(name='Практика',
+                                                subcolumns=subcolumns))
+
+            # TODO(artemtab): set of metrics to show shouldn't be hardcoded, but
+            #     defined for each school/exam somewhere in the database.
+            metrics = (models.EntranceUserMetric.objects
+                       .filter(exam__school=request.school,
+                               name__in=["C'", "C", "B'", "B", "A'", "A"])
+                       .order_by('name'))
+            if metrics.exists():
+                subcolumns = [
+                    PlainExcelColumn(
+                        name=metric.name,
+                        cell_width=5,
+                        data=list(metric.values_for_users(enrollees))
+                    )
+                    for metric in metrics
+                ]
+                columns.append(ExcelMultiColumn(name='Баллы',
+                                                subcolumns=subcolumns))
+
+        if self.question_exists(request.school, 'want_to_session'):
+            columns.append(PlainExcelColumn(
+                name='Смена',
+                data=self.get_choice_question_for_users(
+                    request.school, enrollees, 'want_to_session'),
+            ))
+
+        if self.question_exists(request.school, 'other_session'):
+            columns.append(PlainExcelColumn(
+                name='Другая смена',
+                data=self.get_other_session_for_users(request.school,
+                                                      enrollees),
+            ))
 
         entrance_status_by_user_id = self.get_entrance_status_by_user_id(
             request.school, enrollees)
@@ -282,67 +325,50 @@ class ExportCompleteEnrollingTable(django.views.View):
         ))
 
         # TODO(artemtab): we need some way to define for each school the
-        #     the previous ones in the database.
+        #     previous ones in the database.
         columns.append(ExcelMultiColumn(
-            name='Оценки 2016',
+            name='',
             subcolumns=[
                 PlainExcelColumn(
-                    name='Лето',
-                    cell_width=7,
-                    data=self.get_marks_for_users('2016', enrollees),
-                ),
-                PlainExcelColumn(
-                    name='Зима',
+                    name='Оценки 2016.Зима',
                     cell_width=7,
                     data=self.get_marks_for_users('2016.winter', enrollees),
                 ),
-            ],
-        ))
-
-        columns.append(ExcelMultiColumn(
-            name='Комментарии 2016',
-            subcolumns=[
                 PlainExcelColumn(
-                    name='Лето',
-                    cell_width=30,
-                    data=self.get_study_comments_for_users('2016', enrollees),
-                ),
-                PlainExcelColumn(
-                    name='Зима',
-                    cell_width=30,
-                    data=self.get_study_comments_for_users('2016.winter',
-                                                           enrollees),
+                    name='Оценки 2017',
+                    cell_width=7,
+                    data=self.get_marks_for_users('2017', enrollees),
                 ),
             ],
         ))
 
-        columns.append(ExcelMultiColumn(
-            name='Олимпиады',
-            subcolumns=[
-                PlainExcelColumn(
-                    name='Информатика',
-                    cell_width=30,
-                    data=self.get_informatics_olympiads_for_users(
-                        request.school, enrollees),
-                ),
-                PlainExcelColumn(
-                    name='Математика',
-                    cell_width=30,
-                    data=self.get_math_olympiads_for_users(request.school,
-                                                           enrollees),
-                ),
-            ],
+        columns.append(PlainExcelColumn(
+            name='Комментарии 2017',
+            cell_width=30,
+            data=self.get_study_comments_for_users('2017', enrollees),
         ))
+
+        if (self.question_exists(request.school, 'informatics_olympiads') and
+                self.question_exists(request.school, 'math_olympiads')):
+            columns.append(ExcelMultiColumn(
+                name='Олимпиады',
+                subcolumns=[
+                    PlainExcelColumn(
+                        name='Информатика',
+                        cell_width=30,
+                        data=self.get_choice_question_for_users(
+                            request.school, enrollees, 'informatics_olympiads'),
+                    ),
+                    PlainExcelColumn(
+                        name='Математика',
+                        cell_width=30,
+                        data=self.get_choice_question_for_users(
+                            request.school, enrollees, 'math_olympiads'),
+                    ),
+                ],
+            ))
 
         return columns
-
-    def get_answer_variant_by_id(self, school):
-        variants = (
-            questionnaire.models.ChoiceQuestionnaireQuestionVariant.objects
-            .filter(question__questionnaire__school=school)
-        )
-        return {str(var.id): var for var in variants}
-
 
     def get_history_for_users(self, school, enrollees):
         previous_parallel_answers = (
@@ -391,31 +417,6 @@ class ExportCompleteEnrollingTable(django.views.View):
                              for upgrade in issued_upgrades}
         return [max_level_by_user.get(user, '') for user in enrollees]
 
-    def get_main_language_for_users(self, school, enrollees):
-        language_answers = (
-            questionnaire.models.QuestionnaireAnswer.objects
-            .filter(user__in=enrollees,
-                    questionnaire__school=school,
-                    question_short_name='main_language')
-        )
-        language_by_user = {answer.user: answer.answer
-                            for answer in language_answers}
-        return [language_by_user.get(user, '') for user in enrollees]
-
-    def get_session_for_users(self, school, enrollees):
-        session_answers = (
-            questionnaire.models.QuestionnaireAnswer.objects
-            .filter(user__in=enrollees,
-                    questionnaire__school=school,
-                    question_short_name='want_to_session')
-        )
-        answer_variant_by_id = self.get_answer_variant_by_id(school)
-        session_by_user = {
-            answer.user: answer_variant_by_id[answer.answer].text
-            for answer in session_answers
-        }
-        return [session_by_user.get(user, '') for user in enrollees]
-
     def get_other_session_for_users(self, school, enrollees):
         other_session_answers = (
             questionnaire.models.QuestionnaireAnswer.objects
@@ -428,45 +429,6 @@ class ExportCompleteEnrollingTable(django.views.View):
             for answer in other_session_answers
         }
         return [other_session_by_user.get(user, '') for user in enrollees]
-
-    def get_entrance_reason_for_users(self, school, enrollees):
-        entrance_reason_answers = (
-            questionnaire.models.QuestionnaireAnswer.objects
-            .filter(user__in=enrollees,
-                    questionnaire__school=school,
-                    question_short_name='entrance_reason')
-        )
-        answer_variant_by_id = self.get_answer_variant_by_id(school)
-        entrance_reason_by_user = {
-            answer.user: answer_variant_by_id[answer.answer].text
-            for answer in entrance_reason_answers
-        }
-        return [entrance_reason_by_user.get(user, '') for user in enrollees]
-
-    def get_informatics_olympiads_for_users(self, school, enrollees):
-        informatics_olympiads_answers = (
-            questionnaire.models.QuestionnaireAnswer.objects
-            .filter(user__in=enrollees,
-                    questionnaire__school=school,
-                    question_short_name='informatics_olympiads')
-        )
-        informatics_olympiads_by_user = {
-            answer.user: answer.answer
-            for answer in informatics_olympiads_answers
-        }
-        return [informatics_olympiads_by_user.get(user, '')
-                for user in enrollees]
-
-    def get_math_olympiads_for_users(self, school, enrollees):
-        math_olympiads_answers = (
-            questionnaire.models.QuestionnaireAnswer.objects
-            .filter(user__in=enrollees,
-                    questionnaire__school=school,
-                    question_short_name='math_olympiads')
-        )
-        math_olympiads_by_user = {answer.user: answer.answer
-                                  for answer in math_olympiads_answers}
-        return [math_olympiads_by_user.get(user, '') for user in enrollees]
 
     def get_marks_for_users(self, school_short_name, enrollees):
         results = (
@@ -564,6 +526,44 @@ class ExportCompleteEnrollingTable(django.views.View):
         )
         return [('1' if user.id in solved_user_ids else '')
                 for user in enrollees]
+
+    def get_text_question_for_users(self, school, enrollees, short_name):
+        answers = (
+            questionnaire.models.QuestionnaireAnswer.objects
+            .filter(user__in=enrollees,
+                    questionnaire__school=school,
+                    question_short_name=short_name)
+        )
+        answer_by_user = {answer.user: answer.answer
+                          for answer in answers}
+        return [answer_by_user.get(user, '') for user in enrollees]
+
+    def get_choice_question_for_users(self, school, enrollees, short_name):
+        answers = (
+            questionnaire.models.QuestionnaireAnswer.objects
+            .filter(user__in=enrollees,
+                    questionnaire__school=school,
+                    question_short_name=short_name)
+        )
+        answer_variant_by_id = self.get_answer_variant_by_id(school)
+        answer_by_user = {
+            answer.user: answer_variant_by_id[answer.answer].text
+            for answer in answers
+        }
+        return [answer_by_user.get(user, '') for user in enrollees]
+
+    def question_exists(self, school, question_short_name):
+        return (questionnaire.models.AbstractQuestionnaireQuestion.objects
+                .filter(short_name=question_short_name,
+                        questionnaire__school_id=school.id)
+                .exists())
+
+    def get_answer_variant_by_id(self, school):
+        variants = (
+            questionnaire.models.ChoiceQuestionnaireQuestionVariant.objects
+            .filter(question__questionnaire__school=school)
+        )
+        return {str(var.id): var for var in variants}
 
 
 class ExcelColumn:
