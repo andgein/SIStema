@@ -497,13 +497,23 @@ class UserParticipatedInSchoolEntranceStep(AbstractEntranceStep,
                   'принимал участие в этой школе',
     )
 
+    def __str__(self):
+        return 'Шаг проверки участия в {} для {}'.format(
+            self.school_to_check_participation.name, self.school.name)
+
     def is_visible(self, user):
         return not self.is_passed(user)
 
     def is_passed(self, user):
-        return (user.school_participations
-                .filter(school=self.school_to_check_participation)
-                .exists())
+        return (
+            user.school_participations
+            .filter(school=self.school_to_check_participation)
+            .exists()
+        ) or (
+            self.exceptions
+            .filter(user_id=user.id)
+            .exists()
+        )
 
     def build(self, user):
         block = super().build(user)
@@ -512,3 +522,33 @@ class UserParticipatedInSchoolEntranceStep(AbstractEntranceStep,
             block.school_to_check_participation = (
                 self.school_to_check_participation)
         return block
+
+
+class UserParticipatedInSchoolEntranceStepException(models.Model):
+    """
+    Exception for UserParticipatedInSchoolEntranceStep. For the specified user
+    the step considered passed regardless of the participation in the
+    corresponding school.
+    """
+    step = models.ForeignKey(
+        'UserParticipatedInSchoolEntranceStep',
+        on_delete=models.CASCADE,
+        related_name='exceptions',
+        help_text='Шаг, для которого предназначено данное исключение',
+    )
+
+    user = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name='+',
+        help_text='Пользователь, для которого шаг считается выполненным, даже '
+                  'если он не участвовал в соответствующей школе',
+    )
+
+    def __str__(self):
+        return (
+            'Исключение для пользователя {} в шаге проверки участия в {} для {}'
+            .format(self.user,
+                    self.step.school_to_check_participation.name,
+                    self.step.school.name)
+        )

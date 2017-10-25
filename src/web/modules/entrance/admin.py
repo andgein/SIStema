@@ -247,9 +247,23 @@ class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 @admin.register(models.SolveExamEntranceStep)
 @admin.register(models.ResultsEntranceStep)
 @admin.register(models.MakeUserParticipatingEntranceStep)
-@admin.register(models.UserParticipatedInSchoolEntranceStep)
 class EntranceStepChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractEntranceStep
+
+
+class UserParticipatedInSchoolEntranceStepExceptionInline(admin.StackedInline):
+    model = models.UserParticipatedInSchoolEntranceStepException
+    extra = 0
+
+
+@admin.register(models.UserParticipatedInSchoolEntranceStep)
+class UserParticipatedInSchoolEntranceStepChildAdmin(
+        PolymorphicChildModelAdmin
+):
+    base_model = models.AbstractEntranceStep
+    inlines = (
+        UserParticipatedInSchoolEntranceStepExceptionInline,
+    )
 
 
 @admin.register(models.EntranceUserMetric)
