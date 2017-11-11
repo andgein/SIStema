@@ -83,6 +83,7 @@ INSTALLED_APPS = (
     'sistema.apps.SistemaConfig',
 
     # Sistema core modules
+    'dates',
     'frontend',
     'generator',
     'home',
