@@ -6,6 +6,7 @@ from reversion.admin import VersionAdmin
 from . import models
 
 
+@admin.register(models.User)
 class UserAdmin(VersionAdmin, HijackUserAdminMixin):
     list_display = (
         'id',
@@ -37,6 +38,7 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
     )
 
 
+@admin.register(models.UserProfile)
 class UserProfileAdmin(VersionAdmin):
     list_display = (
         'user_id',
@@ -52,5 +54,11 @@ class UserProfileAdmin(VersionAdmin):
     )
 
 
-admin.site.register(models.User, UserAdmin)
-admin.site.register(models.UserProfile, UserProfileAdmin)
+@admin.register(models.UserList)
+class UserListAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'name',
+    )
+
+    search_fields = ('name',)
