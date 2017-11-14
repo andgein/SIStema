@@ -232,7 +232,16 @@ class Questionnaire(models.Model):
 
     session = models.ForeignKey(schools.models.Session, blank=True, null=True)
 
-    close_time = models.DateTimeField(blank=True, null=True, default=None)
+    close_time = models.ForeignKey(
+        'dates.KeyDate',
+        on_delete=models.SET_NULL,
+        related_name='+',
+        blank=True,
+        null=True,
+        verbose_name='Время закрытия',
+        help_text='Начиная с этого момента пользователи видят анкету в режиме '
+                  'только для чтения',
+    )
 
     enable_autofocus = models.BooleanField(
         default=True,
@@ -248,8 +257,9 @@ class Questionnaire(models.Model):
         return self.title
 
     # TODO: Extract to ModelWithCloseTime?
-    def is_closed(self):
-        return self.close_time is not None and django.utils.timezone.now() >= self.close_time
+    def is_closed_for_user(self, user):
+        return (self.close_time is not None and
+                self.close_time.passed_for_user(user))
 
     @cached_property
     def blocks(self):

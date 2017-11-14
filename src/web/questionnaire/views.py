@@ -89,7 +89,8 @@ def questionnaire_for_user(request, user, questionnaire_name):
     form_class = questionnaire.get_form_class()
 
     # There are no closed questionnaires for staff users
-    is_closed = questionnaire.is_closed() and not request.user.is_staff
+    is_closed = (questionnaire.is_closed_for_user(user) and
+                 not request.user.is_staff)
 
     # Typing dynamics form
     typing_dynamics_form = None
