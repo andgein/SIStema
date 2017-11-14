@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Tests for the deadlines app"""
+"""Tests for the dates app"""
 
 import datetime
 import unittest
@@ -14,7 +14,7 @@ import users.models
 TIMEZONE = datetime.timezone(datetime.timedelta())
 
 
-class DeadlineTestCase(django.test.TestCase):
+class KeyDateTestCase(django.test.TestCase):
     def setUp(self):
         self.user_without_exception = users.models.User.objects.create_user(
             'test', 'test@test.com', 'password')
