@@ -33,14 +33,14 @@
     {% block title %}{% endblock %}
 
     {% if entrance_block.state == EntranceStepState.NOT_OPENED %}
-        {% if entrance_block.step.available_from_time %}
-            <span class="deadline">с&nbsp;{{ entrance_block.step.available_from_time.date|without_year:entrance_block.step.school.year }}</span>
+        {% if entrance_block.step_available_from_time %}
+            <span class="deadline">с&nbsp;{{ entrance_block.step_available_from_time.date|without_year:entrance_block.step.school.year }}</span>
         {% endif %}
     {% endif %}
 
     {% if entrance_block.state == EntranceStepState.NOT_PASSED or entrance_block.state == EntranceStepState.WAITING_FOR_OTHER_STEP %}
-        {% if entrance_block.step.available_to_time %}
-            <span class="deadline">до&nbsp;{{ entrance_block.step.available_to_time.date|without_year:entrance_block.step.school.year }}</span>
+        {% if entrance_block.step_available_to_time %}
+            <span class="deadline">до&nbsp;{{ entrance_block.step_available_to_time.date|without_year:entrance_block.step.school.year }}</span>
         {% endif %}
     {% endif %}
 
@@ -78,7 +78,7 @@
 
     {% if entrance_block.state == EntranceStepState.PASSED %}
         {% block passed_text %}
-            {% if entrance_block.step.is_closed and entrance_block.step.text_after_finish_date_if_passed %}
+            {% if entrance_block.step_is_closed and entrance_block.step.text_after_finish_date_if_passed %}
                 {{ entrance_block.step.text_after_finish_date_if_passed|markdown }}
             {% else %}
                 {{ entrance_block.step.text_step_is_passed|markdown }}

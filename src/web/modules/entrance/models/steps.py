@@ -1,7 +1,6 @@
 import enum
 
 from django.db import models, transaction
-from django.utils import timezone
 from polymorphic import models as polymorphic_models
 
 import questionnaire.models
@@ -28,6 +27,17 @@ class EntranceStepBlock:
         self.step = step
         self.user = user
         self.state = state
+
+        # Pre-compute step fields for the particular user to be used in
+        # templates
+        self.step_available_from_time = (
+            None if step.available_from_time is None
+            else step.available_from_time.datetime_for_user(user))
+        self.step_available_to_time = (
+            None if step.available_to_time is None
+            else step.available_to_time.datetime_for_user(user))
+        self.step_is_opened = step.is_opened(user)
+        self.step_is_closed = step.is_closed(user)
 
 
 class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
@@ -65,18 +75,22 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
         help_text='Шаги упорядочиваются по возрастанию этого параметра'
     )
 
-    available_from_time = models.DateTimeField(
+    available_from_time = models.ForeignKey(
+        'dates.KeyDate',
+        on_delete=models.SET_NULL,
+        related_name='+',
         null=True,
         blank=True,
-        default=None,
-        help_text='Начиная с какого времени доступен шаг'
+        verbose_name='Доступен с',
     )
 
-    available_to_time = models.DateTimeField(
+    available_to_time = models.ForeignKey(
+        'dates.KeyDate',
+        on_delete=models.SET_NULL,
+        related_name='+',
         null=True,
         blank=True,
-        default=None,
-        help_text='До какого времени доступен доступен шаг'
+        verbose_name='Доступен до',
     )
 
     # TODO (andgein): Возможно, это должен быть ManyToManyField
@@ -133,7 +147,7 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
           `get_state`, override `is_passed` instead of it.
          :returns EntranceStepState
         """
-        if not self.is_opened:
+        if not self.is_opened(user):
             return EntranceStepState.NOT_OPENED
 
         if (self.available_after_step is not None and
@@ -143,7 +157,7 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
         if self.is_passed(user):
             return EntranceStepState.PASSED
 
-        if self.is_closed:
+        if self.is_closed(user):
             return EntranceStepState.CLOSED
 
         return EntranceStepState.NOT_PASSED
@@ -179,19 +193,15 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
                              'parallel should belong to the same school as step')
         super().save(*args, **kwargs)
 
-    @property
-    def is_opened(self):
+    def is_opened(self, user):
         if self.available_from_time is None:
             return True
-        now = timezone.now()
-        return now >= self.available_from_time
+        return self.available_from_time.passed_for_user(user)
 
-    @property
-    def is_closed(self):
+    def is_closed(self, user):
         if self.available_to_time is None:
             return False
-        now = timezone.now()
-        return now > self.available_to_time
+        return self.available_to_time.passed_for_user(user)
 
 
 class EntranceStepTextsMixIn(models.Model):
@@ -250,8 +260,10 @@ class ConfirmProfileEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
     template_file = 'confirm_profile.html'
 
     def is_passed(self, user):
+        available_from_for_user = (
+            self.available_from_time.datetime_for_user(user))
         return (super().is_passed(user) and
-                user.profile.updated_at >= self.available_from_time)
+                user.profile.updated_at >= available_from_for_user)
 
     def __str__(self):
         return 'Шаг подтверждения профиля для %s' % str(self.school)
@@ -315,7 +327,7 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
         super().save(*args, **kwargs)
 
     def is_passed(self, user):
-        return super().is_passed(user) and self.is_closed
+        return super().is_passed(user) and self.is_closed(user)
 
     @staticmethod
     def _get_solved_count(tasks):
