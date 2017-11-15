@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block passed_after_text %}
-    {% if not entrance_block.step.is_closed %}
+    {% if not entrance_block.step_is_closed %}
         <a href="{{ entrance_block.step.questionnaire.get_absolute_url }}" class="btn btn-success">
             {% block passed_button_text %}
                 Редактировать анкету
