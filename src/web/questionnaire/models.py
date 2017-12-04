@@ -12,6 +12,8 @@ from django.db import models
 import frontend.forms
 import schools.models
 import users.models
+import groups.models
+from groups.decorators import only_for_groups
 from sistema.helpers import group_by
 from . import forms
 
@@ -222,6 +224,20 @@ class Questionnaire(models.Model):
 
     close_time = models.DateTimeField(blank=True, null=True, default=None)
 
+    must_fill = models.ForeignKey(
+        groups.models.ManuallyFilledGroup,
+        blank=True,
+        null=True,
+        default=None,
+        on_delete=models.SET_NULL,
+        related_name='+',
+        help_text='Группа пользователей, которые должны заполнить эту анкету.'
+                  'Если не указано, то считается, что никто не должен'
+    )
+
+    class Meta:
+        unique_together = ('school', 'short_name')
+
     def __str__(self):
         if self.school is not None:
             return '%s. %s' % (self.school, self.title)
@@ -279,8 +295,19 @@ class Questionnaire(models.Model):
 
         return user_status.status == UserQuestionnaireStatus.Status.FILLED
 
-    class Meta:
-        unique_together = ('school', 'short_name')
+    def get_filled_users_ids(self, only_who_must_fill=False):
+        if only_who_must_fill and self.must_fill is None:
+            return []
+        qs = self.statuses.filter(status=UserQuestionnaireStatus.Status.FILLED)
+        if only_who_must_fill:
+            must_fill_users_ids = list(self.must_fill.members.values_list('id', flat=True))
+            qs = qs.filter(user_id__in=must_fill_users_ids)
+
+        return qs.values_list('user_id', flat=True).distinct()
+
+    def get_filled_users(self, only_who_must_fill=False):
+        filled_users_ids = self.get_filled_users_ids(only_who_must_fill)
+        return users.models.User.objects.filter(id__in=filled_users_ids)
 
 
 class QuestionnaireAnswer(models.Model):
@@ -317,7 +344,7 @@ class UserQuestionnaireStatus(models.Model):
     status = models.PositiveIntegerField(choices=Status.choices, validators=[Status.validator])
 
     class Meta:
-        verbose_name_plural = 'User questionnaire statuses'
+        verbose_name_plural = 'user questionnaire statuses'
         unique_together = ('user', 'questionnaire')
 
     def __str__(self):
