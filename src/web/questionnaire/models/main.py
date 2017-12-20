@@ -10,12 +10,11 @@ from django.core import urlresolvers
 from django.db import models
 
 import frontend.forms
+import groups.models
 import schools.models
 import users.models
-import groups.models
-from groups.decorators import only_for_groups
 from sistema.helpers import group_by
-from . import forms
+import questionnaire.forms as forms
 
 
 class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
@@ -225,7 +224,7 @@ class Questionnaire(models.Model):
     close_time = models.DateTimeField(blank=True, null=True, default=None)
 
     must_fill = models.ForeignKey(
-        groups.models.ManuallyFilledGroup,
+        groups.models.AbstractGroup,
         blank=True,
         null=True,
         default=None,
@@ -300,7 +299,7 @@ class Questionnaire(models.Model):
             return []
         qs = self.statuses.filter(status=UserQuestionnaireStatus.Status.FILLED)
         if only_who_must_fill:
-            must_fill_users_ids = list(self.must_fill.members.values_list('id', flat=True))
+            must_fill_users_ids = list(self.must_fill.users.values_list('id', flat=True))
             qs = qs.filter(user_id__in=must_fill_users_ids)
 
         return qs.values_list('user_id', flat=True).distinct()

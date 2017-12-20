@@ -20,8 +20,10 @@ def get_all_inheritors(klass):
 
 class PolymorphicParentModelAdmin(polymorphic.admin.PolymorphicParentModelAdmin):
     def get_child_models(self):
+        if self.base_model is None:
+            raise NotImplementedError('You should define base_model in %s' % self.__class__.__name__)
         inheritors = get_all_inheritors(self.base_model)
-        # Remove absctract models
+        # Remove abstract models
         inheritors = [c for c in inheritors if not c._meta.abstract]
         return inheritors
 

@@ -11,8 +11,15 @@ class EntranceStatusGroup(groups.models.AbstractGroup):
     )
 
     def is_user_in_group(self, user):
-        EntranceStatus.objects.filter(
+        return EntranceStatus.objects.filter(
             user=user,
             status=self.status,
             school=self.school,
-        )
+        ).exists()
+
+    @property
+    def users_ids(self):
+        return EntranceStatus.objects.filter(
+            status=self.status,
+            school=self.school
+        ).values_list('user_id', flat=True)

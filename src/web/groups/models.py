@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.utils.functional import cached_property
 
 import djchoices
@@ -58,8 +59,28 @@ class AbstractGroup(polymorphic.models.PolymorphicModel):
         unique_together = ('short_name', 'school')
 
     def is_user_in_group(self, user):
+        """
+        You can override this method in subclass.
+        By default it calls overrode self.users_ids. Be careful: this approach can be slow on large groups.
+        :return: True if user is in group and False otherwise.
+        """
+        return user.id in self.users_ids
+
+    @property
+    def users(self):
+        """
+        You can override this method in subclass. By default it calls overrode self.users_ids
+        :return: QuerySet for users.models.User model with users from this group
+        """
+        return users.models.User.objects.filter(id__in=self.users_ids)
+
+    @property
+    def users_ids(self):
+        """
+        :return: QuerySet or list of ids of users which are members of this group
+        """
         raise NotImplementedError(
-            'Each group type should implement is_user_in_group(), but %s has no it' %
+            'Each group should implement users_ids(), but %s has no it' %
             self.__class__.__name__
         )
 
@@ -103,39 +124,45 @@ class AbstractGroup(polymorphic.models.PolymorphicModel):
 
 
 class ManuallyFilledGroup(AbstractGroup):
-    def is_user_in_group(self, user):
-        return self.members.filter(id=user.id).exists()
-
-    @cached_property
-    def group_memberships(self):
-        return (GroupInGroupMembership.objects.filter(group=self)
-                .select_related('member'))
-
-    @cached_property
-    def user_memberships(self):
-        return (UserInGroupMembership.objects.filter(group=self)
-                .select_related('member'))
-
-    @cached_property
-    def memberships(self):
-        return self.group_memberships + self.user_memberships
-
     # If there will be problems with performance of this method,
     # it can be useful to cache full list of group's members and
     # rebuild it after adding or removing a new member
     @cached_property
-    def members(self):
+    def users_ids(self):
         visited_groups_ids = {self.id}
+        not_manually_filled_groups_members_ids = set()
         queue = collections.deque([self])
         while queue:
             group = queue.popleft()
-            for child_group in group.group_memberships:
+            for child_group in group._group_memberships:
                 if child_group.member.id not in visited_groups_ids:
                     visited_groups_ids.add(child_group.member.id)
-                    queue.append(child_group.member)
-        return users.models.User.objects.filter(
-            member_in_groups__id__in=visited_groups_ids
-        ).distinct()
+                    if child_group.member.get_real_instance_class() is ManuallyFilledGroup:
+                        queue.append(child_group.member.get_real_instance())
+                    else:
+                        not_manually_filled_groups_members_ids.update(
+                            child_group.member.get_real_instance().users_ids
+                        )
+
+        return not_manually_filled_groups_members_ids.union(
+            UserInGroupMembership.objects.filter(
+                group_id__in=visited_groups_ids
+            ).values_list('member_id').distinct()
+        )
+
+    @cached_property
+    def _group_memberships(self):
+        return (GroupInGroupMembership.objects.filter(group=self)
+                .select_related('member'))
+
+    @cached_property
+    def _user_memberships(self):
+        return (UserInGroupMembership.objects.filter(group=self)
+                .select_related('member'))
+
+    @cached_property
+    def _memberships(self):
+        return self._group_memberships + self._user_memberships
 
 
 class GroupMembership(models.Model):
@@ -170,6 +197,9 @@ class GroupInGroupMembership(GroupMembership):
         on_delete=models.CASCADE,
     )
 
+    def __str__(self):
+        return 'Участники %s входят в %s' % (self.member.name, self.group.name)
+
 
 class UserInGroupMembership(GroupMembership):
     member = models.ForeignKey(
@@ -177,6 +207,9 @@ class UserInGroupMembership(GroupMembership):
         related_name='member_in_groups',
         on_delete=models.CASCADE,
     )
+
+    def __str__(self):
+        return '%s в %s' % (self.member, self.group.name)
 
 
 class GroupAccess(polymorphic.models.PolymorphicModel):

@@ -8,7 +8,8 @@ from groups import models
 
 
 @admin.register(models.AbstractGroup)
-class GroupAdmin(users.admin.UserAutocompleteModelAdminMixIn, admin.ModelAdmin):
+class AbstractGroupAdmin(users.admin.UserAutocompleteModelAdminMixIn, sistema.polymorphic.PolymorphicParentModelAdmin):
+    base_model = models.AbstractGroup
     list_display = ('id', 'school', 'created_by', 'short_name', 'name',
                     'can_be_deleted', )
     list_filter = (('school', admin.RelatedOnlyFieldListFilter), )
@@ -22,6 +23,12 @@ class GroupAdmin(users.admin.UserAutocompleteModelAdminMixIn, admin.ModelAdmin):
         'name',
         'description'
     )
+    ordering = ('school', 'short_name')
+
+
+@admin.register(models.ManuallyFilledGroup)
+class ManuallyFilledGroupAdmin(AbstractGroupAdmin):
+    base_model = models.ManuallyFilledGroup
 
 
 @admin.register(models.GroupInGroupMembership)

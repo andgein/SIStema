@@ -8,6 +8,7 @@ from home.admin import AbstractHomePageBlockAdmin
 from . import models
 
 import users.models
+import groups.admin
 
 
 @admin.register(models.EntranceExamTask)
@@ -24,6 +25,7 @@ class EntranceExamTaskAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 @admin.register(models.OutputOnlyEntranceExamTask)
 class EntranceExamTaskChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.EntranceExamTask
+
 
 admin.site.register(models.EntranceExam)
 
@@ -253,3 +255,8 @@ class ResultsEntranceStepAdmin(AbstractEntranceStepAdmin):
 @admin.register(models.MakeUserParticipatingEntranceStep)
 class MakeUserParticipatingEntranceStepAdmin(AbstractEntranceStepAdmin):
     base_model = models.MakeUserParticipatingEntranceStep
+
+
+@admin.register(models.EntranceStatusGroup)
+class ManuallyFilledGroupAdmin(groups.admin.AbstractGroupAdmin):
+    base_model = models.EntranceStatusGroup
