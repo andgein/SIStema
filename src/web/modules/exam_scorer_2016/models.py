@@ -6,8 +6,11 @@ import modules.entrance.models as entrance_models
 class EntranceExamScorer(models.Model):
     name = models.CharField(max_length=100)
 
-    max_level = models.ForeignKey(entrance_models.EntranceLevel,
-                                  related_name='+')
+    max_level = models.ForeignKey(
+        entrance_models.EntranceLevel,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
     def __str__(self):
         return 'Scorer {}'.format(self.name)
@@ -61,10 +64,16 @@ class EntranceExamScorer(models.Model):
 
 
 class ProgramTaskScore(models.Model):
-    scorer = models.ForeignKey(EntranceExamScorer)
+    scorer = models.ForeignKey(
+        EntranceExamScorer,
+        on_delete=models.CASCADE,
+    )
 
-    task = models.ForeignKey(entrance_models.ProgramEntranceExamTask,
-                             related_name='+')
+    task = models.ForeignKey(
+        entrance_models.ProgramEntranceExamTask,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
     score = models.IntegerField()
 
@@ -74,7 +83,10 @@ class ProgramTaskScore(models.Model):
 
 
 class TestCountScore(models.Model):
-    scorer = models.ForeignKey(EntranceExamScorer)
+    scorer = models.ForeignKey(
+        EntranceExamScorer,
+        on_delete = models.CASCADE,
+    )
 
     count = models.IntegerField()
 

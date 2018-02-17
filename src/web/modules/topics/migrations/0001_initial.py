@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('max_penalty', models.PositiveIntegerField()),
-                ('entrance_level', models.ForeignKey(to='entrance.EntranceLevel')),
+                ('entrance_level', models.ForeignKey(on_delete=models.CASCADE, to='entrance.EntranceLevel')),
             ],
         ),
         migrations.CreateModel(
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('min_percent', models.IntegerField(validators=[django.core.validators.MinValueValidator(0, message='Процент не может быть меньше нуля'), django.core.validators.MaxValueValidator(100, message='Процент не может быть больше 100')], help_text='Минимальный процент максимальных/минимальных оценок из source_level')),
-                ('destination_level', models.ForeignKey(to='topics.Level', related_name='+')),
+                ('destination_level', models.ForeignKey(on_delete=models.CASCADE, to='topics.Level', related_name='+')),
             ],
             options={
                 'verbose_name_plural': 'Level downward dependencies',
@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('min_percent', models.IntegerField(validators=[django.core.validators.MinValueValidator(0, message='Процент не может быть меньше нуля'), django.core.validators.MaxValueValidator(100, message='Процент не может быть больше 100')], help_text='Минимальный процент максимальных/минимальных оценок из source_level')),
-                ('destination_level', models.ForeignKey(to='topics.Level', related_name='+')),
+                ('destination_level', models.ForeignKey(on_delete=models.CASCADE, to='topics.Level', related_name='+')),
             ],
             options={
                 'verbose_name_plural': 'Level upward dependencies',
@@ -99,7 +99,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('short_name', models.CharField(max_length=100, help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием')),
-                ('scale', models.ForeignKey(to='topics.Scale', related_name='label_groups')),
+                ('scale', models.ForeignKey(on_delete=models.CASCADE, to='topics.Scale', related_name='label_groups')),
             ],
         ),
         migrations.CreateModel(
@@ -118,7 +118,7 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(max_length=100, help_text='Показывается школьнику при заполнении анкеты')),
                 ('text', models.TextField(help_text='Более подробное описание. Показывается школьнику при заполнении анкеты')),
                 ('order', models.IntegerField(default=0, help_text='Внутренний порядок возрастания сложности')),
-                ('level', models.ForeignKey(to='topics.Level')),
+                ('level', models.ForeignKey(on_delete=models.CASCADE, to='topics.Level')),
             ],
         ),
         migrations.CreateModel(
@@ -127,8 +127,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('source_mark', models.PositiveIntegerField()),
                 ('destination_mark', models.PositiveIntegerField()),
-                ('destination', models.ForeignKey(to='topics.ScaleInTopic', related_name='dependencies_as_destination_topic')),
-                ('source', models.ForeignKey(to='topics.ScaleInTopic', related_name='dependencies_as_source_topic')),
+                ('destination', models.ForeignKey(on_delete=models.CASCADE, to='topics.ScaleInTopic', related_name='dependencies_as_destination_topic')),
+                ('source', models.ForeignKey(on_delete=models.CASCADE, to='topics.ScaleInTopic', related_name='dependencies_as_source_topic')),
             ],
             options={
                 'verbose_name_plural': 'Topic dependencies',
@@ -140,8 +140,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('is_correcting', models.BooleanField(default=False)),
-                ('topic', models.ForeignKey(to='topics.Topic')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('topic', models.ForeignKey(on_delete=models.CASCADE, to='topics.Topic')),
+                ('user', models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -159,8 +159,8 @@ class Migration(migrations.Migration):
                 ('mark', models.PositiveIntegerField()),
                 ('is_automatically', models.BooleanField(default=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('scale_in_topic', models.ForeignKey(to='topics.ScaleInTopic')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('scale_in_topic', models.ForeignKey(on_delete=models.CASCADE, to='topics.ScaleInTopic')),
+                ('user', models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'abstract': False,
@@ -171,8 +171,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('status', models.PositiveIntegerField(choices=[(1, 'NOT STARTED'), (2, 'STARTED'), (3, 'CORRECTING'), (4, 'FINISHED')], validators=[djchoices.choices.ChoicesValidator({1: 'NOT STARTED', 2: 'STARTED', 3: 'CORRECTING', 4: 'FINISHED'})])),
-                ('questionnaire', models.ForeignKey(to='topics.TopicQuestionnaire', related_name='+')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='+')),
+                ('questionnaire', models.ForeignKey(on_delete=models.CASCADE, to='topics.TopicQuestionnaire', related_name='+')),
+                ('user', models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL, related_name='+')),
             ],
             options={
                 'verbose_name_plural': 'User questionnaire statuses',
@@ -181,7 +181,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='topic',
             name='questionnaire',
-            field=models.ForeignKey(to='topics.TopicQuestionnaire'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.TopicQuestionnaire'),
         ),
         migrations.AddField(
             model_name='topic',
@@ -191,82 +191,82 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tag',
             name='questionnaire',
-            field=models.ForeignKey(to='topics.TopicQuestionnaire'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.TopicQuestionnaire'),
         ),
         migrations.AddField(
             model_name='scalelabel',
             name='group',
-            field=models.ForeignKey(to='topics.ScaleLabelGroup', related_name='labels'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.ScaleLabelGroup', related_name='labels'),
         ),
         migrations.AddField(
             model_name='scaleintopicissue',
             name='label_group',
-            field=models.ForeignKey(to='topics.ScaleLabelGroup'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.ScaleLabelGroup'),
         ),
         migrations.AddField(
             model_name='scaleintopicissue',
             name='topic_issue',
-            field=models.ForeignKey(to='topics.TopicIssue', related_name='scales'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.TopicIssue', related_name='scales'),
         ),
         migrations.AddField(
             model_name='scaleintopic',
             name='scale_label_group',
-            field=models.ForeignKey(to='topics.ScaleLabelGroup'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.ScaleLabelGroup'),
         ),
         migrations.AddField(
             model_name='scaleintopic',
             name='topic',
-            field=models.ForeignKey(to='topics.Topic'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.Topic'),
         ),
         migrations.AddField(
             model_name='scale',
             name='questionnaire',
-            field=models.ForeignKey(to='topics.TopicQuestionnaire'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.TopicQuestionnaire'),
         ),
         migrations.AddField(
             model_name='levelupwarddependency',
             name='questionnaire',
-            field=models.ForeignKey(to='topics.TopicQuestionnaire'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.TopicQuestionnaire'),
         ),
         migrations.AddField(
             model_name='levelupwarddependency',
             name='source_level',
-            field=models.ForeignKey(to='topics.Level', related_name='+'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.Level', related_name='+'),
         ),
         migrations.AddField(
             model_name='leveldownwarddependency',
             name='questionnaire',
-            field=models.ForeignKey(to='topics.TopicQuestionnaire'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.TopicQuestionnaire'),
         ),
         migrations.AddField(
             model_name='leveldownwarddependency',
             name='source_level',
-            field=models.ForeignKey(to='topics.Level', related_name='+'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.Level', related_name='+'),
         ),
         migrations.AddField(
             model_name='level',
             name='questionnaire',
-            field=models.ForeignKey(to='topics.TopicQuestionnaire'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.TopicQuestionnaire'),
         ),
         migrations.AddField(
             model_name='entrancelevelrequirement',
             name='questionnaire',
-            field=models.ForeignKey(to='topics.TopicQuestionnaire'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.TopicQuestionnaire'),
         ),
         migrations.AddField(
             model_name='entrancelevelrequirement',
             name='tag',
-            field=models.ForeignKey(to='topics.Tag'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.Tag'),
         ),
         migrations.AddField(
             model_name='backupusermark',
             name='scale_in_topic',
-            field=models.ForeignKey(to='topics.ScaleInTopic'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.ScaleInTopic'),
         ),
         migrations.AddField(
             model_name='backupusermark',
             name='user',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterUniqueTogether(
             name='userquestionnairestatus',

@@ -66,7 +66,7 @@ class School(models.Model):
 
 
 class Session(models.Model):
-    school = models.ForeignKey(School)
+    school = models.ForeignKey(School, on_delete=models.CASCADE)
 
     name = models.CharField(
         max_length=50,
@@ -119,7 +119,11 @@ class Session(models.Model):
 
 
 class Parallel(models.Model):
-    school = models.ForeignKey(School, related_name='parallels')
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name='parallels',
+    )
 
     short_name = models.CharField(
         max_length=100,
@@ -174,13 +178,26 @@ class Group(models.Model):
 
 
 class SchoolParticipant(models.Model):
-    school = models.ForeignKey(School, related_name='participants')
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name='participants',
+    )
 
-    user = models.ForeignKey(users.models.User,
-                             related_name='school_participations')
+    user = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+        related_name='school_participations',
+    )
 
-    parallel = models.ForeignKey(Parallel, null=True,
-                                 related_name='participants')
+    parallel = models.ForeignKey(
+        Parallel,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='participants',
+    )
+
     # TODO: Add group
 
     class Meta:

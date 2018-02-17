@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
                 ('short_name', models.CharField(max_length=100, help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием')),
                 ('name', models.CharField(max_length=100)),
                 ('order', models.IntegerField(default=0)),
-                ('for_school', models.ForeignKey(to='schools.School')),
+                ('for_school', models.ForeignKey(on_delete=models.CASCADE, to='schools.School')),
             ],
             options={
                 'ordering': ['for_school_id', 'order'],
@@ -61,7 +61,7 @@ class Migration(migrations.Migration):
                 ('class_name', models.CharField(max_length=100, help_text='Путь до класса, описывающий шаг')),
                 ('params', models.TextField(help_text='Параметры для шага')),
                 ('order', models.IntegerField()),
-                ('for_school', models.ForeignKey(to='schools.School', related_name='entrance_steps')),
+                ('for_school', models.ForeignKey(on_delete=models.CASCADE, to='schools.School', related_name='entrance_steps')),
             ],
             options={
                 'ordering': ['order'],
@@ -95,8 +95,8 @@ class Migration(migrations.Migration):
             name='ProgramEntranceExamTaskSolution',
             fields=[
                 ('entranceexamtasksolution_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, to='entrance.EntranceExamTaskSolution', serialize=False)),
-                ('ejudge_queue_element', models.ForeignKey(to='ejudge.QueueElement')),
-                ('language', models.ForeignKey(to='ejudge.ProgrammingLanguage')),
+                ('ejudge_queue_element', models.ForeignKey(on_delete=models.CASCADE, to='ejudge.QueueElement')),
+                ('language', models.ForeignKey(on_delete=models.CASCADE, to='ejudge.ProgrammingLanguage')),
             ],
             bases=('entrance.entranceexamtasksolution',),
         ),
@@ -117,17 +117,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='entranceexamtasksolution',
             name='task',
-            field=models.ForeignKey(to='entrance.EntranceExamTask'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='entrance.EntranceExamTask'),
         ),
         migrations.AddField(
             model_name='entranceexamtasksolution',
             name='user',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='entranceexamtask',
             name='exam',
-            field=models.ForeignKey(to='entrance.EntranceExam', related_name='entranceexamtask'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='entrance.EntranceExam', related_name='entranceexamtask'),
         ),
         migrations.AlterIndexTogether(
             name='entranceexamtasksolution',

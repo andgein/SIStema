@@ -43,26 +43,29 @@ class EntranceStepBlock:
 class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
     school = models.ForeignKey(
         schools.models.School,
+        on_delete=models.CASCADE,
         related_name='entrance_steps',
-        help_text='Школа, к которой относится шаг'
+        help_text='Школа, к которой относится шаг',
     )
 
     session = models.ForeignKey(
         schools.models.Session,
+        on_delete=models.CASCADE,
         related_name='+',
         help_text='Шаг будет показывать только зачисленным в эту смену',
         blank=True,
         null=True,
-        default=None
+        default=None,
     )
 
     parallel = models.ForeignKey(
         schools.models.Parallel,
+        on_delete=models.CASCADE,
         related_name='+',
         help_text='Шаг будет показывать только зачисленным в эту параллель',
         blank=True,
         null=True,
-        default=None
+        default=None,
     )
 
     visible_only_for_enrolled = models.BooleanField(
@@ -96,11 +99,12 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
     # TODO (andgein): Возможно, это должен быть ManyToManyField
     available_after_step = models.ForeignKey(
         'self',
+        on_delete=models.CASCADE,
         related_name='+',
         null=True,
         blank=True,
         default=None,
-        help_text='Шаг доступен только при выполнении другого шага'
+        help_text='Шаг доступен только при выполнении другого шага',
     )
 
     class Meta:
@@ -290,8 +294,9 @@ class FillQuestionnaireEntranceStep(AbstractEntranceStep,
 
     questionnaire = models.ForeignKey(
         questionnaire.models.Questionnaire,
+        on_delete=models.CASCADE,
         help_text='Анкета, которую нужно заполнить',
-        related_name='+'
+        related_name='+',
     )
 
     def save(self, *args, **kwargs):
@@ -315,6 +320,7 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
 
     exam = models.ForeignKey(
         'entrance.EntranceExam',
+        on_delete=models.CASCADE,
         help_text='Вступительная работа, которую нужно решить',
         related_name='+'
     )

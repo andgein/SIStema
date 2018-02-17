@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='entrancelevelupgrade',
             name='upgraded_to',
-            field=models.ForeignKey(related_name='+', to='entrance.EntranceLevel'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='+', to='entrance.EntranceLevel'),
         ),
     ]

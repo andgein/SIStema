@@ -208,7 +208,7 @@ class Question(models.Model):
 
 
 class GeneratedQuestion(models.Model):
-    base_question = models.ForeignKey(Question)
+    base_question = models.ForeignKey(Question, on_delete=models.CASCADE)
 
     seed = models.CharField(
         max_length=100,
@@ -219,6 +219,7 @@ class GeneratedQuestion(models.Model):
 
     user = models.ForeignKey(
         users.models.User,
+        on_delete=models.CASCADE,
         related_name='+',
         help_text='Пользователь, которому выдан этот вопрос. Другие '
                   'пользователи не смогут на него отвечать.',

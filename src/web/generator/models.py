@@ -193,7 +193,11 @@ class ParagraphStyle(models.Model):
         validators=[Alignment.validator],
     )
 
-    font = models.ForeignKey(Font, related_name='+')
+    font = models.ForeignKey(
+        Font,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
     font_size = models.PositiveIntegerField()
 
@@ -360,7 +364,11 @@ class Table(AbstractDocumentBlock):
 
 
 class TableRow(models.Model, ProcessedByVisitor):
-    table = models.ForeignKey(Table, related_name='rows')
+    table = models.ForeignKey(
+        Table,
+        on_delete=models.CASCADE,
+        related_name='rows',
+    )
 
     order = models.PositiveIntegerField(
         help_text='Строки упорядочиваются по возрастанию порядка')
@@ -379,9 +387,17 @@ class TableRow(models.Model, ProcessedByVisitor):
 
 
 class TableCell(models.Model, ProcessedByVisitor):
-    row = models.ForeignKey(TableRow, related_name='cells')
+    row = models.ForeignKey(
+        TableRow,
+        on_delete=models.CASCADE,
+        related_name='cells',
+    )
 
-    block = models.ForeignKey(AbstractDocumentBlock, related_name='+')
+    block = models.ForeignKey(
+        AbstractDocumentBlock,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
     order = models.PositiveIntegerField(
         help_text='Ячейки упорядочиваются по возрастанию порядка')
@@ -414,7 +430,11 @@ class TableCell(models.Model, ProcessedByVisitor):
 #   is (-1, -1). Depending on the command various extra (???) occur at indices
 #   beginning at 3 on.
 class AbstractTableStyleCommand(polymorphic.models.PolymorphicModel):
-    table = models.ForeignKey(Table, related_name='style_commands')
+    table = models.ForeignKey(
+        Table,
+        on_delete=models.CASCADE,
+        related_name='style_commands',
+    )
 
     start_column = models.IntegerField(
         default=0,
@@ -480,7 +500,7 @@ class FontTableStyleCommand(CellFormattingTableStyleCommand):
 
     command_params = ['font.name', 'size']
 
-    font = models.ForeignKey(Font)
+    font = models.ForeignKey(Font, on_delete=models.CASCADE)
 
     size = models.PositiveIntegerField(null=True, default=None, blank=True)
 

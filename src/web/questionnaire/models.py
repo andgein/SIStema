@@ -228,9 +228,19 @@ class Questionnaire(models.Model):
                   'цифрами и подчёркиванием',
     )
 
-    school = models.ForeignKey(schools.models.School, blank=True, null=True)
+    school = models.ForeignKey(
+        schools.models.School,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
 
-    session = models.ForeignKey(schools.models.Session, blank=True, null=True)
+    session = models.ForeignKey(
+        schools.models.Session,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
 
     close_time = models.ForeignKey(
         'dates.KeyDate',
@@ -329,10 +339,17 @@ class Questionnaire(models.Model):
 
 
 class QuestionnaireAnswer(models.Model):
-    questionnaire = models.ForeignKey(Questionnaire, related_name='answers')
+    questionnaire = models.ForeignKey(
+        Questionnaire,
+        on_delete=models.CASCADE,
+        related_name='answers',
+    )
 
-    user = models.ForeignKey(users.models.User,
-                             related_name='questionnaire_answers')
+    user = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+        related_name='questionnaire_answers',
+    )
 
     # TODO: may be ForeignKey is better?
     question_short_name = models.CharField(max_length=100)
@@ -356,9 +373,17 @@ class UserQuestionnaireStatus(models.Model):
         NOT_FILLED = djchoices.ChoiceItem(1)
         FILLED = djchoices.ChoiceItem(2)
 
-    user = models.ForeignKey(users.models.User, related_name='+')
+    user = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
-    questionnaire = models.ForeignKey(Questionnaire, related_name='statuses')
+    questionnaire = models.ForeignKey(
+        Questionnaire,
+        on_delete=models.CASCADE,
+        related_name='statuses',
+    )
 
     status = models.PositiveIntegerField(choices=Status.choices, validators=[Status.validator])
 
@@ -373,9 +398,17 @@ class UserQuestionnaireStatus(models.Model):
 class QuestionnaireBlockShowCondition(models.Model):
     # If there is at least one conditions for `block`,
     # it will be visible only if one `need_to_be_checked` is checked
-    block = models.ForeignKey(AbstractQuestionnaireBlock, related_name='show_conditions')
+    block = models.ForeignKey(
+        AbstractQuestionnaireBlock,
+        on_delete=models.CASCADE,
+        related_name='show_conditions',
+    )
 
-    need_to_be_checked = models.ForeignKey(ChoiceQuestionnaireQuestionVariant, related_name='+')
+    need_to_be_checked = models.ForeignKey(
+        ChoiceQuestionnaireQuestionVariant,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
     def __str__(self):
         return 'Show %s only if %s' % (self.block, self.need_to_be_checked)

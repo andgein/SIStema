@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                 ('text', models.CharField(max_length=100)),
                 ('is_multiple', models.BooleanField()),
                 ('is_inline', models.BooleanField()),
-                ('question', models.ForeignKey(to='questionnaire.ChoiceQuestionnaireQuestion', related_name='variants')),
+                ('question', models.ForeignKey(on_delete=models.CASCADE, to='questionnaire.ChoiceQuestionnaireQuestion', related_name='variants')),
             ],
         ),
         migrations.CreateModel(
@@ -41,8 +41,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
                 ('short_name', models.CharField(help_text='Используется для урлов. Лучше обойтись латинскими букваи, цифрами и подчёркиванием', max_length=100)),
                 ('title', models.CharField(help_text='Название анкеты', max_length=100)),
-                ('for_school', models.ForeignKey(to='schools.School', blank=True)),
-                ('for_session', models.ForeignKey(to='schools.Session', blank=True)),
+                ('for_school', models.ForeignKey(on_delete=models.CASCADE, to='schools.School', blank=True)),
+                ('for_session', models.ForeignKey(on_delete=models.CASCADE, to='schools.Session', blank=True)),
             ],
         ),
         migrations.CreateModel(
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 ('help_text', models.CharField(help_text='Подсказка, помогающая ответить на вопрос', blank=True, max_length=400)),
                 ('Порядок', models.IntegerField(help_text='Вопросы выстраиваются по возрастанию порядка', default=0)),
                 ('is_multiline', models.BooleanField()),
-                ('questionnaire', models.ForeignKey(to='questionnaire.Questionnaire', related_name='textquestionnairequestion_questions')),
+                ('questionnaire', models.ForeignKey(on_delete=models.CASCADE, to='questionnaire.Questionnaire', related_name='textquestionnairequestion_questions')),
             ],
             options={
                 'abstract': False,
@@ -70,7 +70,7 @@ class Migration(migrations.Migration):
                 ('is_required', models.BooleanField(help_text='Является ли вопрос обязательным')),
                 ('help_text', models.CharField(help_text='Подсказка, помогающая ответить на вопрос', blank=True, max_length=400)),
                 ('Порядок', models.IntegerField(help_text='Вопросы выстраиваются по возрастанию порядка', default=0)),
-                ('questionnaire', models.ForeignKey(to='questionnaire.Questionnaire', related_name='yesnoquestionnairequestion_questions')),
+                ('questionnaire', models.ForeignKey(on_delete=models.CASCADE, to='questionnaire.Questionnaire', related_name='yesnoquestionnairequestion_questions')),
             ],
             options={
                 'abstract': False,
@@ -79,7 +79,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='choicequestionnairequestion',
             name='questionnaire',
-            field=models.ForeignKey(to='questionnaire.Questionnaire', related_name='choicequestionnairequestion_questions'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='questionnaire.Questionnaire', related_name='choicequestionnairequestion_questions'),
         ),
         migrations.AlterUniqueTogether(
             name='questionnaire',

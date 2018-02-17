@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, verbose_name='ID', primary_key=True, serialize=False)),
                 ('name', models.CharField(help_text='I.e. August', max_length=50)),
                 ('short_name', models.CharField(help_text='Used in page urls, i.e. august', max_length=20)),
-                ('school', models.ForeignKey(to='schools.School')),
+                ('school', models.ForeignKey(to='schools.School', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterUniqueTogether(

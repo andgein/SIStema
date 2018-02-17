@@ -22,6 +22,7 @@ class TopicQuestionnaire(models.Model):
 
     previous = models.ForeignKey(
         'self',
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         help_text='Её оценки используются для автоматического заполнения этой '
@@ -63,9 +64,17 @@ class TopicCheckingQuestionnaire(models.Model):
         FAILED = choices.ChoiceItem(3)
         PASSED = choices.ChoiceItem(4)
 
-    topic_questionnaire = models.ForeignKey(TopicQuestionnaire, related_name='+')
+    topic_questionnaire = models.ForeignKey(
+        TopicQuestionnaire,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
-    user = models.ForeignKey(users.models.User, related_name='+')
+    user = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -101,7 +110,10 @@ class TopicCheckingQuestionnaire(models.Model):
 
 
 class Level(models.Model):
-    questionnaire = models.ForeignKey(TopicQuestionnaire)
+    questionnaire = models.ForeignKey(
+        TopicQuestionnaire,
+        on_delete=models.CASCADE,
+    )
 
     name = models.CharField(max_length=20)
 
@@ -113,11 +125,22 @@ class Level(models.Model):
 
 
 class LevelDependency(models.Model):
-    questionnaire = models.ForeignKey(TopicQuestionnaire)
+    questionnaire = models.ForeignKey(
+        TopicQuestionnaire,
+        on_delete=models.CASCADE,
+    )
 
-    source_level = models.ForeignKey(Level, related_name='+')
+    source_level = models.ForeignKey(
+        Level,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
-    destination_level = models.ForeignKey(Level, related_name='+')
+    destination_level = models.ForeignKey(
+        Level,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
     min_percent = models.IntegerField(
         help_text='Минимальный процент максимальных/минимальных оценок из '
@@ -177,7 +200,10 @@ class LevelUpwardDependency(LevelDependency):
 
 
 class Scale(models.Model):
-    questionnaire = models.ForeignKey(TopicQuestionnaire)
+    questionnaire = models.ForeignKey(
+        TopicQuestionnaire,
+        on_delete=models.CASCADE,
+    )
 
     short_name = models.CharField(
         max_length=100,
@@ -212,7 +238,11 @@ class Scale(models.Model):
 
 
 class ScaleLabelGroup(models.Model):
-    scale = models.ForeignKey(Scale, related_name='label_groups')
+    scale = models.ForeignKey(
+        Scale,
+        on_delete=models.CASCADE,
+        related_name='label_groups',
+    )
 
     short_name = models.CharField(
         max_length=100,
@@ -227,7 +257,11 @@ class ScaleLabelGroup(models.Model):
 
 
 class ScaleLabel(models.Model):
-    group = models.ForeignKey(ScaleLabelGroup, related_name='labels')
+    group = models.ForeignKey(
+        ScaleLabelGroup,
+        on_delete=models.CASCADE,
+        related_name='labels',
+    )
 
     mark = models.PositiveIntegerField()
 
@@ -238,7 +272,10 @@ class ScaleLabel(models.Model):
 
 
 class Tag(models.Model):
-    questionnaire = models.ForeignKey(TopicQuestionnaire)
+    questionnaire = models.ForeignKey(
+        TopicQuestionnaire,
+        on_delete=models.CASCADE,
+    )
 
     short_name = models.CharField(
         max_length=100,
@@ -255,7 +292,10 @@ class Tag(models.Model):
 
 
 class Topic(models.Model):
-    questionnaire = models.ForeignKey(TopicQuestionnaire)
+    questionnaire = models.ForeignKey(
+        TopicQuestionnaire,
+        on_delete=models.CASCADE,
+    )
 
     short_name = models.CharField(
         max_length=100,
@@ -270,7 +310,10 @@ class Topic(models.Model):
         help_text='Более подробное описание. Показывается школьнику при '
                   'заполнении анкеты')
 
-    level = models.ForeignKey(Level)
+    level = models.ForeignKey(
+        Level,
+        on_delete=models.CASCADE,
+    )
 
     tags = models.ManyToManyField(Tag, blank=True, related_name='topics')
 
@@ -323,9 +366,12 @@ class Topic(models.Model):
 
 
 class ScaleInTopic(models.Model):
-    topic = models.ForeignKey(Topic)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
 
-    scale_label_group = models.ForeignKey(ScaleLabelGroup)
+    scale_label_group = models.ForeignKey(
+        ScaleLabelGroup,
+        on_delete=models.CASCADE,
+    )
 
     @property
     def scale(self):
@@ -361,12 +407,17 @@ class TopicDependency(models.Model):
     Поэтому вместе с каждой зависимостью надо добавлять обратную ей (получается
     инверсией отображения).
     """
-    source = models.ForeignKey(ScaleInTopic,
-                               related_name='dependencies_as_source_topic')
+    source = models.ForeignKey(
+        ScaleInTopic,
+        on_delete=models.CASCADE,
+        related_name='dependencies_as_source_topic',
+    )
 
     destination = models.ForeignKey(
         ScaleInTopic,
-        related_name='dependencies_as_destination_topic')
+        on_delete=models.CASCADE,
+        related_name='dependencies_as_destination_topic',
+    )
 
     source_mark = models.PositiveIntegerField()
 
@@ -397,10 +448,17 @@ class UserQuestionnaireStatus(models.Model):
         FINISHED = choices.ChoiceItem(4)
         CHECK_TOPICS = choices.ChoiceItem(5)
 
-    user = models.ForeignKey(users.models.User, related_name='+')
+    user = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
-    questionnaire = models.ForeignKey(TopicQuestionnaire,
-                                      related_name='statuses')
+    questionnaire = models.ForeignKey(
+        TopicQuestionnaire,
+        on_delete=models.CASCADE,
+        related_name='statuses',
+    )
 
     status = models.PositiveIntegerField(choices=Status.choices,
                                          validators=[Status.validator])
@@ -416,9 +474,9 @@ class UserQuestionnaireStatus(models.Model):
 
 
 class BaseMark(models.Model):
-    user = models.ForeignKey(users.models.User)
+    user = models.ForeignKey(users.models.User, on_delete=models.CASCADE)
 
-    scale_in_topic = models.ForeignKey(ScaleInTopic)
+    scale_in_topic = models.ForeignKey(ScaleInTopic, on_delete=models.CASCADE)
 
     mark = models.PositiveIntegerField()
 
@@ -453,9 +511,9 @@ class BackupUserMark(BaseMark):
 
 
 class TopicIssue(models.Model):
-    user = models.ForeignKey(users.models.User)
+    user = models.ForeignKey(users.models.User, on_delete=models.CASCADE)
 
-    topic = models.ForeignKey(Topic)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -470,16 +528,23 @@ class TopicIssue(models.Model):
 
 
 class ScaleInTopicIssue(models.Model):
-    topic_issue = models.ForeignKey(TopicIssue, related_name='scales')
+    topic_issue = models.ForeignKey(
+        TopicIssue,
+        on_delete=models.CASCADE,
+        related_name='scales',
+    )
 
     # TODO: may be store scale_in_topic, not label_group?
-    label_group = models.ForeignKey(ScaleLabelGroup)
+    label_group = models.ForeignKey(ScaleLabelGroup, on_delete=models.CASCADE)
 
 
 class QuestionForTopic(models.Model):
-    scale_in_topic = models.ForeignKey(ScaleInTopic,
-            related_name='smartq_mapping',
-            help_text='Question is for this topic')
+    scale_in_topic = models.ForeignKey(
+        ScaleInTopic,
+        on_delete=models.CASCADE,
+        related_name='smartq_mapping',
+        help_text='Question is for this topic',
+    )
 
     mark = models.PositiveIntegerField(
         help_text='Question will be asked is this mark is equal to user mark '
@@ -487,8 +552,10 @@ class QuestionForTopic(models.Model):
 
     smartq_question = models.ForeignKey(
         smartq_models.Question,
+        on_delete=models.CASCADE,
         related_name='topic_mapping',
-        help_text='Base checking question without specified numbers')
+        help_text='Base checking question without specified numbers',
+    )
 
     group = models.IntegerField(
         blank=True, null=True, default=None,
@@ -501,7 +568,10 @@ class QuestionForTopic(models.Model):
 
 
 class TopicCheckingSettings(models.Model):
-    questionnaire = models.ForeignKey(TopicQuestionnaire)
+    questionnaire = models.ForeignKey(
+        TopicQuestionnaire,
+        on_delete=models.CASCADE,
+    )
 
     max_questions = models.PositiveIntegerField()
  
@@ -520,13 +590,24 @@ class TopicCheckingQuestionnaireQuestion(models.Model):
         PRESENTATION_ERROR = choices.ChoiceItem(3)
         CHECK_FAILED = choices.ChoiceItem(4)
 
-    questionnaire = models.ForeignKey(TopicCheckingQuestionnaire,
-                                      related_name='questions')
+    questionnaire = models.ForeignKey(
+        TopicCheckingQuestionnaire,
+        on_delete=models.CASCADE,
+        related_name='questions',
+    )
 
-    generated_question = models.ForeignKey(smartq_models.GeneratedQuestion,
-                                           related_name='+')
+    generated_question = models.ForeignKey(
+        smartq_models.GeneratedQuestion,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
-    topic_mapping = models.ForeignKey(QuestionForTopic, related_name='+')
+    topic_mapping = models.ForeignKey(
+        QuestionForTopic,
+        on_delete=models.CASCADE,
+        related_name='+',
+
+    )
 
     checker_result = models.PositiveIntegerField(
         choices=CheckerResult.choices,
@@ -537,4 +618,3 @@ class TopicCheckingQuestionnaireQuestion(models.Model):
 
     checker_message = models.CharField(
         max_length=2000, blank=True, null=True, default=None)
-

@@ -25,11 +25,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='queueelement',
             name='submission',
-            field=models.ForeignKey(default=None, blank=True, to='ejudge.Submission', null=True),
+            field=models.ForeignKey(default=None, on_delete=models.CASCADE, blank=True, to='ejudge.Submission', null=True),
         ),
         migrations.AlterField(
             model_name='submission',
             name='result',
-            field=models.ForeignKey(default=None, blank=True, to='ejudge.SolutionCheckingResult', null=True),
+            field=models.ForeignKey(default=None, on_delete=models.CASCADE, blank=True, to='ejudge.SolutionCheckingResult', null=True),
         ),
     ]

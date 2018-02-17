@@ -49,7 +49,7 @@ class EnrolledScan(models.Model):
         on_delete=models.CASCADE,
     )
 
-    user = models.ForeignKey(users.models.User)
+    user = models.ForeignKey(users.models.User, on_delete=models.CASCADE)
 
     original_filename = models.TextField()
 
@@ -62,16 +62,23 @@ class EnrolledScan(models.Model):
 
 
 class EnrolledScanRequirementCondition(polymorphic.models.PolymorphicModel):
-    requirement = models.ForeignKey(EnrolledScanRequirement, related_name='conditions')
+    requirement = models.ForeignKey(
+        EnrolledScanRequirement,
+        on_delete=models.CASCADE,
+        related_name='conditions',
+    )
 
     def is_satisfied(self, user):
         raise NotImplementedError('Child should implement its own is_satisfied()')
 
 
 class QuestionnaireVariantEnrolledScanRequirementCondition(EnrolledScanRequirementCondition):
-    variant = models.ForeignKey(questionnaire.models.ChoiceQuestionnaireQuestionVariant,
-                                related_name='+',
-                                help_text='Вариант, который должен быть отмечен')
+    variant = models.ForeignKey(
+        questionnaire.models.ChoiceQuestionnaireQuestionVariant,
+        on_delete=models.CASCADE,
+        related_name='+',
+        help_text='Вариант, который должен быть отмечен',
+    )
 
     def is_satisfied(self, user):
         return questionnaire.models.QuestionnaireAnswer.objects.filter(

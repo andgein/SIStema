@@ -320,7 +320,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='choicequestionnairequestionvariant',
             name='question',
-            field=models.ForeignKey(to='questionnaire.ChoiceQuestionnaireQuestion', related_name='variants'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='questionnaire.ChoiceQuestionnaireQuestion', related_name='variants'),
         ),
 
         RunPython(restore_questions, backwards),

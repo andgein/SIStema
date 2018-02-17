@@ -14,11 +14,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='questionnaire',
             name='for_school',
-            field=models.ForeignKey(to='schools.School', null=True, blank=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='schools.School', null=True, blank=True),
         ),
         migrations.AlterField(
             model_name='questionnaire',
             name='for_session',
-            field=models.ForeignKey(to='schools.Session', null=True, blank=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='schools.Session', null=True, blank=True),
         ),
     ]

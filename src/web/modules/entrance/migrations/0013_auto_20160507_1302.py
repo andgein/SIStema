@@ -19,8 +19,9 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('mark', models.PositiveIntegerField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('marked_by', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('solution', models.ForeignKey(to='entrance.EntranceExamTaskSolution')),
+                ('marked_by', models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('solution', models.ForeignKey(on_delete=models.CASCADE,
+                                               to='entrance.EntranceExamTaskSolution')),
             ],
         ),
         migrations.AddField(

@@ -4,9 +4,19 @@ import users.models
 
 
 class Group(models.Model):
-    school = models.ForeignKey(schools.models.School, null=True, blank=True, related_name='groups')
+    school = models.ForeignKey(
+        schools.models.School,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='groups',
+    )
 
-    owner = models.ForeignKey(users.models.User, related_name='owned_groups')
+    owner = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+        related_name='owned_groups',
+    )
 
     short_name = models.CharField(max_length=100,
                                   help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием')
@@ -43,15 +53,27 @@ class Group(models.Model):
 
 
 class GroupMembership(models.Model):
-    group = models.ForeignKey(Group, related_name='+')
+    group = models.ForeignKey(
+        Group,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
     class Meta:
         abstract = True
 
 
 class GroupInGroupMembership(GroupMembership):
-    member = models.ForeignKey(Group, related_name='member_in_groups')
+    member = models.ForeignKey(
+        Group,
+        on_delete=models.CASCADE,
+        related_name='member_in_groups',
+    )
 
 
 class UserInGroupMembership(GroupMembership):
-    member = models.ForeignKey(users.models.User, related_name='member_in_groups')
+    member = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+        related_name='member_in_groups',
+    )

@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
                 ('short_name', models.CharField(max_length=100, help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием. Например, cprime')),
                 ('name', models.CharField(max_length=100, help_text="Например, C'")),
-                ('school', models.ForeignKey(to='schools.School')),
+                ('school', models.ForeignKey(to='schools.School', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterField(

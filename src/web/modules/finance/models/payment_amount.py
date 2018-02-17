@@ -9,9 +9,17 @@ import users.models
 
 
 class PaymentAmount(models.Model):
-    school = models.ForeignKey(schools.models.School, related_name='+')
+    school = models.ForeignKey(
+        schools.models.School,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
-    user = models.ForeignKey(users.models.User, related_name='+')
+    user = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
 
     amount = models.PositiveIntegerField(help_text='Сумма к оплате')
 

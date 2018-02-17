@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
                 ('ejudge_submit_id', models.PositiveIntegerField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('result', models.ForeignKey(blank=True, null=True, to='ejudge.SolutionCheckingResult')),
+                ('result', models.ForeignKey(blank=True, null=True, on_delete=models.CASCADE, to='ejudge.SolutionCheckingResult')),
             ],
         ),
         migrations.CreateModel(
@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
                 ('max_possible_score', models.PositiveIntegerField()),
                 ('time_elapsed', models.FloatField()),
                 ('memory_consumed', models.PositiveIntegerField(help_text='В байтах')),
-                ('solution_checking_result', models.ForeignKey(related_name='tests', to='ejudge.SolutionCheckingResult')),
+                ('solution_checking_result', models.ForeignKey(related_name='tests', on_delete=models.CASCADE, to='ejudge.SolutionCheckingResult')),
             ],
             options={
                 'abstract': False,
@@ -75,6 +75,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='queueelement',
             name='submission',
-            field=models.ForeignKey(blank=True, null=True, to='ejudge.Submission'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=models.CASCADE, to='ejudge.Submission'),
         ),
     ]

@@ -9,6 +9,7 @@ class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
 
     questionnaire = models.ForeignKey(
         'topics.TopicQuestionnaire',
+        on_delete=models.CASCADE,
         help_text='Тематическая анкета, которую нужно заполнить',
         related_name='+'
     )

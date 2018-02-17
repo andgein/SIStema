@@ -60,22 +60,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userquestionnairestatus',
             name='questionnaire',
-            field=models.ForeignKey(related_name='+', to='questionnaire.Questionnaire'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='+', to='questionnaire.Questionnaire'),
         ),
         migrations.AddField(
             model_name='userquestionnairestatus',
             name='user',
-            field=models.ForeignKey(related_name='+', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='+', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='questionnaireanswer',
             name='questionnaire',
-            field=models.ForeignKey(to='questionnaire.Questionnaire'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='questionnaire.Questionnaire'),
         ),
         migrations.AddField(
             model_name='questionnaireanswer',
             name='user',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterUniqueTogether(
             name='userquestionnairestatus',

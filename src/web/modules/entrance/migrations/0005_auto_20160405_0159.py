@@ -18,9 +18,9 @@ class Migration(migrations.Migration):
             name='EntranceLevelUpgrade',
             fields=[
                 ('id', models.AutoField(serialize=False, primary_key=True, verbose_name='ID', auto_created=True)),
-                ('for_school', models.ForeignKey(related_name='entrancelevelupgrade', to='schools.School')),
-                ('upgraded_to', models.ForeignKey(related_name='entrancelevelupgrade', to='entrance.EntranceLevel')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('for_school', models.ForeignKey(on_delete=models.CASCADE, related_name='entrancelevelupgrade', to='schools.School')),
+                ('upgraded_to', models.ForeignKey(on_delete=models.CASCADE, related_name='entrancelevelupgrade', to='entrance.EntranceLevel')),
+                ('user', models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.RemoveField(

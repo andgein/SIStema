@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userquestionnairestatus',
             name='questionnaire',
-            field=models.ForeignKey(to='topics.TopicQuestionnaire', related_name='statuses'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='topics.TopicQuestionnaire', related_name='statuses'),
         ),
     ]

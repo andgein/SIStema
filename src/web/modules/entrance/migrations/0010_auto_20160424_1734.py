@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(primary_key=True, serialize=False, verbose_name='ID', auto_created=True)),
                 ('short_name', models.CharField(max_length=100, help_text='Используется в урлах. Лучше обойтись латинскими буквами, цифрами и подчёркиванием')),
                 ('name', models.CharField(max_length=100)),
-                ('for_school', models.ForeignKey(to='schools.School')),
+                ('for_school', models.ForeignKey(on_delete=models.CASCADE, to='schools.School')),
             ],
         ),
         migrations.CreateModel(
@@ -29,8 +29,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False, verbose_name='ID', auto_created=True)),
                 ('locked_until', models.DateField(default=modules.entrance.models.get_locked_timeout)),
-                ('locked_by', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='checking_lock')),
-                ('locked_user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='checking_locked')),
+                ('locked_by', models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL, related_name='checking_lock')),
+                ('locked_user', models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL, related_name='checking_locked')),
             ],
         ),
         migrations.CreateModel(
@@ -38,8 +38,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False, verbose_name='ID', auto_created=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('group', models.ForeignKey(to='entrance.CheckingGroup')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('group', models.ForeignKey(on_delete=models.CASCADE, to='entrance.CheckingGroup')),
+                ('user', models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ('-created_at',),

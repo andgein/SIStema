@@ -110,8 +110,11 @@ class SolutionCheckingResult(CheckingResult):
 
 
 class TestCheckingResult(CheckingResult):
-    solution_checking_result = models.ForeignKey(SolutionCheckingResult,
-                                                 related_name='tests')
+    solution_checking_result = models.ForeignKey(
+        SolutionCheckingResult,
+        on_delete=models.CASCADE,
+        related_name='tests',
+    )
 
 
 class Submission(models.Model):
@@ -120,7 +123,12 @@ class Submission(models.Model):
     ejudge_submit_id = models.PositiveIntegerField()
 
     result = models.ForeignKey(
-        SolutionCheckingResult, blank=True, null=True, default=None)
+        SolutionCheckingResult,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        default=None,
+    )
 
     # TODO: make ModelsWithCreatedAndUpdatedStamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -141,7 +149,12 @@ class QueueElement(models.Model):
         WONT_CHECK = djchoices.ChoiceItem(4)
 
     submission = models.ForeignKey(
-        Submission, blank=True, null=True, default=None)
+        Submission,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        default=None,
+    )
 
     ejudge_contest_id = models.PositiveIntegerField()
 

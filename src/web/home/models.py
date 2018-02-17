@@ -6,7 +6,9 @@ import schools.models
 
 class AbstractHomePageBlock(polymorphic.models.PolymorphicModel):
     school = models.ForeignKey(
-        schools.models.School, related_name='home_page_blocks'
+        schools.models.School,
+        on_delete=models.CASCADE,
+        related_name='home_page_blocks',
     )
 
     order = models.PositiveIntegerField(

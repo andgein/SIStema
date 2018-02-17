@@ -100,11 +100,15 @@ class DocumentType(models.Model):
 
 
 class Document(models.Model):
-    school = models.ForeignKey(schools.models.School)
+    school = models.ForeignKey(schools.models.School, on_delete=models.CASCADE)
 
     users = models.ManyToManyField(users.models.User)
 
-    type = models.ForeignKey(DocumentType, related_name='generated_documents')
+    type = models.ForeignKey(
+        DocumentType,
+        on_delete=models.CASCADE,
+        related_name='generated_documents',
+    )
 
     filename = relativefilepathfield.fields.RelativeFilePathField(
         path=django.db.migrations.writer.SettingsReference(

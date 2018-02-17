@@ -19,8 +19,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('score', models.PositiveIntegerField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('scored_by', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('solution', models.ForeignKey(to='entrance.EntranceExamTaskSolution')),
+                ('scored_by', models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('solution', models.ForeignKey(on_delete=models.CASCADE, to='entrance.EntranceExamTaskSolution')),
             ],
         ),
         migrations.RemoveField(

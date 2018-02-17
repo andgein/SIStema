@@ -14,11 +14,20 @@ class EntranceLevelRequirement(django_models.Model):
     Это значит, что сумма баллов школьника по всем шкалам всех тем с тегом tag должна отличаться
     от максимальной не более чем на max_penalty.
     """
-    questionnaire = django_models.ForeignKey('topics.TopicQuestionnaire')
+    questionnaire = django_models.ForeignKey(
+        'topics.TopicQuestionnaire',
+        on_delete=django_models.CASCADE,
+    )
 
-    entrance_level = django_models.ForeignKey(entrance_models.EntranceLevel)
+    entrance_level = django_models.ForeignKey(
+        entrance_models.EntranceLevel,
+        on_delete=django_models.CASCADE,
+    )
 
-    tag = django_models.ForeignKey('topics.Tag')
+    tag = django_models.ForeignKey(
+        'topics.Tag',
+        on_delete=django_models.CASCADE,
+    )
 
     max_penalty = django_models.PositiveIntegerField()
 
