@@ -40,4 +40,4 @@ class HistoryEntryTestCase(django.test.TestCase):
         """History entry's string representation should be correct."""
         self.assertEqual(
             str(self.history_entry),
-            'Виктор Александрович Матюхин (2008.Кострома: C3.преп)')
+            'Матюхин Виктор Александрович (2008.Кострома: C3.преп)')
