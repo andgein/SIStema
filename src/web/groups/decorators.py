@@ -27,7 +27,7 @@ def only_for_groups(*group_names):
             if not request.user.is_authenticated():
                 return HttpResponseNotFound()
 
-            school = None if not hasattr(request, 'school') else request.school
+            school = getattr(request, 'school', None)
 
             matched_groups = AbstractGroup.objects.filter(
                 Q(short_name__in=group_names) &
@@ -37,6 +37,7 @@ def only_for_groups(*group_names):
             for group in matched_groups:
                 groups_by_short_name[group.short_name] = group
 
+            # At first check all names for existing
             for group_name in group_names:
                 if group_name not in groups_by_short_name:
                     raise ValueError(
@@ -46,6 +47,7 @@ def only_for_groups(*group_names):
                             school
                         ))
 
+            for group_name in group_names:
                 group = groups_by_short_name[group_name]
                 if group.is_user_in_group(request.user):
                     return handler(request, *args, **kwargs)

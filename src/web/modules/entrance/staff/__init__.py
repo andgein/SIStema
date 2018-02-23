@@ -1,6 +1,7 @@
 import frontend.icons
 import sistema.staff
 from . import views
+from .. import groups as entrance_groups
 from .. import helpers
 import groups
 
@@ -14,12 +15,12 @@ class EntranceStaffInterface(sistema.staff.StaffInterface):
 
         self.is_entrance_admin = groups.is_user_in_group(
             request.user,
-            'entrance__admins',
+            entrance_groups.admins,
             request.school
         )
         self.can_check = groups.is_user_in_group(
             request.user,
-            'entrance__can_check',
+            entrance_groups.can_check,
             request.school
         )
 

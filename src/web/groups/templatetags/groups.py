@@ -19,6 +19,8 @@ class IfInGroupNode(Node):
         return "<IfInGroupNode>"
 
     def render(self, context):
+        # TODO (andgein): make tag usefull for system-wide group,
+        # not for school-specific ones only
         school = context['request'].school
         if self.user is None:
             user = context['request'].user

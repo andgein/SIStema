@@ -26,8 +26,8 @@ class AbstractGroup(polymorphic.models.PolymorphicModel):
         blank=True,
         related_name='created_groups',
         on_delete=models.CASCADE,
-        help_text='Создатель группы. Не может никогда измениться и ' +
-                  'всегда имеет полные права на группу.' +
+        help_text='Создатель группы. Не может никогда измениться и ' 
+                  'всегда имеет полные права на группу.' 
                   'None, если владелец группы — система'
     )
 
