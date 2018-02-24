@@ -81,7 +81,7 @@ class AbstractGroup(polymorphic.models.PolymorphicModel):
         :return: QuerySet or list of ids of users which are members of this group
         """
         raise NotImplementedError(
-            'Each group should implement users_ids(), but %s has no it' %
+            'Each group should implement users_ids(), but %s doesn\'t' %
             self.__class__.__name__
         )
 
