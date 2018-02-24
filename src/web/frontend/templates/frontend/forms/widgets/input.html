@@ -1,0 +1,6 @@
+{# Based on django/forms/widgets/input.html #}
+<input type="{{ widget.type }}"
+        name="{{ widget.name }}"
+        {% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}
+        {% include "frontend/forms/widgets/attrs.html" %}>
+<span class="{{ widget.type }}"></span>

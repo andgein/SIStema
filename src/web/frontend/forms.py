@@ -4,14 +4,7 @@ from dal.widgets import QuerySetSelectMixin
 
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms import widgets
-from django.forms.forms import BoundField
 from django.template.defaultfilters import filesizeformat
-from django.utils.encoding import force_text
-from django.utils.html import format_html
-
-# TODO: move to the frontend application
-from django.utils.safestring import mark_safe
 
 
 class SistemaTextInput(forms.TextInput):
@@ -128,38 +121,8 @@ class TextareaWithFaIcon(forms.Textarea):
                (base_rendered, self.fa_type_safe)
 
 
-class SistemaChoiceInput(widgets.ChoiceInput):
-    def __init__(self, *args, is_label_html=False, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.is_label_html = is_label_html
-
-    def render(self, name=None, value=None, attrs=None, choices=()):
-        if self.id_for_label:
-            label_for = format_html(' for="{}"', self.id_for_label)
-        else:
-            label_for = ''
-        attrs = dict(self.attrs, **attrs) if attrs else self.attrs
-
-        block_or_online = 'inline' if 'inline' in attrs and attrs['inline'] else 'block'
-        label_classes = [block_or_online]
-
-        if 'disabled' in attrs and attrs['disabled']:
-            label_classes.append('option-disabled')
-        else:
-            label_classes.append('option-alert')
-
-        return format_html(
-            '<label{} class="option {} mt5">{} <span class="{}"></span> {}</label>',
-            label_for,
-            ' '.join(label_classes),
-            self.tag(attrs),
-            self.input_type,
-            mark_safe(self.choice_label) if self.is_label_html else self.choice_label
-        )
-
-
 # TODO: it's not working and not used now
-class ButtonGroup(widgets.NumberInput):
+class ButtonGroup(forms.NumberInput):
     def render(self, name, value, attrs=None):
         """
             <div class="btn-toolbar inline">
@@ -173,7 +136,7 @@ class ButtonGroup(widgets.NumberInput):
                 </div>
             </div>
         """
-        hidden_input = widgets.HiddenInput().render(name, value, attrs)
+        hidden_input = forms.HiddenInput().render(name, value, attrs)
 
         return format('''
         <div class="btn-toolbar inline">
@@ -185,67 +148,14 @@ class ButtonGroup(widgets.NumberInput):
         ''')
 
 
-class SistemaRadioChoiceInput(SistemaChoiceInput, widgets.RadioChoiceInput):
-    input_type = 'radio'
-
-
-class SistemaCheckboxChoiceInput(SistemaChoiceInput, widgets.CheckboxChoiceInput):
-    input_type = 'checkbox'
-
-
-class SistemaChoiceFieldRendererWithDisabled(widgets.ChoiceFieldRenderer):
-    outer_html = '{content}'
-    inner_html = '{choice_value}'
-
-    def render(self):
-        """
-        To disable an option, pass a dict instead of a string for its label,
-        of the form: {'label': 'option label', 'disabled': True}
-
-        You can also add {..., 'is_html': True} for inserting some links or other HTML
-        insire label
-
-        Based on django.forms.widgets.ChoiceFieldRenderer.render()
-        """
-        id_ = self.attrs.get('id')
-        output = []
-
-        for i, choice in enumerate(self.choices):
-            item_attrs = self.attrs.copy()
-            choice_value, choice_label = choice
-            is_label_html = False
-            if isinstance(choice_label, dict):
-                if 'disabled' in choice_label and choice_label['disabled']:
-                    item_attrs['disabled'] = choice_label['disabled']
-                is_label_html = choice_label.get('is_html', False)
-                choice_label = choice_label['label']
-
-            w = self.choice_input_class(
-                self.name, self.value,
-                item_attrs, (choice_value, choice_label), i,
-                is_label_html=is_label_html
-            )
-            output.append(format_html(self.inner_html,
-                                      choice_value=force_text(w), sub_widgets=''))
-        return format_html(self.outer_html,
-                           id_attr=format_html(' id="{}"', id_) if id_ else '',
-                           content=mark_safe('\n'.join(output)))
-
-
-class SistemaRadioFieldRenderer(SistemaChoiceFieldRendererWithDisabled):
-    choice_input_class = SistemaRadioChoiceInput
-
-
-class SistemaCheckboxFieldRenderer(SistemaChoiceFieldRendererWithDisabled):
-    choice_input_class = SistemaCheckboxChoiceInput
-
-
 class SistemaRadioSelect(forms.RadioSelect):
-    renderer = SistemaRadioFieldRenderer
+    template_name = 'frontend/forms/widgets/radio.html'
+    option_template_name = 'frontend/forms/widgets/radio_option.html'
 
 
 class SistemaCheckboxSelect(forms.CheckboxSelectMultiple):
-    renderer = SistemaCheckboxFieldRenderer
+    template_name = 'frontend/forms/widgets/checkbox_select.html'
+    option_template_name = 'frontend/forms/widgets/checkbox_option.html'
 
 
 class RestrictedFileField(forms.FileField):
@@ -331,8 +241,13 @@ def add_classes_to_label(f, classes=''):
     return func_wrapper
 
 
-BoundField.label_tag = add_classes_to_label(BoundField.label_tag, 'control-label')
-widgets.Input.render = add_classes_to_label(widgets.Input.render, 'form-control')
-widgets.Select.render = add_classes_to_label(widgets.Select.render, 'form-control')
+
+forms.BoundField.label_tag = add_classes_to_label(
+    forms.BoundField.label_tag,
+    'control-label',
+)
+# TODO: Input is private for django, refactor not to reference it
+forms.widgets.Input.render = add_classes_to_label(forms.widgets.Input.render, 'form-control')
+forms.Select.render = add_classes_to_label(forms.Select.render, 'form-control')
 
 

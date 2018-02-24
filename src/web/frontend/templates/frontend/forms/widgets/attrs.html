@@ -1,0 +1,7 @@
+{# Based on django/forms/widgets/attrs.html #}
+{% if widget.label.disabled %}disabled{% endif %}
+{% for name, value in widget.attrs.items %}
+    {% if value is not False and name != "class" %}
+        {{ name }}{% if value is not True %}="{{ value|stringformat:'s' }}"{% endif %}
+    {% endif %}
+{% endfor %}
