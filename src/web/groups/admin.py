@@ -23,7 +23,7 @@ class AbstractGroupAdmin(users.admin.UserAutocompleteModelAdminMixIn, sistema.po
         'name',
         'description'
     )
-    ordering = ('school', 'short_name')
+    ordering = ('-school', 'short_name')
 
 
 @admin.register(models.ManuallyFilledGroup)
