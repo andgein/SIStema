@@ -1,6 +1,5 @@
 import collections
 
-from django.core import urlresolvers
 import django.shortcuts
 from django.db.models import F, Count
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.core import urlresolvers
+from django.urls import reverse
 from django.db import models
 import django.utils.dateformat
 
@@ -44,20 +44,17 @@ class School(models.Model):
     def get_absolute_url(self):
         # TODO(Artem Tabolin): looks like schools app should know nothing about
         #                      school namespace.
-        return urlresolvers.reverse('school:index',
-                                    kwargs={'school_name': self.short_name})
+        return reverse('school:index', kwargs={'school_name': self.short_name})
 
     def get_staff_url(self):
         # TODO(Artem Tabolin): looks like schools app should know nothing about
         #                      school namespace.
-        return urlresolvers.reverse('school:staff',
-                                    kwargs={'school_name': self.short_name})
+        return reverse('school:staff', kwargs={'school_name': self.short_name})
 
     def get_user_url(self):
         # TODO(Artem Tabolin): looks like schools app should know nothing about
         #                      school namespace.
-        return urlresolvers.reverse('school:user',
-                                    kwargs={'school_name': self.short_name})
+        return reverse('school:user', kwargs={'school_name': self.short_name})
 
     @classmethod
     def get_current_school(cls):

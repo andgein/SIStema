@@ -20,8 +20,11 @@ class StudyResult(models.Model):
         FIVE = djchoices.ChoiceItem('5', '5')
         FIVE_PLUS = djchoices.ChoiceItem('5+', '5+')
 
-    school_participant = models.OneToOneField(schools.models.SchoolParticipant,
-                                              related_name='study_result')
+    school_participant = models.OneToOneField(
+        schools.models.SchoolParticipant,
+        on_delete=models.CASCADE,
+        related_name='study_result',
+    )
 
     theory = models.CharField(max_length=3, choices=Evaluation.choices,
                               null=True, validators=[Evaluation.validator])

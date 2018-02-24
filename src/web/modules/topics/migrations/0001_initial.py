@@ -149,7 +149,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=100)),
-                ('for_school', models.OneToOneField(to='schools.School')),
+                ('for_school', models.OneToOneField(to='schools.School', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(

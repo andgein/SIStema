@@ -4,11 +4,11 @@ import random
 
 import django.urls
 from django.contrib import messages
-from django.core import urlresolvers
 from django.db import transaction
 from django.db.models import F
 from django.http.response import HttpResponseNotFound, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import is_safe_url
 from django.views.decorators.http import require_POST
@@ -736,7 +736,7 @@ def solution(request, solution_id):
 def add_comment(request, user_id):
     redirect_url = request.POST.get('next', '')
     if not is_safe_url(redirect_url, request.get_host()):
-        redirect_url = urlresolvers.reverse('school:entrance:enrolling_user', kwargs={
+        redirect_url = reverse('school:entrance:enrolling_user', kwargs={
             'school_name': request.school.short_name,
             'user_id': user_id,
         })

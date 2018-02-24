@@ -6,7 +6,7 @@ import django.utils.timezone
 import djchoices
 import polymorphic.models
 from cached_property import cached_property
-from django.core import urlresolvers
+from django.urls import reverse
 from django.db import models
 
 import frontend.forms
@@ -331,12 +331,12 @@ class Questionnaire(models.Model):
 
     def get_absolute_url(self):
         if self.school is None:
-            return urlresolvers.reverse(
+            return reverse(
                 'questionnaire',
                 kwargs={'questionnaire_name': self.short_name},
             )
         else:
-            return urlresolvers.reverse(
+            return reverse(
                 'school:questionnaire',
                 kwargs={'questionnaire_name': self.short_name,
                         'school_name': self.school.short_name}

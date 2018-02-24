@@ -36,7 +36,12 @@ class UserProfile(models.Model):
         XL = choices.ChoiceItem(5, 'XL')
         XXL = choices.ChoiceItem(6, 'XXL')
 
-    user = models.OneToOneField('User', related_name='profile')
+    user = models.OneToOneField(
+        'User',
+        on_delete=models.CASCADE,
+        related_name='profile',
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     first_name = models.CharField('Имя', max_length=100, blank=True, default='')

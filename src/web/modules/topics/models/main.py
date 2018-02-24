@@ -1,9 +1,10 @@
 from datetime import timedelta
 
 from django import forms
-from django.core import validators, urlresolvers
+from django.core import validators
 from django.db import models
 from django.forms import widgets
+from django.urls import reverse
 import django.utils.timezone
 
 import schools.models
@@ -14,7 +15,10 @@ from djchoices import choices
 
 
 class TopicQuestionnaire(models.Model):
-    school = models.OneToOneField(schools.models.School)
+    school = models.OneToOneField(
+        schools.models.School,
+        on_delete=models.CASCADE,
+    )
 
     title = models.CharField(max_length=100)
 
@@ -37,7 +41,7 @@ class TopicQuestionnaire(models.Model):
                 django.utils.timezone.now() >= self.close_time)
 
     def get_absolute_url(self):
-        return urlresolvers.reverse(
+        return reverse(
             'school:topics:index',
             kwargs={'school_name': self.school.short_name})
 

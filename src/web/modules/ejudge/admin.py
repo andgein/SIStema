@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.core import urlresolvers
+from django.urls import reverse
 import django.forms
 
 from dal import autocomplete
@@ -48,8 +48,8 @@ class QueueElementAdmin(admin.ModelAdmin):
     def submission_link(self, obj):
         if obj.submission is None:
             return ''
-        url = urlresolvers.reverse('admin:ejudge_submission_change',
-                                   args=[obj.submission.id])
+        url = reverse('admin:ejudge_submission_change',
+                      args=[obj.submission.id])
         return '<a href="{}">{}</a>'.format(url, obj.submission)
     submission_link.allow_tags = True
 
@@ -95,8 +95,8 @@ class SubmissionAdmin(admin.ModelAdmin):
     search_fields = ('=id', '=ejudge_submit_id',)
 
     def result_link(self, obj):
-        url = urlresolvers.reverse('admin:ejudge_solutioncheckingresult_change',
-                                   args=[obj.result.id])
+        url = reverse('admin:ejudge_solutioncheckingresult_change',
+                      args=[obj.result.id])
         return '<a href="{}">{}</a>'.format(url, obj.result)
     result_link.allow_tags = True
 

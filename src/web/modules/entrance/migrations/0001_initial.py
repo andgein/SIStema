@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='EntranceExam',
             fields=[
                 ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
-                ('for_school', models.OneToOneField(to='schools.School')),
+                ('for_school', models.OneToOneField(to='schools.School', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -70,14 +70,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='FileEntranceExamTask',
             fields=[
-                ('entranceexamtask_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, to='entrance.EntranceExamTask', serialize=False)),
+                ('entranceexamtask_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, on_delete=models.CASCADE, to='entrance.EntranceExamTask', serialize=False)),
             ],
             bases=('entrance.entranceexamtask',),
         ),
         migrations.CreateModel(
             name='FileEntranceExamTaskSolution',
             fields=[
-                ('entranceexamtasksolution_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, to='entrance.EntranceExamTaskSolution', serialize=False)),
+                ('entranceexamtasksolution_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, on_delete=models.CASCADE, to='entrance.EntranceExamTaskSolution', serialize=False)),
                 ('original_filename', models.TextField()),
             ],
             bases=('entrance.entranceexamtasksolution',),
@@ -85,7 +85,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ProgramEntranceExamTask',
             fields=[
-                ('entranceexamtask_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, to='entrance.EntranceExamTask', serialize=False)),
+                ('entranceexamtask_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, on_delete=models.CASCADE, to='entrance.EntranceExamTask', serialize=False)),
                 ('ejudge_contest_id', models.PositiveIntegerField(help_text='ID контеста в еджадже')),
                 ('ejudge_problem_id', models.PositiveIntegerField(help_text='ID задачи в еджадже')),
             ],
@@ -94,7 +94,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ProgramEntranceExamTaskSolution',
             fields=[
-                ('entranceexamtasksolution_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, to='entrance.EntranceExamTaskSolution', serialize=False)),
+                ('entranceexamtasksolution_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, on_delete=models.CASCADE, to='entrance.EntranceExamTaskSolution', serialize=False)),
                 ('ejudge_queue_element', models.ForeignKey(on_delete=models.CASCADE, to='ejudge.QueueElement')),
                 ('language', models.ForeignKey(on_delete=models.CASCADE, to='ejudge.ProgrammingLanguage')),
             ],
@@ -103,7 +103,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TestEntranceExamTask',
             fields=[
-                ('entranceexamtask_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, to='entrance.EntranceExamTask', serialize=False)),
+                ('entranceexamtask_ptr', models.OneToOneField(primary_key=True, auto_created=True, parent_link=True, on_delete=models.CASCADE, to='entrance.EntranceExamTask', serialize=False)),
                 ('correct_answer_re', models.CharField(max_length=100, help_text='Правильный ответ (регулярное выражение)')),
                 ('validation_re', models.CharField(blank=True, max_length=100, help_text='Регулярное выражение для валидации ввода')),
             ],

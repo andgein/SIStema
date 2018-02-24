@@ -14,7 +14,7 @@ class UrlWithParamsNode(template.Node):
         self.asvar = asvar
 
     def render(self, context):
-        from django.core.urlresolvers import reverse, NoReverseMatch
+        from django.urls import reverse, NoReverseMatch
         kwargs = self.kwargs.resolve(context)
 
         view_name = self.view_name.resolve(context)

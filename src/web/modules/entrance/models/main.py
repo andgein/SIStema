@@ -1,10 +1,10 @@
 import re
 
+from django.db import models, transaction
+from django.urls import reverse
 import django.utils.timezone
 import polymorphic.models
 import sizefield.models
-from django.core import urlresolvers
-from django.db import models, transaction
 import djchoices
 
 import modules.ejudge.models
@@ -226,7 +226,7 @@ class EntranceExam(models.Model):
                 django.utils.timezone.now() >= self.close_time)
 
     def get_absolute_url(self):
-        return urlresolvers.reverse('school:entrance:exam', kwargs={
+        return reverse('school:entrance:exam', kwargs={
             'school_name': self.school.short_name
         })
 
