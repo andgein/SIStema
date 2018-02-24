@@ -67,8 +67,7 @@ class QuestionnaireBlockShowConditionAdmin(admin.ModelAdmin):
     list_filter = ('block__questionnaire',)
 
 
-
 @admin.register(models.UsersFilledQuestionnaireGroup)
 @admin.register(models.UsersNotFilledQuestionnaireGroup)
-class ManuallyFilledGroupAdmin(groups.admin.AbstractGroupAdmin):
+class QuestionnaireGroupAdmin(groups.admin.AbstractGroupAdmin):
     pass

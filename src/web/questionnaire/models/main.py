@@ -294,19 +294,19 @@ class Questionnaire(models.Model):
 
         return user_status.status == UserQuestionnaireStatus.Status.FILLED
 
-    def get_filled_users_ids(self, only_who_must_fill=False):
+    def get_filled_user_ids(self, only_who_must_fill=False):
         if only_who_must_fill and self.must_fill is None:
             return []
         qs = self.statuses.filter(status=UserQuestionnaireStatus.Status.FILLED)
         if only_who_must_fill:
-            must_fill_users_ids = list(self.must_fill.users.values_list('id', flat=True))
-            qs = qs.filter(user_id__in=must_fill_users_ids)
+            must_fill_user_ids = list(self.must_fill.users.values_list('id', flat=True))
+            qs = qs.filter(user_id__in=must_fill_user_ids)
 
         return qs.values_list('user_id', flat=True).distinct()
 
     def get_filled_users(self, only_who_must_fill=False):
-        filled_users_ids = self.get_filled_users_ids(only_who_must_fill)
-        return users.models.User.objects.filter(id__in=filled_users_ids)
+        filled_user_ids = self.get_filled_user_ids(only_who_must_fill)
+        return users.models.User.objects.filter(id__in=filled_user_ids)
 
 
 class QuestionnaireAnswer(models.Model):

@@ -61,7 +61,8 @@ class AbstractGroup(polymorphic.models.PolymorphicModel):
     def is_user_in_group(self, user):
         """
         You can override this method in subclass.
-        By default it calls overrode self.users_ids. Be careful: this approach can be slow on large groups.
+        By default it calls overridden self.users_ids.
+        Be careful: this approach can be slow on large groups.
         :return: True if user is in group and False otherwise.
         """
         return user.id in self.users_ids
@@ -69,7 +70,7 @@ class AbstractGroup(polymorphic.models.PolymorphicModel):
     @property
     def users(self):
         """
-        You can override this method in subclass. By default it calls overrode self.users_ids
+        You can override this method in subclass. By default it calls overridden self.users_ids
         :return: QuerySet for users.models.User model with users from this group
         """
         return users.models.User.objects.filter(id__in=self.users_ids)
