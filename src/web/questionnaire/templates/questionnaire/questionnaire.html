@@ -76,7 +76,7 @@
                                 </div>
                             {% endif %}
 
-                            {% for block in questionnaire.blocks %}
+                            {% for block in questionnaire.ordered_blocks %}
                                 <div class="section mb40 questionnaire__block__{{ block.block_name }}" id="questionnaire__block__{{ block.short_name }}">
                                     {% if block.is_question %}
                                         {% include 'questionnaire/_question.html' with question=form|get_item:block.short_name %}

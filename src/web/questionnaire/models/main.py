@@ -19,8 +19,11 @@ import questionnaire.forms as forms
 
 
 class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
-    questionnaire = models.ForeignKey('Questionnaire',
-                                      on_delete=models.CASCADE)
+    questionnaire = models.ForeignKey(
+        'Questionnaire',
+        on_delete=models.CASCADE,
+        related_name='blocks',
+    )
 
     short_name = models.CharField(
         max_length=100,
@@ -301,15 +304,16 @@ class Questionnaire(models.Model):
                 self.close_time.passed_for_user(user))
 
     @cached_property
-    def blocks(self):
-        return sorted(self.abstractquestionnaireblock_set.all(),
-                      key=operator.attrgetter('order'))
+    def ordered_blocks(self):
+        return self.blocks.order_by('order')
 
     @cached_property
     def questions(self):
-        questions = (self.abstractquestionnaireblock_set
-                     .instance_of(AbstractQuestionnaireQuestion))
-        return sorted(questions, key=operator.attrgetter('order'))
+        return self.blocks.instance_of(AbstractQuestionnaireQuestion)
+
+    @cached_property
+    def ordered_questions(self):
+        return self.questions.order_by('order')
 
     @cached_property
     def show_conditions(self):
@@ -326,7 +330,7 @@ class Questionnaire(models.Model):
         }
 
         is_first = True
-        for question in self.questions:
+        for question in self.ordered_questions:
             question_attrs = copy.copy(attrs)
             if is_first:
                 if self.enable_autofocus:
