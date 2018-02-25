@@ -35,12 +35,20 @@ def respond_as_attachment(request, file_path, original_filename):
     # and can raise exception if file is not valid. Some files returned via this file are
     # user's uploaded files so we can't garantee that they are safe.
     response.minify_response = False
-    
+
     return response
 
 
 # TODO: if extract_key_function is str, make extract_key_function from operator.attrgetter
 def group_by(collection, extract_key_function, extract_value_function=None):
+    """
+    Group collection by the specified key.
+
+    :param collection: The collection to group
+    :param extract_key_function: `collection element -> key` function
+    :param extract_value_function: `collection element -> value` function
+    :return: {key: [value]} dict
+    """
     if extract_value_function is None:
         def extract_value_function(x):
             return x

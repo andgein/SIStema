@@ -63,7 +63,11 @@ class School(models.Model):
 
 
 class Session(models.Model):
-    school = models.ForeignKey(School, on_delete=models.CASCADE)
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name='sessions'
+    )
 
     name = models.CharField(
         max_length=50,
