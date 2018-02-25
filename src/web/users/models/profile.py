@@ -28,6 +28,14 @@ class UserProfile(models.Model):
         TAJIKISTAN = choices.ChoiceItem(4, 'Таджикистан')
         OTHER = choices.ChoiceItem(-1, 'Другое')
 
+    class TShirtSize(choices.DjangoChoices):
+        XS = choices.ChoiceItem(1, 'XS')
+        S = choices.ChoiceItem(2, 'S')
+        M = choices.ChoiceItem(3, 'M')
+        L = choices.ChoiceItem(4, 'L')
+        XL = choices.ChoiceItem(5, 'XL')
+        XXL = choices.ChoiceItem(6, 'XXL')
+
     user = models.OneToOneField('User', related_name='profile')
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -130,6 +138,14 @@ class UserProfile(models.Model):
         default='',
     )
 
+    t_shirt_size = models.IntegerField(
+        verbose_name='Размер футболки',
+        null=True,
+        blank=True,
+        choices=TShirtSize.choices,
+        validators=[TShirtSize.validator],
+    )
+
     has_accepted_terms = models.BooleanField(
         'Согласие на обработку персональных данных',
         default=False,
@@ -198,6 +214,7 @@ class UserProfile(models.Model):
             'citizenship_other',
             'document_type',
             'document_number',
+            't_shirt_size',
             'has_accepted_terms',
         ]
 

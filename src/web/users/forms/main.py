@@ -240,6 +240,14 @@ class UserProfileForm(forms.Form):
         })
     )
 
+    t_shirt_size = forms.TypedChoiceField(
+        models.UserProfile.TShirtSize.choices,
+        required=False,
+        label='Размер футболки',
+        widget=SistemaRadioSelect(attrs={'inline': True}),
+        coerce=int,
+    )
+
     has_accepted_terms = forms.TypedMultipleChoiceField(
         coerce=bool,
         choices=[(
