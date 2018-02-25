@@ -57,21 +57,31 @@ class AbstractQuestionnaireQuestion(AbstractQuestionnaireBlock):
 
     text = models.TextField(help_text='Вопрос')
 
-    is_required = models.BooleanField(help_text='Является ли вопрос обязательным')
+    is_required = models.BooleanField(
+        help_text='Является ли вопрос обязательным',
+    )
 
-    help_text = models.CharField(max_length=400,
-                                 blank=True,
-                                 help_text='Подсказка, помогающая ответить на вопрос')
+    help_text = models.CharField(
+        max_length=400,
+        blank=True,
+        help_text='Подсказка, помогающая ответить на вопрос',
+    )
 
-    is_disabled = models.BooleanField(default=False,
-                                      help_text='Выключена ли возможность ответить на вопрос. Не может быть отмечено одновременно с is_required')
+    is_disabled = models.BooleanField(
+        default=False,
+        help_text='Выключена ли возможность ответить на вопрос. Не может быть '
+                  'отмечено одновременно с is_required',
+    )
 
     def get_form_field(self, attrs=None):
-        raise NotImplementedError('Child should implement its own method get_form_field()')
+        raise NotImplementedError(
+            'Child should implement its own method get_form_field()')
 
     def save(self, *args, **kwargs):
         if self.is_disabled and self.is_required:
-            raise ValueError('questionnaire.AbstractQuestionnaireBlock: is_disabled can not be set with is_required')
+            raise ValueError(
+                'questionnaire.AbstractQuestionnaireBlock: is_disabled can not '
+                'be set with is_required')
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -83,12 +93,16 @@ class TextQuestionnaireQuestion(AbstractQuestionnaireQuestion):
 
     is_multiline = models.BooleanField()
 
-    placeholder = models.TextField(help_text='Подсказка, показываемая в поле для ввода; пример',
-                                   blank=True)
+    placeholder = models.TextField(
+        blank=True,
+        help_text='Подсказка, показываемая в поле для ввода; пример',
+    )
 
-    fa = models.CharField(max_length=20,
-                          help_text='Имя иконки FontAwesome, которую нужно показать в поле',
-                          blank=True)
+    fa = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text='Имя иконки FontAwesome, которую нужно показать в поле',
+    )
 
     def get_form_field(self, attrs=None):
         if attrs is None:
@@ -288,19 +302,20 @@ class Questionnaire(models.Model):
 
     @cached_property
     def blocks(self):
-        return sorted(self.abstractquestionnaireblock_set.all(), key=operator.attrgetter('order'))
+        return sorted(self.abstractquestionnaireblock_set.all(),
+                      key=operator.attrgetter('order'))
 
     @cached_property
     def questions(self):
-        questions = self.abstractquestionnaireblock_set.instance_of(AbstractQuestionnaireQuestion)
+        questions = (self.abstractquestionnaireblock_set
+                     .instance_of(AbstractQuestionnaireQuestion))
         return sorted(questions, key=operator.attrgetter('order'))
 
     @cached_property
     def show_conditions(self):
-        return group_by(
-            QuestionnaireBlockShowCondition.objects.filter(block__questionnaire=self),
-            operator.attrgetter('block_id')
-        )
+        conditions = (QuestionnaireBlockShowCondition.objects
+                      .filter(block__questionnaire=self))
+        return group_by(conditions, operator.attrgetter('block_id'))
 
     def get_form_class(self, attrs=None):
         if attrs is None:
@@ -383,17 +398,26 @@ class QuestionnaireAnswer(models.Model):
     answer = models.TextField(blank=True)
 
     def __str__(self):
-        return 'Ответ «%s» на вопрос %s анкеты %s' % (self.answer.replace('\n', '\\n'), self.question_short_name, self.questionnaire)
+        return 'Ответ «%s» на вопрос %s анкеты %s' % (
+            self.answer.replace('\n', '\\n'),
+            self.question_short_name,
+            self.questionnaire,
+        )
 
     @property
     def question(self):
-        return AbstractQuestionnaireQuestion.objects.filter(questionnaire=self.questionnaire, short_name=self.question_short_name).first()
+        return (
+            AbstractQuestionnaireQuestion.objects
+            .filter(questionnaire=self.questionnaire,
+                    short_name=self.question_short_name)
+            .first())
 
     class Meta:
         index_together = ('questionnaire', 'user', 'question_short_name')
 
 
-# TODO: may be extract base class for this and modules.topics.models.UserQuestionnaireStatus?
+# TODO: maybe extract base class for this and
+#       modules.topics.models.UserQuestionnaireStatus?
 class UserQuestionnaireStatus(models.Model):
     class Status(djchoices.DjangoChoices):
         NOT_FILLED = djchoices.ChoiceItem(1)
@@ -411,14 +435,18 @@ class UserQuestionnaireStatus(models.Model):
         related_name='statuses',
     )
 
-    status = models.PositiveIntegerField(choices=Status.choices, validators=[Status.validator])
+    status = models.PositiveIntegerField(
+        choices=Status.choices,
+        validators=[Status.validator],
+    )
 
     class Meta:
         verbose_name_plural = 'user questionnaire statuses'
         unique_together = ('user', 'questionnaire')
 
     def __str__(self):
-        return 'Status {} of {} for {}'.format(self.status, self.questionnaire, self.user)
+        return 'Status {} of {} for {}'.format(
+            self.status, self.questionnaire, self.user)
 
 
 class QuestionnaireBlockShowCondition(models.Model):
@@ -440,7 +468,7 @@ class QuestionnaireBlockShowCondition(models.Model):
         return 'Show %s only if %s' % (self.block, self.need_to_be_checked)
 
 
-# Used to evalute fraction of accounts where different persons filled
+# Used to evaluate fraction of accounts where different persons filled
 # questionnairies for students and parents. The estimation will be biased, but
 # we will probably be able to measure changes in the next year comparing with
 # the current one.
