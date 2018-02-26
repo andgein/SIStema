@@ -9,7 +9,7 @@ def get_enrolling_users(school):
                      models.EntranceStatus.Status.NOT_PARTICIPATED))
 
 
-def get_enrolling_users_ids(school):
+def get_enrolling_user_ids(school):
     return models.EntranceStatus.objects.filter(
         school=school
     ).exclude(

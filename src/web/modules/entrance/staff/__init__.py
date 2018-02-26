@@ -7,7 +7,7 @@ from modules.entrance import utils
 class EntranceStaffInterface(sistema.staff.StaffInterface):
     def __init__(self, request):
         super().__init__(request)
-        self._filled_an_application_count = len(utils.get_enrolling_users_ids(request.school))
+        self._filled_an_application_count = len(utils.get_enrolling_user_ids(request.school))
 
     def get_sidebar_menu(self):
         filled_an_application = sistema.staff.MenuItem(

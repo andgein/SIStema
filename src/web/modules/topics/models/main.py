@@ -50,7 +50,7 @@ class TopicQuestionnaire(models.Model):
     def is_filled_by(self, user):
         return self.get_status(user) == UserQuestionnaireStatus.Status.FINISHED
 
-    def get_filled_users_ids(self):
+    def get_filled_user_ids(self):
         return UserQuestionnaireStatus.objects.filter(
             questionnaire=self,
             status=UserQuestionnaireStatus.Status.FINISHED
@@ -574,7 +574,7 @@ class TopicCheckingSettings(models.Model):
     )
 
     max_questions = models.PositiveIntegerField()
- 
+
     @property
     def allowed_errors_map(self):
         # TODO: not hardcode

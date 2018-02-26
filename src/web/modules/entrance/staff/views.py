@@ -317,17 +317,17 @@ def check_group(request, group_name):
     _remove_old_checking_locks()
 
     tasks = list(group.tasks.order_by('order'))
-    group_users_ids = nested_query_list(
+    group_user_ids = nested_query_list(
         group.actual_users.values_list('user_id', flat=True)
     )
     for task in tasks:
         task.solutions_count = users.models.User.objects.filter(
-            id__in=group_users_ids,
+            id__in=group_user_ids,
             entrance_exam_solutions__task=task
         ).distinct().count()
         task.checks = models.CheckedSolution.objects.filter(
             solution__task=task,
-            solution__user_id__in=group_users_ids
+            solution__user_id__in=group_user_ids
         )
         task.checked_solutions_count = task.checks.values_list(
             'solution__user_id', flat=True
@@ -351,15 +351,15 @@ def checking_group_users(request, group_name):
 
     users = [u.user for u in group.actual_users.select_related('user__profile')]
     tasks = list(group.tasks.order_by('order'))
-    users_ids = [u.id for u in users]
+    user_ids = [u.id for u in users]
     tasks_ids = [t.id for t in tasks]
 
     solutions = list(models.FileEntranceExamTaskSolution.objects.filter(
-        user_id__in=users_ids,
+        user_id__in=user_ids,
         task_id__in=tasks_ids,
     ))
     checks = list(models.CheckedSolution.objects.filter(
-        solution__user_id__in=users_ids,
+        solution__user_id__in=user_ids,
         solution__task_id__in=tasks_ids,
     ).select_related('solution'))
 
@@ -398,12 +398,12 @@ def checking_group_checks(request, group_name):
     users = [u.user for u in
              group.actual_users.select_related('user__profile')]
     tasks = list(group.tasks.order_by('order'))
-    users_ids = [u.id for u in users]
+    user_ids = [u.id for u in users]
     tasks_ids = [t.id for t in tasks]
 
     checks = list(
         models.CheckedSolution.objects.filter(
-            solution__user_id__in=users_ids,
+            solution__user_id__in=user_ids,
             solution__task_id__in=tasks_ids,
         ).order_by('-created_at')
          .select_related('solution__user')
@@ -431,11 +431,11 @@ def task_checks(request, group_name, task_id):
 
     users = [u.user for u in
              group.actual_users.select_related('user__profile')]
-    users_ids = [u.id for u in users]
+    user_ids = [u.id for u in users]
 
     checks = list(
         models.CheckedSolution.objects.filter(
-            solution__user_id__in=users_ids,
+            solution__user_id__in=user_ids,
             solution__task_id=task_id,
         ).order_by('-created_at')
          .select_related('solution__user')
@@ -482,19 +482,21 @@ def check_task(request, group_name, task_id):
     task = get_object_or_404(models.FileEntranceExamTask, id=task_id)
 
     with transaction.atomic():
-        locked_users_ids = set(models.CheckingLock.objects
-                               .filter(task=task)
-                               .values_list('user_id', flat=True))
-        task_users_ids = set(task.solutions.values_list('user_id', flat=True))
-        already_checked_users_ids = set(models.CheckedSolution.objects.filter(
+        locked_user_ids = set(
+            models.CheckingLock.objects
+            .filter(task=task)
+            .values_list('user_id', flat=True)
+        )
+        task_user_ids = set(task.solutions.values_list('user_id', flat=True))
+        already_checked_user_ids = set(models.CheckedSolution.objects.filter(
             solution__task=task
         ).values_list('solution__user_id', flat=True))
 
         users_for_checking = (
             group.actual_users
-            .exclude(user_id__in=locked_users_ids)
-            .exclude(user_id__in=already_checked_users_ids)
-            .filter(user_id__in=task_users_ids)
+            .exclude(user_id__in=locked_user_ids)
+            .exclude(user_id__in=already_checked_user_ids)
+            .filter(user_id__in=task_user_ids)
         )
 
         users_count = users_for_checking.count()
@@ -550,20 +552,20 @@ def check_users_task(request, task_id, user_id, group_name=None):
 
     if group is None:
         # Find users which are in any group
-        group_users_ids = models.UserInCheckingGroup.objects.filter(
+        group_user_ids = models.UserInCheckingGroup.objects.filter(
             group__school=request.school,
             is_actual=True
         ).values_list('user_id', flat=True)
     else:
         # Select users from group
-        group_users_ids = group.actual_users.values_list('user_id', flat=True)
+        group_user_ids = group.actual_users.values_list('user_id', flat=True)
 
     task.total_solutions_count = users.models.User.objects.filter(
-        id__in=nested_query_list(group_users_ids),
+        id__in=nested_query_list(group_user_ids),
         entrance_exam_solutions__task=task
     ).distinct().count()
     task.checked_solutions_count = users.models.User.objects.filter(
-        id__in=nested_query_list(group_users_ids),
+        id__in=nested_query_list(group_user_ids),
         entrance_exam_solutions__task=task,
         entrance_exam_solutions__checks__isnull=False
     ).distinct().count()
@@ -756,31 +758,31 @@ def _get_ejudge_task_accepted_solutions(school, solution_model):
 
 @sistema.staff.only_staff
 def initial_auto_reject(request):
-    users_ids = list(utils.get_enrolling_users_ids(request.school))
+    user_ids = list(utils.get_enrolling_user_ids(request.school))
 
-    practice_users_ids = set(_get_ejudge_task_accepted_solutions(
+    practice_user_ids = set(_get_ejudge_task_accepted_solutions(
         request.school, models.ProgramEntranceExamTaskSolution
     ).values_list('user_id', flat=True))
-    practice_users_ids.update(set(_get_ejudge_task_accepted_solutions(
+    practice_user_ids.update(set(_get_ejudge_task_accepted_solutions(
         request.school, models.OutputOnlyEntranceExamTaskSolution
     ).values_list('user_id', flat=True)))
 
-    theory_users_ids = set(models.FileEntranceExamTaskSolution.objects.filter(
+    theory_user_ids = set(models.FileEntranceExamTaskSolution.objects.filter(
         task__exam__school=request.school,
     ).values_list('user_id', flat=True))
 
-    already_in_groups_users_ids = set(models.UserInCheckingGroup.objects.filter(
+    already_in_groups_user_ids = set(models.UserInCheckingGroup.objects.filter(
         group__school=request.school,
         is_actual=True
     ).values_list('user_id', flat=True))
 
-    users_ids = set(users_ids) - already_in_groups_users_ids
+    user_ids = set(user_ids) - already_in_groups_user_ids
 
-    for user_id in users_ids:
+    for user_id in user_ids:
         reason = None
-        if user_id not in practice_users_ids:
+        if user_id not in practice_user_ids:
             reason = 'Не решено полностью ни одной практической задачи'
-        if user_id not in theory_users_ids:
+        if user_id not in theory_user_ids:
             reason = 'Не сдано ни одной теоретический задачи'
         if reason is not None:
             models.EntranceStatus.objects.update_or_create(
