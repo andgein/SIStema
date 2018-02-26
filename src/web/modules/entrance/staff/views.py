@@ -352,15 +352,15 @@ def checking_group_users(request, group_name):
     users = [u.user for u in group.actual_users.select_related('user__profile')]
     tasks = list(group.tasks.order_by('order'))
     user_ids = [u.id for u in users]
-    tasks_ids = [t.id for t in tasks]
+    task_ids = [t.id for t in tasks]
 
     solutions = list(models.FileEntranceExamTaskSolution.objects.filter(
         user_id__in=user_ids,
-        task_id__in=tasks_ids,
+        task_id__in=task_ids,
     ))
     checks = list(models.CheckedSolution.objects.filter(
         solution__user_id__in=user_ids,
-        solution__task_id__in=tasks_ids,
+        solution__task_id__in=task_ids,
     ).select_related('solution'))
 
     solutions_by_user = group_by(solutions, lambda s: s.user_id)
@@ -399,12 +399,12 @@ def checking_group_checks(request, group_name):
              group.actual_users.select_related('user__profile')]
     tasks = list(group.tasks.order_by('order'))
     user_ids = [u.id for u in users]
-    tasks_ids = [t.id for t in tasks]
+    task_ids = [t.id for t in tasks]
 
     checks = list(
         models.CheckedSolution.objects.filter(
             solution__user_id__in=user_ids,
-            solution__task_id__in=tasks_ids,
+            solution__task_id__in=task_ids,
         ).order_by('-created_at')
          .select_related('solution__user')
          .select_related('solution__task')
