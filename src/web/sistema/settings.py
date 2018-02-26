@@ -326,13 +326,6 @@ SETTINGS_EXPORT = [
 ]
 
 
-# For migration: to create SocialApp model
-SOCIAL_AUTH_VK_OAUTH2_KEY = '2888774'
-SOCIAL_AUTH_VK_OAUTH2_SECRET = 'xO6ka9PBnhNunuUyfx5f'
-SOCIAL_AUTH_TWITTER_KEY = 'a4XGu2XP4DZE7DAqphTZfdltj'
-SOCIAL_AUTH_TWITTER_SECRET = 'DRakQj6dslpLSG2ceoZRrkHF8uh4dGnlMia55cHt9fuuRrNiYs'
-
-
 # Override settings defined above with settings from local_settings.py
 try:
     from sistema.local_settings import *
