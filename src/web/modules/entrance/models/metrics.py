@@ -1,18 +1,16 @@
 import collections
 import itertools
 
+import polymorphic.models
 from django.core.cache import cache
 from django.db import models, IntegrityError
+from django.db.models.signals import pre_save
 from django.utils.functional import cached_property
 
-import polymorphic.models
-
 import modules.ejudge.models
-import users.models as users_models
-
+from modules.entrance import utils
 from . import checking as checking_models
 from . import main as main_models
-from modules.entrance import utils
 
 
 class EntranceUserMetric(polymorphic.models.PolymorphicModel):
@@ -216,13 +214,21 @@ class ParallelScoreEntranceUserMetricFileTaskEntry(models.Model):
         verbose_name = 'балл за теорию'
         verbose_name_plural = 'баллы за теорию'
 
-    def save(self, *args, **kwargs):
-        if self.task.exam_id != self.parallel_score_metric.exam_id:
-            raise IntegrityError()
-        super().save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if instance.task.exam_id != instance.parallel_score_metric.exam_id:
+            raise IntegrityError(
+                "{}.{}: task and metric should have the same exam"
+                .format(cls.__module__, cls.__name__))
 
     def __str__(self):
         return '{} баллов за «{}»'.format(self.max_score, self.task)
+
+
+pre_save.connect(
+    ParallelScoreEntranceUserMetricFileTaskEntry.pre_save,
+    sender=ParallelScoreEntranceUserMetricFileTaskEntry
+)
 
 
 class ParallelScoreEntranceUserMetricProgramTaskEntry(models.Model):
@@ -244,10 +250,18 @@ class ParallelScoreEntranceUserMetricProgramTaskEntry(models.Model):
         verbose_name = 'балл за практику'
         verbose_name_plural = 'баллы за практику'
 
-    def save(self, *args, **kwargs):
-        if self.task.exam_id != self.parallel_score_metric.exam_id:
-            raise IntegrityError()
-        super().save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if instance.task.exam_id != instance.parallel_score_metric.exam_id:
+            raise IntegrityError(
+                "{}.{}: task and metric should have the same exam"
+                .format(cls.__module__, cls.__name__))
 
     def __str__(self):
         return '{} баллов за «{}»'.format(self.score, self.task)
+
+
+pre_save.connect(
+    ParallelScoreEntranceUserMetricProgramTaskEntry.pre_save,
+    sender=ParallelScoreEntranceUserMetricProgramTaskEntry,
+)

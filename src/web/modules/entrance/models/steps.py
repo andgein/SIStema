@@ -1,6 +1,7 @@
 import enum
 
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
+from django.db.models.signals import pre_save
 from polymorphic import models as polymorphic_models
 
 import questionnaire.models
@@ -186,16 +187,19 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
         """
         return '%s.html' % self.__class__.__name__
 
-    def save(self, *args, **kwargs):
-        if (self.session is not None and
-           self.session.school_id != self.school_id):
-            raise ValueError('modules.entrance.models.AbstractEntranceStep: '
-                             'session should belong to the same school as step')
-        if (self.parallel is not None and
-           self.parallel.school_id != self.school_id):
-            raise ValueError('modules.entrance.models.AbstractEntranceStep: '
-                             'parallel should belong to the same school as step')
-        super().save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if (instance.session is not None and
+                instance.session.school_id != instance.school_id):
+            raise IntegrityError(
+                '{}.{}: session should belong to the same school as the step'
+                .format(cls.__module__, cls.__name__))
+
+        if (instance.parallel is not None and
+                instance.parallel.school_id != instance.school_id):
+            raise IntegrityError(
+                '{}.{}: parallel should belong to the same school as the step'
+                .format(cls.__module__, cls.__name__))
 
     def is_opened(self, user):
         if self.available_from_time is None:
@@ -206,6 +210,9 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
         if self.available_to_time is None:
             return False
         return self.available_to_time.passed_for_user(user)
+
+
+pre_save.connect(AbstractEntranceStep.pre_save, sender=AbstractEntranceStep)
 
 
 class EntranceStepTextsMixIn(models.Model):
@@ -299,13 +306,14 @@ class FillQuestionnaireEntranceStep(AbstractEntranceStep,
         related_name='+',
     )
 
-    def save(self, *args, **kwargs):
-        if (self.questionnaire_id is not None and
-           self.questionnaire.school is not None and
-           self.school_id != self.questionnaire.school_id):
-            raise ValueError('entrance.steps.FillQuestionnaireEntranceStep: '
-                             'questionnaire should belong to step\'s school')
-        super().save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if (instance.questionnaire_id is not None and
+                instance.questionnaire.school is not None and
+                instance.school_id != instance.questionnaire.school_id):
+            raise IntegrityError(
+                "{}.{}: questionnaire should belong to step's school"
+                .format(cls.__module__, cls.__name__))
 
     def is_passed(self, user):
         return super().is_passed(user) and self.questionnaire.is_filled_by(user)
@@ -313,6 +321,10 @@ class FillQuestionnaireEntranceStep(AbstractEntranceStep,
     def __str__(self):
         return 'Шаг заполнения анкеты %s для %s' % (str(self.questionnaire),
                                                     str(self.school))
+
+
+pre_save.connect(FillQuestionnaireEntranceStep.pre_save,
+                 sender=FillQuestionnaireEntranceStep)
 
 
 class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
@@ -325,12 +337,13 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
         related_name='+'
     )
 
-    def save(self, *args, **kwargs):
-        if (self.exam is not None and
-           self.school_id != self.exam.school_id):
-            raise ValueError('entrance.steps.SolveExamEntranceStep: '
-                             'exam should belong to step\'s school')
-        super().save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if (instance.exam is not None and
+                instance.school_id != instance.exam.school_id):
+            raise IntegrityError(
+                "{}.{}: exam should belong to step\'s school"
+                .format(cls.__module__, cls.__name__))
 
     def is_passed(self, user):
         return super().is_passed(user) and self.is_closed(user)
@@ -382,6 +395,9 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
     def __str__(self):
         return 'Шаг вступительной работы %s для %s' % (str(self.exam),
                                                        str(self.school))
+
+
+pre_save.connect(SolveExamEntranceStep.pre_save, sender=SolveExamEntranceStep)
 
 
 class ResultsEntranceStep(AbstractEntranceStep):

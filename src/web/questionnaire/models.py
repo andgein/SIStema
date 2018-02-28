@@ -7,7 +7,8 @@ import djchoices
 import polymorphic.models
 from cached_property import cached_property
 from django.core import urlresolvers
-from django.db import models
+from django.db import models, IntegrityError
+from django.db.models.signals import pre_save
 
 import frontend.forms
 import schools.models
@@ -68,13 +69,21 @@ class AbstractQuestionnaireQuestion(AbstractQuestionnaireBlock):
     def get_form_field(self, attrs=None):
         raise NotImplementedError('Child should implement its own method get_form_field()')
 
-    def save(self, *args, **kwargs):
-        if self.is_disabled and self.is_required:
-            raise ValueError('questionnaire.AbstractQuestionnaireBlock: is_disabled can not be set with is_required')
-        super().save(*args, **kwargs)
+    @staticmethod
+    def pre_save(instance, **kwargs):
+        if instance.is_disabled and instance.is_required:
+            raise IntegrityError(
+                "{}.{}: is_disabled can not be set at the same time with "
+                "is_required".format(cls.__module__, cls.__name__))
 
     def __str__(self):
         return '%s: %s' % (self.questionnaire, self.text)
+
+
+pre_save.connect(
+    AbstractQuestionnaireQuestion.pre_save,
+    sender=AbstractQuestionnaireQuestion,
+)
 
 
 class TextQuestionnaireQuestion(AbstractQuestionnaireQuestion):

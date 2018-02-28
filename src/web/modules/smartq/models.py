@@ -9,6 +9,7 @@ import types
 
 from django import forms
 from django.db import models
+from django.db.models.signals import pre_save
 import django.core.mail
 import django.urls
 
@@ -141,12 +142,11 @@ class Question(models.Model):
     def compiled_template_js(self):
         return self._compiled_template('js', self.template_html)
 
-    def save(self, *args, **kwargs):
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
         # Check that the code actually compiles. It will throw an exception and
         # prevent saving if not.
-        compile(self.code, self._module_name, 'exec')
-
-        super().save(*args, **kwargs)
+        compile(instance.code, instance._module_name, 'exec')
 
     def create_instance(self, user, seed=None, klass=None):
         if seed is None:
@@ -205,6 +205,9 @@ class Question(models.Model):
             user=user,
             seed=seed,
             data_json=json.dumps(data.__dict__))
+
+
+pre_save.connect(Question.pre_save, sender=Question)
 
 
 class GeneratedQuestion(models.Model):

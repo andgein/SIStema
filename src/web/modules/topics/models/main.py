@@ -1,16 +1,16 @@
 from datetime import timedelta
 
+import django.utils.timezone
 from django import forms
 from django.core import validators, urlresolvers
-from django.db import models
+from django.db import models, IntegrityError
+from django.db.models.signals import pre_save
 from django.forms import widgets
-import django.utils.timezone
+from djchoices import choices
 
+import modules.smartq.models as smartq_models
 import schools.models
 import users.models
-import modules.smartq.models as smartq_models
-
-from djchoices import choices
 
 
 class TopicQuestionnaire(models.Model):
@@ -157,16 +157,15 @@ class LevelDependency(models.Model):
                                                 self.destination_level.name,
                                                 self.min_percent)
 
-    def save(self, *args, **kwargs):
-        q1 = self.source_level.questionnaire
-        q2 = self.destination_level.questionnaire
-        if q1 != q2 or q2 != self.questionnaire:
-            raise ValueError(
-                'topics.settings.LevelDependency: source_level and '
-                'destination_level should be set up as one of questionnaire '
-                'level')
-
-        super(LevelDependency, self).save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        q1 = instance.source_level.questionnaire
+        q2 = instance.destination_level.questionnaire
+        if q1 != q2 or q2 != instance.questionnaire:
+            raise IntegrityError(
+                "{}.{}: source_level and destination_level should belong to "
+                "the same questionnaire as this level dependency"
+                .format(cls.__module__, cls.__name__))
 
     def satisfy(self, marks_count, total_questions):
         """
@@ -177,6 +176,9 @@ class LevelDependency(models.Model):
     class Meta:
         abstract = True
         unique_together = ('source_level', 'destination_level')
+
+
+pre_save.connect(LevelDependency.pre_save, sender=LevelDependency)
 
 
 class LevelDownwardDependency(LevelDependency):
@@ -324,13 +326,13 @@ class Topic(models.Model):
     class Meta:
         unique_together = ('questionnaire', 'short_name')
 
-    def save(self, *args, **kwargs):
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
         # TODO: check all tags too
-        if self.level.questionnaire == self.questionnaire:
-            super(Topic, self).save(*args, **kwargs)
-        else:
-            raise ValueError('topics.settings.Topic: level must be set up as '
-                             'one of questionnaire level')
+        if instance.level.questionnaire != instance.questionnaire:
+            raise IntegrityError(
+                "{}.{}: topic level must belong to the same questionnaire as "
+                "the topic itself".format(cls.__module__, cls.__name__))
 
     def __str__(self):
         return '%s. Тема «%s»' % (self.questionnaire, self.title)
@@ -363,6 +365,9 @@ class Topic(models.Model):
                 widget=widgets.RadioSelect(attrs={}))
 
         return type('%sForm' % self.short_name, (forms.Form,), fields)
+
+
+pre_save.connect(Topic.pre_save, sender=Topic)
 
 
 class ScaleInTopic(models.Model):
@@ -423,12 +428,12 @@ class TopicDependency(models.Model):
 
     destination_mark = models.PositiveIntegerField()
 
-    def save(self, *args, **kwargs):
-        if self.source.questionnaire == self.destination.questionnaire:
-            super(TopicDependency, self).save(*args, **kwargs)
-        else:
-            raise ValueError('topics.settings.TopicDependency: source and '
-                             'destination should be from one questionnaire')
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if instance.source.questionnaire != instance.destination.questionnaire:
+            raise IntegrityError(
+                "{}.{}: source and destination should belong to the same "
+                "questionnaire".format(cls.__module__, cls.__name__))
 
     def __str__(self):
         return 'Зависимость от «%s» (оценка %d) к «%s» (оценка %d)' % (
@@ -438,6 +443,9 @@ class TopicDependency(models.Model):
     class Meta:
         index_together = (('source', 'destination'), ('source', 'source_mark'))
         verbose_name_plural = 'Topic dependencies'
+
+
+pre_save.connect(TopicDependency.pre_save, sender=TopicDependency)
 
 
 class UserQuestionnaireStatus(models.Model):
@@ -484,11 +492,12 @@ class BaseMark(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        if self.mark > self.scale_in_topic.scale.count_values:
-            raise Exception('topics.models.UserMark: mark can\'t be greater '
-                            'than scale\'s count_values')
-        super(BaseMark, self).save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if instance.mark > instance.scale_in_topic.scale.count_values:
+            raise IntegrityError(
+                "{}.{}: mark can't be greater than scale's count_values"
+                .format(cls.__module__, cls.__name__))
 
     def __str__(self):
         return 'Оценка %d пользователя %s за «%s» %s%s' % (
@@ -498,6 +507,9 @@ class BaseMark(models.Model):
     class Meta:
         unique_together = ('user', 'scale_in_topic')
         abstract = True
+
+
+pre_save.connect(BaseMark.pre_save, sender=BaseMark)
 
 
 class UserMark(BaseMark):
@@ -574,7 +586,7 @@ class TopicCheckingSettings(models.Model):
     )
 
     max_questions = models.PositiveIntegerField()
- 
+
     @property
     def allowed_errors_map(self):
         # TODO: not hardcode

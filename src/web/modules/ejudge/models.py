@@ -1,5 +1,6 @@
 import djchoices
-from django.db import models
+from django.db import models, IntegrityError
+from django.db.models.signals import pre_save
 
 
 class ProgrammingLanguage(models.Model):
@@ -180,14 +181,13 @@ class QueueElement(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        if (self.status == QueueElement.Status.CHECKED and
-                self.submission is None):
-            raise ValueError(
-                'modules.ejudge.models.QueueElement: submission can\'t be None '
-                'if status is CHECKED')
-
-        super().save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if (instance.status == QueueElement.Status.CHECKED and
+                instance.submission is None):
+            raise IntegrityError(
+                "{}.{}: submission cannot be None if status is CHECKED"
+                .format(cls.__module__, cls.__name__))
 
     def get_result(self):
         if self.status == QueueElement.Status.WONT_CHECK:
@@ -200,3 +200,6 @@ class QueueElement(models.Model):
 
     def __str__(self):
         return '#%d. (%s)' % (self.id, QueueElement.Status.values[self.status])
+
+
+pre_save.connect(QueueElement.pre_save, sender=QueueElement)

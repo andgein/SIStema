@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import django.utils.dateformat
+from constance import config
 from django.core import urlresolvers
 from django.db import models
-import django.utils.dateformat
-
-from constance import config
+from django.db.models.signals import pre_save
 
 import users.models
 
@@ -20,6 +20,7 @@ class School(models.Model):
                   'не уникальным.')
 
     full_name = models.TextField(
+        blank=True,
         help_text='Полное название, не аббревиатура. По умолчанию совпадает с '
                   'обычным названием. Например, «Летняя компьютерная школа '
                   '2048»')
@@ -36,10 +37,11 @@ class School(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        if not self.full_name:
-            self.full_name = self.name
-        super().save(*args, **kwargs)
+    @staticmethod
+    def pre_save(instance, raw, **kwargs):
+        if not raw:
+            if not instance.full_name:
+                instance.full_name = instance.name
 
     def get_absolute_url(self):
         # TODO(Artem Tabolin): looks like schools app should know nothing about
@@ -63,6 +65,9 @@ class School(models.Model):
     def get_current_school(cls):
         return cls.objects.get(
             short_name=config.SISTEMA_CURRENT_SCHOOL_SHORT_NAME)
+
+
+pre_save.connect(School.pre_save, sender=School)
 
 
 class Session(models.Model):
@@ -167,14 +172,17 @@ class Group(models.Model):
     def __str__(self):
         return '{}.{}'.format(self.session, self.name)
 
-    def save(self, *args, **kwargs):
-        if self.parallel.school_id != self.session.school_id:
+    @staticmethod
+    def pre_save(instance, **kwargs):
+        if instance.parallel.school_id != instance.session.school_id:
             raise ValueError(
                 'Error while saving study group: parallel ({}) and session '
                 '({}) should belong to the same school.'
-                .format(self.parallel, self.session)
+                .format(instance.parallel, instance.session)
             )
-        super().save(*args, **kwargs)
+
+
+pre_save.connect(Group.pre_save, sender=Group)
 
 
 class SchoolParticipant(models.Model):

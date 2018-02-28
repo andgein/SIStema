@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from django import conf
-from django.db import models
+from django.db import models, IntegrityError
+from django.db.models.signals import pre_save
+
 import schools.models
 
 
@@ -211,14 +213,15 @@ class HistoryEntry(models.Model):
         blank=True,
     )
 
-    def save(self, *args, **kwargs):
-        if (self.session is not None
-                and self.study_group is not None
-                and self.study_group.parallel is not None
-                and self.session != self.study_group.parallel.session):
-            raise ValueError('poldnev.models.HistoryEntry: '
-                             'study_group should belong to entry\'s session')
-        super().save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if (instance.session is not None
+                and instance.study_group is not None
+                and instance.study_group.parallel is not None
+                and instance.session != instance.study_group.parallel.session):
+            raise IntegrityError(
+                "{}.{}: study_group should belong to entry's session"
+                .format(cls.__module__, cls.__name__))
 
     def __str__(self):
         return '{} ({}: {})'.format(self.person, self.session, self.full_role)
@@ -242,3 +245,6 @@ class HistoryEntry(models.Model):
 
     class Meta:
         unique_together = ('session', 'study_group', 'role', 'person')
+
+
+pre_save.connect(HistoryEntry.pre_save, sender=HistoryEntry)
