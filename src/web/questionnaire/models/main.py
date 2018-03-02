@@ -156,6 +156,9 @@ class ChoiceQuestionnaireQuestionVariant(models.Model):
     # If this one is selected all options are disabled
     disable_question_if_chosen = models.BooleanField(default=False)
 
+    class Meta:
+        unique_together = ('question', 'order')
+
     def __str__(self):
         return '{}: {} {}'.format(self.question, self.id, self.text)
 
