@@ -1,10 +1,12 @@
-from django.db import models
+from django.db import models, IntegrityError
+from django.db.models.signals import pre_save
 
 import modules.entrance.models.steps as entrance_steps
 
 
-class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
-                                          entrance_steps.EntranceStepTextsMixIn):
+class FillTopicsQuestionnaireEntranceStep(
+        entrance_steps.AbstractEntranceStep,
+        entrance_steps.EntranceStepTextsMixIn):
     template_file = 'topics/fill_topics_questionnaire.html'
 
     questionnaire = models.ForeignKey(
@@ -32,14 +34,14 @@ class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
         blank=True
     )
 
-    def save(self, *args, **kwargs):
-        if (self.questionnaire_id is not None and
-           self.questionnaire.school is not None and
-           self.school_id != self.questionnaire.school_id):
-            raise ValueError(
-                'topics.entrance.steps.FillTopicsQuestionnaireEntranceStep: '
-                'questionnaire should belong to step\'s school')
-        super().save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if (instance.questionnaire_id is not None and
+               instance.questionnaire.school is not None and
+               instance.school_id != instance.questionnaire.school_id):
+            raise IntegrityError(
+                "{}.{}: questionnaire should belong to the step's school"
+                .format(cls.__module__, cls.__name__))
 
     def is_passed(self, user):
         return super().is_passed(user) and self.questionnaire.is_filled_by(user)
@@ -58,3 +60,9 @@ class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
     def __str__(self):
         return ('Шаг заполнения тематической анкеты %s' %
                (str(self.questionnaire), ))
+
+
+pre_save.connect(
+    FillTopicsQuestionnaireEntranceStep.pre_save,
+    sender=FillTopicsQuestionnaireEntranceStep,
+)

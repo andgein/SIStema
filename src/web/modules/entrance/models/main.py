@@ -1,11 +1,12 @@
 import re
 
 import django.utils.timezone
+import djchoices
 import polymorphic.models
 import sizefield.models
 from django.core import urlresolvers
-from django.db import models, transaction
-import djchoices
+from django.db import models, transaction, IntegrityError
+from django.db.models.signals import pre_save
 
 import modules.ejudge.models
 import schools.models
@@ -304,12 +305,16 @@ class EntranceLevelOverride(models.Model):
     def __str__(self):
         return 'Уровень {} для {}'.format(self.entrance_level, self.user)
 
-    def save(self, *args, **kwargs):
-        if self.school != self.entrance_level.school:
-            raise ValueError(
-                'Entrance level override should belong to the same school as '
-                'its entrance level')
-        super().save(*args, **kwargs)
+    @staticmethod
+    def pre_save(instance, **kwargs):
+        if instance.school != instance.entrance_level.school:
+            raise IntegrityError(
+                "{}.{}: Entrance level override should belong to the same "
+                "school as its entrance level"
+                .format(cls.__module__, cls.__name__))
+
+
+pre_save.connect(EntranceLevelOverride.pre_save, sender=EntranceLevelOverride)
 
 
 class EntranceExamTaskSolution(polymorphic.models.PolymorphicModel):

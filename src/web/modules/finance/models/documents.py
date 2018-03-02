@@ -1,16 +1,15 @@
-from django.db import models
 import django.db.migrations.writer
-from django.conf import settings
-
-from cached_property import cached_property
-import relativefilepathfield.fields
 import polymorphic.models
+import relativefilepathfield.fields
+from cached_property import cached_property
+from django.conf import settings
+from django.db import models, IntegrityError
+from django.db.models.signals import pre_save
 
-import schools.models
 import generator.models
-import users.models
 import questionnaire.models
-
+import schools.models
+import users.models
 
 __all__ = ['DocumentType',
            'Document',
@@ -69,10 +68,13 @@ class DocumentType(models.Model):
     def __str__(self):
         return '%s. %s' % (self.school, self.name)
 
-    def save(self, *args, **kwargs):
-        if self.session is not None and self.session.school_id != self.school_id:
-            raise ValueError('Session should belong to the same school ')
-        super().save(*args, **kwargs)
+    @classmethod
+    def pre_save(cls, instance, **kwargs):
+        if (instance.session is not None and
+                instance.session.school_id != instance.school_id):
+            raise IntegrityError(
+                "{}.{}: schools and session's school should match"
+                .format(cls.__module__, cls.__name__))
 
     def is_need_for_user(self, user):
         # If session is defined check that user has been enrolled in it
@@ -97,6 +99,9 @@ class DocumentType(models.Model):
                 return True
 
         return False
+
+
+pre_save.connect(DocumentType.pre_save, sender=DocumentType)
 
 
 class Document(models.Model):
