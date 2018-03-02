@@ -18,7 +18,7 @@ class EntranceStatusGroup(groups.models.AbstractGroup):
         ).exists()
 
     @property
-    def users_ids(self):
+    def user_ids(self):
         return EntranceStatus.objects.filter(
             status=self.status,
             school=self.school

@@ -1,11 +1,9 @@
-from django.db import models
-from django.db.models import Q
-from django.utils.functional import cached_property
+import collections
 
 import djchoices
 import polymorphic.models
-
-import collections
+from django.db import models
+from django.utils.functional import cached_property
 
 import schools.models
 import users.models
@@ -61,27 +59,27 @@ class AbstractGroup(polymorphic.models.PolymorphicModel):
     def is_user_in_group(self, user):
         """
         You can override this method in subclass.
-        By default it calls overridden self.users_ids.
+        By default it calls overridden self.user_ids.
         Be careful: this approach can be slow on large groups.
         :return: True if user is in group and False otherwise.
         """
-        return user.id in self.users_ids
+        return user.id in self.user_ids
 
     @property
     def users(self):
         """
-        You can override this method in subclass. By default it calls overridden self.users_ids
+        You can override this method in subclass. By default it calls overridden self.user_ids
         :return: QuerySet for users.models.User model with users from this group
         """
-        return users.models.User.objects.filter(id__in=self.users_ids)
+        return users.models.User.objects.filter(id__in=self.user_ids)
 
     @property
-    def users_ids(self):
+    def user_ids(self):
         """
         :return: QuerySet or list of ids of users which are members of this group
         """
         raise NotImplementedError(
-            'Each group should implement users_ids(), but %s doesn\'t' %
+            'Each group should implement user_ids(), but %s doesn\'t' %
             self.__class__.__name__
         )
 
@@ -129,7 +127,7 @@ class ManuallyFilledGroup(AbstractGroup):
     # it can be useful to cache full list of group's members and
     # rebuild it after adding or removing a new member
     @cached_property
-    def users_ids(self):
+    def user_ids(self):
         visited_groups_ids = {self.id}
         not_manually_filled_groups_members_ids = set()
         queue = collections.deque([self])
@@ -142,7 +140,7 @@ class ManuallyFilledGroup(AbstractGroup):
                         queue.append(child_group.member.get_real_instance())
                     else:
                         not_manually_filled_groups_members_ids.update(
-                            child_group.member.get_real_instance().users_ids
+                            child_group.member.get_real_instance().user_ids
                         )
 
         return not_manually_filled_groups_members_ids.union(

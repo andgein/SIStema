@@ -13,7 +13,7 @@ class UsersFilledQuestionnaireGroup(groups.models.AbstractGroup):
     )
 
     @property
-    def users_ids(self):
+    def user_ids(self):
         return self.questionnaire.get_filled_user_ids()
 
 
@@ -32,7 +32,7 @@ class UsersNotFilledQuestionnaireGroup(groups.models.AbstractGroup):
         super().save(*args, **kwargs)
 
     @property
-    def users_ids(self):
+    def user_ids(self):
         filled_users_ids = set(self.questionnaire.get_filled_user_ids())
-        must_fill_users_ids = set(self.questionnaire.must_fill.users_ids)
+        must_fill_users_ids = set(self.questionnaire.must_fill.user_ids)
         return must_fill_users_ids - filled_users_ids
