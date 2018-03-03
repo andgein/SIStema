@@ -8,6 +8,16 @@ class KeyDate(models.Model):
     Represents any key date in SIStema. Supports exceptions for specific users.
     """
 
+    school = models.ForeignKey(
+        'schools.School',
+        on_delete=models.CASCADE,
+        related_name='key_dates',
+        null=True,
+        blank=True,
+        help_text="Школа, к которой относится эта дата. Поле может быть "
+                  "пустым, если дата не относится ни к какой школе.",
+    )
+
     datetime = models.DateTimeField(
         verbose_name='дата и время',
     )

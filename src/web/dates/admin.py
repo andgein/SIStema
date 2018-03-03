@@ -12,7 +12,11 @@ class KeyDateExceptionInline(admin.StackedInline):
 class KeyDateAdmin(admin.ModelAdmin):
     list_display = (
         'id',
+        'school',
         'datetime',
         'name',
+    )
+    list_filter = (
+        'school',
     )
     inlines = (KeyDateExceptionInline,)
