@@ -101,7 +101,7 @@ INSTALLED_APPS = (
     'modules.finance',
     'modules.poldnev',
     'modules.smartq',
-    'modules.study_results',
+    'modules.study_results.apps.StudyResultsConfig',
     'modules.topics',
 )
 

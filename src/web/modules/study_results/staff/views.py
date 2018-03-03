@@ -1,12 +1,13 @@
 import django.shortcuts
 
-from frontend.table.utils import A, TableDataSource
 import frontend.icons
 import frontend.table
+import groups.decorators
 import modules.study_results.models as study_results_models
-import sistema.helpers
 import sistema.staff
 import users.models
+from frontend.table.utils import A, TableDataSource
+from modules.study_results.groups import STUDENT_COMMENTS_VIEWERS
 
 
 class StudyResultsTable(frontend.table.Table):
@@ -86,7 +87,7 @@ class StudyResultsTable(frontend.table.Table):
         return ''.join('<p>' + str(comment) + '</p>' for comment in value.all())
 
 
-@sistema.staff.only_staff
+@groups.decorators.only_for_groups(STUDENT_COMMENTS_VIEWERS)
 def study_results(request):
     study_results_table = StudyResultsTable(request.school)
     frontend.table.RequestConfig(request).configure(study_results_table)
@@ -95,13 +96,13 @@ def study_results(request):
         {'study_results_table': study_results_table})
 
 
-@sistema.staff.only_staff
+@groups.decorators.only_for_groups(STUDENT_COMMENTS_VIEWERS)
 def study_results_data(request):
     table = StudyResultsTable(request.school)
     return TableDataSource(table).get_response(request)
 
 
-@sistema.staff.only_staff
+@groups.decorators.only_for_groups(STUDENT_COMMENTS_VIEWERS)
 def study_result_user(request, user_id):
     user = django.shortcuts.get_object_or_404(users.models.User, id=user_id)
     return django.shortcuts.render(
