@@ -1,0 +1,12 @@
+# Owners for SIStema code. These users will be automatically assigned as
+# reviewers to pull requests.
+
+# Default owners
+* @andgein @citxx
+
+# UI
+*.css @andgein
+*.html @andgein
+
+# Modules
+/src/web/modules/topics @citxx
