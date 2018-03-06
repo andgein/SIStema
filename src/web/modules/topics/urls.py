@@ -2,6 +2,9 @@ from django import conf
 from django.conf.urls import url
 from . import views
 
+app_name = 'topics'
+
+
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^checking/$', views.check_topics, name='check_topics'),

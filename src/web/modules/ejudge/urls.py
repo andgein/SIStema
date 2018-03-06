@@ -2,6 +2,8 @@ from django.conf.urls import include, url
 
 from modules.ejudge import views
 
+app_name = 'ejudge'
+
 
 admin_urlpatterns = [
     url(r'^submission-autocomplete/$',
@@ -14,5 +16,5 @@ admin_urlpatterns = [
 
 
 urlpatterns = [
-    url(r'^admin/', include(admin_urlpatterns, namespace='admin')),
+    url(r'^admin/', include(admin_urlpatterns)),
 ]

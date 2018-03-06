@@ -1,6 +1,8 @@
 from django.conf.urls import url, include
 from modules.smartq import views
 
+app_name = 'smartq'
+
 urlpatterns = [
     url(r'^(?P<question_short_name>[^/]+)/', include([
         url(r'^$',

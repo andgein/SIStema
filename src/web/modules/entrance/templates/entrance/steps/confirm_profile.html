@@ -3,7 +3,7 @@
 {% block title %}Подтвердить профиль{% endblock %}
 
 {% block not_passed_after_text %}
-    <a href="{% url 'user:profile' %}?confirm=1" class="btn btn-primary">
+    <a href="{% url 'user-profile' %}?confirm=1" class="btn btn-primary">
         {% block not_passed_button_text %}
             Проверить <span class="visible-xs-inline">профиль</span><span class="hidden-xs">и&nbsp;подтвердить информацию в&nbsp;профиле</span>
         {% endblock %}
