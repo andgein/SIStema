@@ -61,5 +61,5 @@ class UserAutocompleteModelAdminMixIn(AutocompleteModelAdminMixIn):
         via Select2 with autocomplete """
 
     object_model = models.User
-    url = 'users_admin:user-autocomplete'
+    url = 'user-autocomplete'
     placeholder = 'Выберите пользователя'

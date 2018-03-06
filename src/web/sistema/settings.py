@@ -105,7 +105,7 @@ INSTALLED_APPS = (
     'modules.topics',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'htmlmin.middleware.HtmlMinifyMiddleware',
     'htmlmin.middleware.MarkRequestMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

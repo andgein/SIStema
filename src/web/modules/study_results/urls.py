@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from modules.study_results.staff import views as staff_views
 
+app_name = 'study_results'
+
 urlpatterns = [
     # Staff urls
     url(r'^user/(?P<user_id>\d+)/$',

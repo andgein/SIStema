@@ -2,6 +2,8 @@ from django.conf.urls import url, include
 
 from schools import views
 
+app_name = 'schools'
+
 urlpatterns = [
     url(r'^(?P<school_name>[^/]+)/', include([
         url(r'^$', views.index, name='index'),

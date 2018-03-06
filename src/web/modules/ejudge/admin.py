@@ -18,7 +18,7 @@ class QueueElementAdminForm(django.forms.ModelForm):
         fields = ('__all__')
         widgets = {
             'submission': autocomplete.ModelSelect2(
-                url='ejudge:admin:submission-autocomplete')
+                url='ejudge:submission-autocomplete')
         }
 
 
@@ -75,7 +75,7 @@ class SubmissionAdminForm(django.forms.ModelForm):
         fields = ('__all__')
         widgets = {
             'result': autocomplete.ModelSelect2(
-                url='ejudge:admin:solution-checking-result-autocomplete')
+                url='ejudge:solution-checking-result-autocomplete')
         }
 
 

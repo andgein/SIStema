@@ -181,7 +181,7 @@
                 <div class="panel-heading">
                     <span class="panel-title">Общая информация</span>
                     <div class="mr10 pull-right fs12">
-                        <a href="{% url 'school:entrance:user_profile' request.school.short_name user_for_checking.id %}"
+                        <a href="{% url 'school:entrance:user-profile' request.school.short_name user_for_checking.id %}"
                            target="_blank" class="ml10" title="Откроется в новой вкладке">
                             Профиль</a>
                         <a href="{% url 'school:entrance:user_questionnaire' request.school.short_name user_for_checking.id 'enrollee' %}"

@@ -2,6 +2,8 @@ from django.conf.urls import url, include
 from . import views
 from .staff import views as staff_views
 
+app_name = 'entrance'
+
 urlpatterns = [
     url(r'^exam/$', views.exam, name='exam'),
     url(r'^exam/solution/(?P<solution_id>\d+)/$', views.solution, name='solution'),

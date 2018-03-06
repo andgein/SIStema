@@ -11,7 +11,7 @@ urlpatterns = [
         name='enrolling_user'),
     url(r'^enrolling/(?P<user_id>\d+)/profile/$',
         views.user_profile,
-        name='user_profile'),
+        name='user-profile'),
     url(r'^enrolling/(?P<user_id>\d+)/questionnaire/'
         '(?P<questionnaire_name>[^/]+)/$',
         views.user_questionnaire,
