@@ -1,26 +1,11 @@
-SIStema
-=======
+# SIStema
 
-Web service for easy Summer Informatic School creation
+A web service for automating Summer Informatics School organization. This
+includes entrance examination, gathering necessary information from students and
+aims to cover more processes in the future.
 
-Start from reading [wiki](https://github.com/andgein/SIStema/wiki)
+The development is currently done by Russian developers. The issue tracker and
+documentation is in Russian, but all the new code comments and commit
+descriptions are in English.
 
-## Install
-
-    $ git clone git@github.com:andgein/SIStema.git
-    $ cd SIStema/
-    $ virtualenv -p python3 venv
-    $ source ./venv/bin/activate
-    $ pip install -Ur src/requirements.txt
-    
-Or (`pip install -Ur src/requirements.mysql.txt` if you want to use MySQL backend)
-
-Ask someone to make you a database dump of the main SIStema instance:
-
-    $ python src/web/manage.py dumpdata > db.json
-
-Then load it locally:
-
-    $ python src/web/manage.py migrate
-    $ src/web/manage.py sqlflush | sqlite3 db.sqlite3
-    $ python src/web/manage.py loaddata db.json
+See [README.ru.md](README.ru.md) for more details.
