@@ -5,9 +5,12 @@ python:
   - "3.5"
   - "3.6"
 
+env:
+  - CORE_APPS: dates frontend generator groups home questionnaire schools sistema users
+
 install:
   - pip install -r src/requirements.txt
 
 # Test all the core apps + all the apps within the modules directory
 script:
-  - python src/web/manage.py test dates frontend generator groups home questionnaire schools sistema users modules
+  - python src/web/manage.py test ${CORE_APPS} modules
