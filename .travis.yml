@@ -11,6 +11,6 @@ env:
 install:
   - pip install -r src/requirements.txt
 
-# Test all the core apps + all the apps within the modules directory
 script:
+  - python src/web/manage.py migrate
   - python src/web/manage.py test ${CORE_APPS} modules
