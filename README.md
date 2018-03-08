@@ -1,5 +1,7 @@
 # SIStema
 
+[![Build Status](https://travis-ci.org/andgein/SIStema.svg?branch=master)](https://travis-ci.org/andgein/SIStema)
+
 A web service for automating Summer Informatics School organization. This
 includes entrance examination, gathering necessary information from students and
 aims to cover more processes in the future.

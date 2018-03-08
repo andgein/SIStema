@@ -1,5 +1,7 @@
 # SIStema
 
+[![Build Status](https://travis-ci.org/andgein/SIStema.svg?branch=master)](https://travis-ci.org/andgein/SIStema)
+
 Веб-сервис для автоматизации организации [ЛКШ](http://lksh.ru). Сейчас он
 покрывает вступительную работу и сбор информации о школьниках. В будущем мы
 также хотим автоматизировать остальные процессы.
