@@ -62,13 +62,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='checkinglock',
             name='task',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='entrance.EntranceExamTask'),
+            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='entrance.EntranceExamTask'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='checkinglock',
             name='user',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, related_name='entrance_checking_locks', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='entrance_checking_locks', to=settings.AUTH_USER_MODEL),
             preserve_default=False,
         ),
         migrations.AlterField(
