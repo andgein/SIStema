@@ -15,7 +15,7 @@ import os
 PROJECT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
 
-# SECURITY WARNING: keep the secret key used in production secret! Override it's
+# SECURITY WARNING: keep the secret key used in production secret! Override its
 #                   value in local_settings.py.
 SECRET_KEY = 'dummy secret key for the dev environment'
 
@@ -327,10 +327,11 @@ SETTINGS_EXPORT = [
 ]
 
 
-# Override settings defined above with settings from local_settings.py
+# Override settings defined above with the settings from local_settings.py
 try:
     from sistema.local_settings import *
 except ImportError as e:
     import logging
     logging.getLogger(__name__).warning(
-        'WARNING: No local sistema settings (local_settings.py) found. Using default values from settings.py.')
+        'WARNING: No local sistema settings (local_settings.py) found. Using '
+        'default values from settings.py.')
