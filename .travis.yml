@@ -6,10 +6,25 @@ python:
   - "3.6"
 
 env:
-  - CORE_APPS="dates frontend generator groups home questionnaire schools sistema users"
+  global:
+    - CORE_APPS="dates frontend generator groups home questionnaire schools sistema users"
+    - REQUIREMENTS=src/requirements.txt
+
+matrix:
+  include:
+    - env: DB=sqlite
+
+    - env: DB=mysql REQUIREMENTS=src/requirements.mysql.txt
+      services: mysql
+      before_script: mysql -e "CREATE DATABASE travis_db;" -u root
+
+    - env: DB=postgres REQUIREMENTS=src/requirements.postgres.txt
+      services: postgresql
+      before_script: psql -c "CREATE DATABASE travis_db;" -U postgres
 
 install:
-  - pip install -r src/requirements.txt
+  - cp src/web/sistema/travis_settings.py src/web/sistema/local_settings.py
+  - pip install -r ${REQUIREMENTS}
 
 script:
   - python src/web/manage.py migrate
