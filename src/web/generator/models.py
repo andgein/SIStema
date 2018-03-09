@@ -468,8 +468,8 @@ class AbstractTableStyleCommand(polymorphic.models.PolymorphicModel):
         return self.stop_column, self.stop_row
 
     @property
-    def params(self):        
-        # param can be dotted path to the nested attribute, i.e. "font.name". 
+    def params(self):
+        # param can be dotted path to the nested attribute, i.e. "font.name".
         # In this case we need get self.font.name, so we split param by "." and apply
         # functools.reduce with getattr
         return [
@@ -562,9 +562,13 @@ class ValignTableStyleCommand(CellFormattingTableStyleCommand):
 
 
 class LineTableStyleCommand(AbstractTableStyleCommand):
-    command_name = models.CharField(max_length=100, choices=[
-        (c, c.title()) for c in reportlab.platypus.tables.LINECOMMANDS
-        ])
+    command_name = models.CharField(
+        max_length=100,
+        choices=[
+            (c, c.title())
+            for c in sorted(reportlab.platypus.tables.LINECOMMANDS)
+        ],
+    )
 
     command_params = ['thickness', 'color']
 
