@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-            bases=('entrance.abstractentrancestep', modules.entrance.models.steps.EntranceStepTextsMixIn),
+            bases=('entrance.abstractentrancestep', models.Model),
         ),
         migrations.CreateModel(
             name='FillQuestionnaireEntranceStep',
@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-            bases=('entrance.abstractentrancestep', modules.entrance.models.steps.EntranceStepTextsMixIn),
+            bases=('entrance.abstractentrancestep', models.Model),
         ),
         migrations.CreateModel(
             name='SolveExamEntranceStep',
@@ -84,7 +84,7 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-            bases=('entrance.abstractentrancestep', modules.entrance.models.steps.EntranceStepTextsMixIn),
+            bases=('entrance.abstractentrancestep', models.Model),
         ),
         migrations.DeleteModel(
             name='EntranceStep',
