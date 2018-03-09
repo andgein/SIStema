@@ -12,5 +12,6 @@ install:
   - pip install -r src/requirements.txt
 
 script:
+  - python src/web/manage.py makemigrations --check
   - python src/web/manage.py migrate
   - python src/web/manage.py test ${CORE_APPS} modules
