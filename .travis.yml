@@ -16,7 +16,7 @@ matrix:
 
     - env: DB=mysql REQUIREMENTS=src/requirements.mysql.txt
       services: mysql
-      before_script: mysql -e "CREATE DATABASE travis_db;" -u root
+      before_script: mysql -e "CREATE DATABASE travis_db CHARACTER SET utf8;" -u root
 
     - env: DB=postgres REQUIREMENTS=src/requirements.postgres.txt
       services: postgresql
