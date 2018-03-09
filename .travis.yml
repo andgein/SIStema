@@ -6,7 +6,7 @@ python:
   - "3.6"
 
 env:
-  - CORE_APPS: dates frontend generator groups home questionnaire schools sistema users
+  - CORE_APPS="dates frontend generator groups home questionnaire schools sistema users"
 
 install:
   - pip install -r src/requirements.txt
