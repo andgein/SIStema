@@ -30,6 +30,9 @@ if DB == 'mysql':
                     'character_set_connection=utf8,'
                     'collation_connection=utf8_bin;'
                     'SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED',
+            },
+            'TEST': {
+                'CHARSET': 'utf8',
             }
         },
     }
