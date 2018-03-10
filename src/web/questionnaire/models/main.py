@@ -36,14 +36,21 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
 
     is_question = False
 
-    def __str__(self):
-        return '%s. %s' % (self.questionnaire, self.short_name)
-
     class Meta:
         verbose_name = 'questionnaire block'
         unique_together = [('short_name', 'questionnaire'),
                            ('questionnaire', 'order')]
         ordering = ('questionnaire_id', 'order')
+
+    def __init__(self):
+        # Helper vars to check, that the corresponding base methods were called.
+        # Used to catch situations where inheritants override these methods and
+        # forget to call super()
+        self._is_copy_fields_to_instance_called = None
+        self._is_copy_dependencies_to_instance_called = None
+
+    def __str__(self):
+        return '%s. %s' % (self.questionnaire, self.short_name)
 
     def copy_to_questionnaire(self, to_questionnaire):
         """
@@ -54,25 +61,43 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
 
         :param to_questionnaire: A questionnaire to copy the block to.
         """
+        fields_diff = (set(self.__class__._meta.get_fields()) -
+                       set(AbstractQuestionnaireBlock._meta.get_fields()))
+        fields_to_copy = list(filter(
+            lambda f: not f.auto_created and not f.is_relation,
+            fields_diff,
+        ))
+        field_kwargs = {f.name: getattr(self, f.name) for f in fields_to_copy}
         new_instance = self.__class__(
             questionnaire=to_questionnaire,
             short_name=self.short_name,
             order=self.order,
+            **field_kwargs,
         )
+
+        self._is_copy_fields_to_instance_called = False
         self._copy_fields_to_instance(new_instance)
+        assert self._is_copy_fields_to_instance_called
+
         new_instance.save()
+
+        self._is_copy_dependencies_to_instance_called = False
         self._copy_dependencies_to_instance(new_instance)
+        assert self._is_copy_dependencies_to_instance_called
+
         return new_instance
 
     def _copy_fields_to_instance(self, other):
         """
-        Subclasses must override this method. The implementation should:
+        Subclasses must override this method if they define new relation fields
+        or if some of their plain fields require non-trivial copying. The
+        implementation should:
         - call super()._copy_fields_to_instance(other),
         - copy its field values to the passed instance.
 
         :param other: The instance to copy field values to.
         """
-        pass
+        self._is_copy_fields_to_instance_called = True
 
     def _copy_dependencies_to_instance(self, other):
         """
@@ -85,7 +110,7 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
 
         :param other: The instance to copy dependencies for.
         """
-        pass
+        self._is_copy_dependencies_to_instance_called = True
 
 
 class MarkdownQuestionnaireBlock(AbstractQuestionnaireBlock):
@@ -95,10 +120,6 @@ class MarkdownQuestionnaireBlock(AbstractQuestionnaireBlock):
 
     def __str__(self):
         return self.markdown[:40]
-
-    def _copy_fields_to_instance(self, other):
-        super()._copy_fields_to_instance(other)
-        other.markdown = self.markdown
 
 
 class AbstractQuestionnaireQuestion(AbstractQuestionnaireBlock):
@@ -136,13 +157,6 @@ class AbstractQuestionnaireQuestion(AbstractQuestionnaireBlock):
     def __str__(self):
         return '%s: %s' % (self.questionnaire, self.text)
 
-    def _copy_fields_to_instance(self, other):
-        super()._copy_fields_to_instance(other)
-        other.text = self.text
-        other.is_required = self.is_required
-        other.help_text = self.help_text
-        other.is_disabled = self.is_disabled
-
 
 class TextQuestionnaireQuestion(AbstractQuestionnaireQuestion):
     block_name = 'text_question'
@@ -159,12 +173,6 @@ class TextQuestionnaireQuestion(AbstractQuestionnaireQuestion):
         blank=True,
         help_text='Имя иконки FontAwesome, которую нужно показать в поле',
     )
-
-    def _copy_fields_to_instance(self, other):
-        super()._copy_fields_to_instance(other)
-        other.is_multiline = self.is_multiline
-        other.placeholder = self.placeholder
-        other.fa = self.fa
 
     def get_form_field(self, attrs=None):
         if attrs is None:
@@ -231,11 +239,6 @@ class ChoiceQuestionnaireQuestion(AbstractQuestionnaireQuestion):
 
     is_inline = models.BooleanField()
 
-    def _copy_fields_to_instance(self, other):
-        super()._copy_fields_to_instance(other)
-        other.is_multiple = self.is_multiple
-        other.is_inline = self.is_inline
-
     def _copy_dependencies_to_instance(self, other):
         super()._copy_dependencies_to_instance(other)
         for variant in self.variants.all():
@@ -296,12 +299,6 @@ class DateQuestionnaireQuestion(AbstractQuestionnaireQuestion):
     min_year = models.PositiveIntegerField(null=True)
 
     max_year = models.PositiveIntegerField(null=True)
-
-    def _copy_fields_to_instance(self, other):
-        super()._copy_fields_to_instance(other)
-        other.with_year = self.with_year
-        other.min_year = self.min_year
-        other.max_year = self.max_year
 
     def get_form_field(self, attrs=None):
         return django.forms.DateField(
