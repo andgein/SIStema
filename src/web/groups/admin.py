@@ -27,7 +27,7 @@ class AbstractGroupAdmin(users.admin.UserAutocompleteModelAdminMixIn, sistema.po
 
 
 @admin.register(models.ManuallyFilledGroup)
-class ManuallyFilledGroupAdmin(AbstractGroupAdmin):
+class ManuallyFilledGroupAdmin(PolymorphicChildModelAdmin):
     base_model = models.ManuallyFilledGroup
 
 

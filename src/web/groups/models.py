@@ -55,6 +55,7 @@ class AbstractGroup(polymorphic.models.PolymorphicModel):
 
     class Meta:
         unique_together = ('short_name', 'school')
+        verbose_name = 'group'
 
     def is_user_in_group(self, user):
         """
@@ -256,6 +257,10 @@ class GroupAccess(polymorphic.models.PolymorphicModel):
         auto_now_add=True,
         db_index=True,
     )
+
+    class Meta:
+        verbose_name = 'group access'
+        verbose_name_plural = 'group accesses'
 
 
 class GroupAccessForUser(GroupAccess):
