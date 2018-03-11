@@ -56,5 +56,6 @@ class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
         return block
 
     def __str__(self):
-        return ('Шаг заполнения тематической анкеты %s' %
-               (str(self.questionnaire), ))
+        return 'Шаг заполнения тематической анкеты «{}»'.format(
+            self.questionnaire
+        )

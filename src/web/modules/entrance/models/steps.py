@@ -311,7 +311,7 @@ class FillQuestionnaireEntranceStep(AbstractEntranceStep,
         return super().is_passed(user) and self.questionnaire.is_filled_by(user)
 
     def __str__(self):
-        return 'Шаг заполнения анкеты {} для {}'.format(
+        return 'Шаг заполнения анкеты «{}» для {}'.format(
             self.questionnaire,
             self.school
         )
@@ -595,5 +595,8 @@ class MarkdownEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
     )
 
     def __str__(self):
-        return 'Markdown-шаг для ' + self.school.name
+        return 'Маркдаун-шаг для {}: «{}...»'.format(
+            self.school,
+            self.markdown[:20]
+        )
 

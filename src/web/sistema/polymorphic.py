@@ -30,3 +30,12 @@ class PolymorphicParentModelAdmin(polymorphic.admin.PolymorphicParentModelAdmin)
     def get_class(self, obj):
         return obj.get_real_instance_class().__name__
     get_class.short_description = 'Type'
+
+    def get_real_instance_str(self, obj):
+        return str(obj.get_real_instance())
+    get_real_instance_str.short_description = 'Description'
+
+    class Media:
+        css = {
+            'all': ('css/admin/polymorphic_parent_model_admin.css', )
+        }

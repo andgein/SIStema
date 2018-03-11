@@ -252,16 +252,42 @@ class EntranceStepsHomePageBlockAdmin(PolymorphicChildModelAdmin):
 class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.AbstractEntranceStep
     list_display = ('id',
+                    'get_real_instance_str',
                     'get_class',
                     'school', 'order',
-                    'available_from_time',
-                    'available_to_time',
+                    'get_available_from_time',
+                    'get_available_to_time',
                     'available_after_step')
+    list_display_links = ('id', 'get_real_instance_str')
     list_filter = (
         ('school', admin.RelatedOnlyFieldListFilter),
         PolymorphicChildModelFilter
     )
     ordering = ('school', 'order')
+
+    def get_class(self, obj):
+        """
+        Truncates EntranceStep from class name
+        """
+        class_name = super().get_class(obj)
+        if class_name.endswith('EntranceStep'):
+            return class_name[:-len('EntranceStep')]
+        return class_name
+    get_class.short_description = 'Type'
+
+    def get_available_from_time(self, obj):
+        if obj.available_from_time is None:
+            return None
+        return obj.available_from_time.datetime
+    get_available_from_time.short_description = 'Available from'
+    get_available_from_time.admin_order_field = 'available_from_time__datetime'
+
+    def get_available_to_time(self, obj):
+        if obj.available_to_time is None:
+            return None
+        return obj.available_to_time.datetime
+    get_available_to_time.short_description = 'Available to'
+    get_available_to_time.admin_order_field = 'available_to_time__datetime'
 
 
 @admin.register(models.ConfirmProfileEntranceStep)
