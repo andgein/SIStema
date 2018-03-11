@@ -42,13 +42,6 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
                            ('questionnaire', 'order')]
         ordering = ('questionnaire_id', 'order')
 
-    def __init__(self):
-        # Helper vars to check, that the corresponding base methods were called.
-        # Used to catch situations where inheritants override these methods and
-        # forget to call super()
-        self._is_copy_fields_to_instance_called = None
-        self._is_copy_dependencies_to_instance_called = None
-
     def __str__(self):
         return '%s. %s' % (self.questionnaire, self.short_name)
 
@@ -75,16 +68,9 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
             **field_kwargs,
         )
 
-        self._is_copy_fields_to_instance_called = False
         self._copy_fields_to_instance(new_instance)
-        assert self._is_copy_fields_to_instance_called
-
         new_instance.save()
-
-        self._is_copy_dependencies_to_instance_called = False
         self._copy_dependencies_to_instance(new_instance)
-        assert self._is_copy_dependencies_to_instance_called
-
         return new_instance
 
     def _copy_fields_to_instance(self, other):
@@ -97,7 +83,7 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
 
         :param other: The instance to copy field values to.
         """
-        self._is_copy_fields_to_instance_called = True
+        pass
 
     def _copy_dependencies_to_instance(self, other):
         """
@@ -110,7 +96,7 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
 
         :param other: The instance to copy dependencies for.
         """
-        self._is_copy_dependencies_to_instance_called = True
+        pass
 
 
 class MarkdownQuestionnaireBlock(AbstractQuestionnaireBlock):
