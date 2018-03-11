@@ -42,8 +42,9 @@ class GroupMembershipAdmin(users.admin.UserAutocompleteModelAdminMixIn,
 @admin.register(models.GroupAccess)
 class GroupAccessAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.GroupAccess
-    list_display = ('id', 'get_class', 'to_group', 'access_type',
+    list_display = ('id', 'get_description', 'to_group', 'access_type',
                     'created_by', 'created_at')
+    list_display_links = ('id', 'get_description')
     list_filter = ('to_group__school',
                    'access_type',
                    PolymorphicChildModelFilter)

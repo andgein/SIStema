@@ -1,3 +1,5 @@
+import html
+
 import polymorphic.admin
 
 
@@ -29,13 +31,30 @@ class PolymorphicParentModelAdmin(polymorphic.admin.PolymorphicParentModelAdmin)
 
     def get_class(self, obj):
         return obj.get_real_instance_class().__name__
+
     get_class.short_description = 'Type'
 
     def get_real_instance_str(self, obj):
         return str(obj.get_real_instance())
+
     get_real_instance_str.short_description = 'Description'
+
+    def get_description(self, obj):
+        """
+        Returns html:
+        {get_real_instance_str(obj)}
+        <div class="field-get_description-class_name">{get_class(obj)}</div>
+        """
+        description = self.get_real_instance_str(obj)
+        return html.escape(description) + \
+               '<div class="field-get_description-class_name">{}</div>'.format(
+                   html.escape(self.get_class(obj))
+               )
+
+    get_description.short_description = 'Description'
+    get_description.allow_tags = True
 
     class Media:
         css = {
-            'all': ('css/admin/polymorphic_parent_model_admin.css', )
+            'all': ('css/admin/polymorphic_parent_model_admin.css',)
         }
