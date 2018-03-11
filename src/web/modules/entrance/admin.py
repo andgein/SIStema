@@ -12,8 +12,8 @@ import groups.admin
 @admin.register(models.EntranceExamTask)
 class EntranceExamTaskAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.EntranceExamTask
-    list_display = ('id', 'get_description', 'exam', 'order')
-    list_display_links = ('id', 'get_description')
+    list_display = ('id', 'get_description_html', 'exam', 'order')
+    list_display_links = ('id', 'get_description_html')
     list_filter = ('exam', PolymorphicChildModelFilter)
     ordering = ('exam', 'order')
 
@@ -73,8 +73,8 @@ class EntranceExamTaskSolutionAdmin(
     sistema.polymorphic.PolymorphicParentModelAdmin
 ):
     base_model = models.EntranceExamTaskSolution
-    list_display = ('id', 'get_description', 'task', 'user', 'ip')
-    list_display_links = ('id', 'get_description')
+    list_display = ('id', 'get_description_html', 'task', 'user', 'ip')
+    list_display_links = ('id', 'get_description_html')
     list_filter = ('task', PolymorphicChildModelFilter)
     search_fields = (
         '=user__username',
@@ -203,7 +203,7 @@ class AbstractAbsenceReasonAdmin(
     base_model = models.AbstractAbsenceReason
     list_display = (
         'id',
-        'get_description',
+        'get_description_html',
         'school',
         'user',
         'created_by',
@@ -211,7 +211,7 @@ class AbstractAbsenceReasonAdmin(
         'private_comment',
         'created_at',
     )
-    list_display_links = ('id', 'get_description')
+    list_display_links = ('id', 'get_description_html')
     list_filter = (
         ('school', admin.RelatedOnlyFieldListFilter),
         ('created_by', admin.RelatedOnlyFieldListFilter),
@@ -257,12 +257,12 @@ class EntranceStepsHomePageBlockAdmin(PolymorphicChildModelAdmin):
 class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.AbstractEntranceStep
     list_display = ('id',
-                    'get_description',
+                    'get_description_html',
                     'school', 'order',
                     'get_available_from_time',
                     'get_available_to_time',
                     'available_after_step')
-    list_display_links = ('id', 'get_description')
+    list_display_links = ('id', 'get_description_html')
     list_filter = (
         ('school', admin.RelatedOnlyFieldListFilter),
         PolymorphicChildModelFilter
