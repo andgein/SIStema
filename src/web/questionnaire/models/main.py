@@ -7,7 +7,7 @@ import djchoices
 import polymorphic.models
 from cached_property import cached_property
 from django.urls import reverse
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 
 import frontend.forms
 import groups.models
@@ -128,7 +128,7 @@ class AbstractQuestionnaireQuestion(AbstractQuestionnaireBlock):
 
     def save(self, *args, **kwargs):
         if self.is_disabled and self.is_required:
-            raise ValueError(
+            raise IntegrityError(
                 'questionnaire.AbstractQuestionnaireBlock: is_disabled can not '
                 'be set with is_required')
         super().save(*args, **kwargs)
@@ -382,8 +382,8 @@ class Questionnaire(models.Model):
 
     def save(self, *args, **kwargs):
         if (self.school is not None and self.session is not None and
-                    self.session.school != self.school):
-            raise ValueError(
+                self.session.school != self.school):
+            raise IntegrityError(
                 "Questionnaire's session should belong to the questionnaire's "
                 "school")
         super().save(*args, **kwargs)
