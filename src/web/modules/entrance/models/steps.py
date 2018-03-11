@@ -270,7 +270,7 @@ class ConfirmProfileEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
                 user.profile.updated_at >= available_from_for_user)
 
     def __str__(self):
-        return 'Шаг подтверждения профиля для %s' % str(self.school)
+        return 'Шаг подтверждения профиля для ' + self.school.name
 
 
 class EnsureProfileIsFullEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
@@ -285,7 +285,7 @@ class EnsureProfileIsFullEntranceStep(AbstractEntranceStep, EntranceStepTextsMix
         return profile.is_fully_filled()
 
     def __str__(self):
-        return 'Шаг полного заполнения профиля для %s' % str(self.school)
+        return 'Шаг полного заполнения профиля для ' + self.school.name
 
 
 class FillQuestionnaireEntranceStep(AbstractEntranceStep,
@@ -311,8 +311,10 @@ class FillQuestionnaireEntranceStep(AbstractEntranceStep,
         return super().is_passed(user) and self.questionnaire.is_filled_by(user)
 
     def __str__(self):
-        return 'Шаг заполнения анкеты %s для %s' % (str(self.questionnaire),
-                                                    str(self.school))
+        return 'Шаг заполнения анкеты {} для {}'.format(
+            self.questionnaire,
+            self.school
+        )
 
 
 class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
@@ -380,8 +382,10 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
         return block
 
     def __str__(self):
-        return 'Шаг вступительной работы %s для %s' % (str(self.exam),
-                                                       str(self.school))
+        return 'Шаг вступительной работы {} для {}'.format(
+            self.exam,
+            self.school
+        )
 
 
 class ResultsEntranceStep(AbstractEntranceStep):
@@ -517,7 +521,7 @@ class UserParticipatedInSchoolEntranceStep(AbstractEntranceStep,
 
     def __str__(self):
         return 'Шаг проверки участия в {} для {}'.format(
-            self.school_to_check_participation.name, self.school.name)
+            self.school_to_check_participation, self.school)
 
     def is_visible(self, user):
         return not self.is_passed(user)
@@ -567,6 +571,29 @@ class UserParticipatedInSchoolEntranceStepException(models.Model):
         return (
             'Исключение для пользователя {} в шаге проверки участия в {} для {}'
             .format(self.user,
-                    self.step.school_to_check_participation.name,
-                    self.step.school.name)
+                    self.step.school_to_check_participation,
+                    self.step.school)
         )
+
+
+class MarkdownEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
+    """
+    Simple entrance step for showing markdown-rendered text. Supports
+    `available_from_time` and `available_to_time` as well as
+    `EntranceStepTextsMixIn`. Shows `markdown` field to everyone
+    if corresponding mixin's text is empty.
+    """
+    template_file = 'markdown.html'
+
+    always_expanded = True
+    with_background = False
+
+    markdown = models.TextField(
+        help_text='Текст, который будет показан школьникам. '
+                  'Поддерживается Markdown',
+        blank=False,
+    )
+
+    def __str__(self):
+        return 'Markdown-шаг для ' + self.school.name
+

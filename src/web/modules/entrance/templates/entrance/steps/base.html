@@ -53,10 +53,10 @@
 
 {% block _text %}
     {% if entrance_block.state == EntranceStepState.NOT_OPENED %}
-        {% block not_available_text %}
-           {{ entrance_block.step.text_step_is_not_available|markdown }}
+        {% block before_start_date_text %}
+           {{ entrance_block.step.text_before_start_date|markdown }}
         {% endblock %}
-        {% block not_available_after_text %}
+        {% block before_start_date_after_text %}
         {% endblock %}
     {% endif %}
 

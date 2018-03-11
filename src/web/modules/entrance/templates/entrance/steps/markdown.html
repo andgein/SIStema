@@ -1,0 +1,39 @@
+{% extends 'entrance/steps/base.html' %}
+
+{% load markdown_deux_tags %}
+
+{% block title %}Информация{% endblock %}
+
+{% block done_icon %}{% endblock %}
+
+{% block before_start_date_text %}
+    {% if entrance_block.step.text_before_start_date %}
+        {{ entrance_block.step.text_before_start_date|markdown }}
+    {% else %}
+        {{ entrance_block.step.markdown|markdown }}
+    {% endif %}
+{% endblock %}
+
+{% block waiting_for_other_step_text %}
+    {% if entrance_block.step.text_waiting_for_other_step %}
+        {{ entrance_block.step.text_waiting_for_other_step|markdown }}
+    {% else %}
+        {{ entrance_block.step.markdown|markdown }}
+    {% endif %}
+{% endblock %}
+
+{% block passed_text %}
+    {% if entrance_block.step_is_closed and entrance_block.step.text_after_finish_date_if_passed %}
+        {% if entrance_block.step.text_after_finish_date_if_passed %}
+            {{ entrance_block.step.text_after_finish_date_if_passed|markdown }}
+        {% else %}
+            {{ entrance_block.step.markdown|markdown }}
+        {% endif %}
+    {% else %}
+        {% if entrance_block.step.text_step_is_passed %}
+            {{ entrance_block.step.text_step_is_passed|markdown }}
+        {% else %}
+            {{ entrance_block.step.markdown|markdown }}
+        {% endif %}
+    {% endif %}
+{% endblock %}
