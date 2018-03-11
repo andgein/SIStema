@@ -39,20 +39,20 @@ class PolymorphicParentModelAdmin(polymorphic.admin.PolymorphicParentModelAdmin)
 
     get_real_instance_str.short_description = 'Description'
 
-    def get_description(self, obj):
+    def get_description_html(self, obj):
         """
         Returns html:
         {get_real_instance_str(obj)}
-        <div class="field-get_description-class_name">{get_class(obj)}</div>
+        <div class="field-get_description_html-class_name">{get_class(obj)}</div>
         """
         description = self.get_real_instance_str(obj)
         return html.escape(description) + \
-               '<div class="field-get_description-class_name">{}</div>'.format(
+               '<div class="field-get_description_html-class_name">{}</div>'.format(
                    html.escape(self.get_class(obj))
                )
 
-    get_description.short_description = 'Description'
-    get_description.allow_tags = True
+    get_description_html.short_description = 'Description'
+    get_description_html.allow_tags = True
 
     class Media:
         css = {
