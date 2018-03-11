@@ -25,7 +25,7 @@ django-htmlmin==0.10.0
 django-ipware==2.0.1
 django-jinja==2.4.1
 django-markdown-deux==1.0.5
-django-nose==1.4.4
+django-nose==1.4.5
 django-polymorphic==2.0.2
 django-relativefilepathfield==1.0.3
 django-reversion==2.0.8
