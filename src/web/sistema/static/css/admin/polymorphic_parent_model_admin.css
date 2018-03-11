@@ -1,3 +1,9 @@
-.field-get_class {
+.field-get_class,
+.field-get_description-class_name {
     font-size: 11px;
+}
+
+.field-get_description-class_name {
+    margin-top: 5px;
+    color: #888;
 }

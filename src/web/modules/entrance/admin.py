@@ -1,7 +1,6 @@
 from django.contrib import admin
 from polymorphic.admin import (PolymorphicChildModelAdmin,
                                PolymorphicChildModelFilter)
-
 from modules.entrance import models
 import home.models
 import sistema.polymorphic
@@ -13,7 +12,8 @@ import groups.admin
 @admin.register(models.EntranceExamTask)
 class EntranceExamTaskAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.EntranceExamTask
-    list_display = ('id', 'get_class', 'title', 'exam', 'order')
+    list_display = ('id', 'get_description', 'exam', 'order')
+    list_display_links = ('id', 'get_description')
     list_filter = ('exam', PolymorphicChildModelFilter)
     ordering = ('exam', 'order')
 
@@ -73,7 +73,8 @@ class EntranceExamTaskSolutionAdmin(
     sistema.polymorphic.PolymorphicParentModelAdmin
 ):
     base_model = models.EntranceExamTaskSolution
-    list_display = ('id', 'get_class', 'task', 'user', 'ip')
+    list_display = ('id', 'get_description', 'task', 'user', 'ip')
+    list_display_links = ('id', 'get_description')
     list_filter = ('task', PolymorphicChildModelFilter)
     search_fields = (
         '=user__username',
@@ -82,6 +83,9 @@ class EntranceExamTaskSolutionAdmin(
         'user__profile__last_name',
         '=ip',
     )
+
+    def get_real_instance_str(self, obj):
+        return '{}: «{}»'.format(obj.user.get_full_name(), obj.task)
 
 
 @admin.register(models.TestEntranceExamTaskSolution)
@@ -199,7 +203,7 @@ class AbstractAbsenceReasonAdmin(
     base_model = models.AbstractAbsenceReason
     list_display = (
         'id',
-        'get_class',
+        'get_description',
         'school',
         'user',
         'created_by',
@@ -207,6 +211,7 @@ class AbstractAbsenceReasonAdmin(
         'private_comment',
         'created_at',
     )
+    list_display_links = ('id', 'get_description')
     list_filter = (
         ('school', admin.RelatedOnlyFieldListFilter),
         ('created_by', admin.RelatedOnlyFieldListFilter),
@@ -252,13 +257,12 @@ class EntranceStepsHomePageBlockAdmin(PolymorphicChildModelAdmin):
 class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.AbstractEntranceStep
     list_display = ('id',
-                    'get_real_instance_str',
-                    'get_class',
+                    'get_description',
                     'school', 'order',
                     'get_available_from_time',
                     'get_available_to_time',
                     'available_after_step')
-    list_display_links = ('id', 'get_real_instance_str')
+    list_display_links = ('id', 'get_description')
     list_filter = (
         ('school', admin.RelatedOnlyFieldListFilter),
         PolymorphicChildModelFilter
@@ -273,7 +277,6 @@ class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
         if class_name.endswith('EntranceStep'):
             return class_name[:-len('EntranceStep')]
         return class_name
-    get_class.short_description = 'Type'
 
     def get_available_from_time(self, obj):
         if obj.available_from_time is None:
