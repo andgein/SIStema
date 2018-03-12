@@ -7,6 +7,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
+    # Django 2.0 requires this for renaming models in SQLite
+    # https://stackoverflow.com/questions/48549068/django-db-utils-notsupportederror-in-sqlite-why-not-supported-in-sqlite
+    atomic = False
+
     dependencies = [
         ('entrance', '0048_userpaticipatedinschoolentrancestep'),
     ]
