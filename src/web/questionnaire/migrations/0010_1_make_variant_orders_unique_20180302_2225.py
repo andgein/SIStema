@@ -5,7 +5,7 @@ from django.db import migrations
 from sistema.helpers import group_by
 
 
-def make_quesetion_variant_orders_unique(apps, schema):
+def make_question_variant_orders_unique(apps, schema):
     Variant = apps.get_model(
         'questionnaire', 'ChoiceQuestionnaireQuestionVariant')
 
@@ -28,5 +28,5 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            make_quesetion_variant_orders_unique, migrations.RunPython.noop),
+            make_question_variant_orders_unique, migrations.RunPython.noop),
     ]
