@@ -234,7 +234,12 @@ DATE_INPUT_FORMATS = (
 DATE_FORMAT = 'd.m.Y'
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-NOSE_ARGS = ['--rednose']
+NOSE_ARGS = [
+    '--rednose',
+    '--with-coverage',
+    '--cover-package=sistema,dates,frontend,generator,groups,home,modules,'
+    + 'questionnaire,schools,users',
+]
 
 SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT = '%d.%m.%Y'
 

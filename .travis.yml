@@ -25,8 +25,12 @@ matrix:
 install:
   - cp src/web/sistema/travis_settings.py src/web/sistema/local_settings.py
   - pip install -r ${REQUIREMENTS}
+  - pip install codecov
 
 script:
   - python src/web/manage.py makemigrations --check
   - python src/web/manage.py migrate
   - python src/web/manage.py test ${CORE_APPS} modules
+
+after_success:
+  - codecov
