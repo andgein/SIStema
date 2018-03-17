@@ -11,12 +11,12 @@ class QuestionAdmin(admin.ModelAdmin):
         'created_date',
         'modified_date',
     )
+    search_fields = ('=id', 'short_name')
 
 
 @admin.register(models.GeneratedQuestion)
 @admin.register(models.StaffGeneratedQuestion)
-class GeneratedQuestionAdmin(users.admin.UserAutocompleteModelAdminMixIn,
-                             admin.ModelAdmin):
+class GeneratedQuestionAdmin(admin.ModelAdmin):
     list_display = (
         'base_question',
         'seed',
@@ -26,6 +26,8 @@ class GeneratedQuestionAdmin(users.admin.UserAutocompleteModelAdminMixIn,
     list_filter = (
         'base_question',
     )
+
+    autocomplete_fields = ('base_question', 'user')
 
     search_fields = (
         'base_question__short_name',

@@ -20,6 +20,7 @@ from modules.smartq import api
 import frontend.forms
 import users.models
 
+
 # TODO(Artem Tabolin): consider replacing with
 #     https://pypi.python.org/pypi/pysandbox/
 class Sandbox:
