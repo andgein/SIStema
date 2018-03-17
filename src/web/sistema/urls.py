@@ -11,7 +11,6 @@ import django_nyt.urls
 urlpatterns = [
     url(r'', include('home.urls')),
     url(r'^admin/', admin.site.urls),
-    url(r'^ejudge/', include('modules.ejudge.urls', namespace='ejudge')),
     url(r'^questionnaire/', include('questionnaire.urls')),
     url(r'^frontend/', include('frontend.urls', namespace='frontend')),
     url(r'^poldnev/', include('modules.poldnev.urls', namespace='poldnev')),
@@ -32,5 +31,5 @@ urlpatterns = [
 # http://django-wiki.readthedocs.io/en/latest/installation.html#include-urlpatterns.
 # According to
 # https://docs.djangoproject.com/en/1.10/howto/static-files/#serving-files-uploaded-by-a-user-during-development
-# it shoudn't have any effect outside of the DEBUG mode.
+# it shouldn't have any effect outside of the DEBUG mode.
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

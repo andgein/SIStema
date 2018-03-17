@@ -1,8 +1,5 @@
 from django.contrib import admin
 from django.urls import reverse
-import django.forms
-
-from dal import autocomplete
 from django.utils.safestring import mark_safe
 
 from . import models
@@ -12,21 +9,11 @@ from . import models
 class ProgrammingLanguageAdmin(admin.ModelAdmin):
     list_display = ('id', 'short_name', 'name', 'ejudge_id')
 
-
-class QueueElementAdminForm(django.forms.ModelForm):
-    class Meta:
-        model = models.QueueElement
-        fields = '__all__'
-        widgets = {
-            'submission': autocomplete.ModelSelect2(
-                url='ejudge:submission-autocomplete')
-        }
+    search_fields = ('=id', 'name', 'short_name')
 
 
 @admin.register(models.QueueElement)
 class QueueElementAdmin(admin.ModelAdmin):
-    form = QueueElementAdminForm
-
     list_display = (
         'id',
         'ejudge_contest_id',
@@ -43,6 +30,8 @@ class QueueElementAdmin(admin.ModelAdmin):
         'ejudge_contest_id',
         'ejudge_problem_id',
     )
+
+    autocomplete_fields = ('submission', 'language')
 
     search_fields = ('=id',)
 
@@ -68,22 +57,11 @@ class SolutionCheckingResultAdmin(admin.ModelAdmin):
     )
 
     list_filter = ('result',)
-
-
-class SubmissionAdminForm(django.forms.ModelForm):
-    class Meta:
-        model = models.Submission
-        fields = '__all__'
-        widgets = {
-            'result': autocomplete.ModelSelect2(
-                url='ejudge:solution-checking-result-autocomplete')
-        }
+    search_fields = ('=id',)
 
 
 @admin.register(models.Submission)
 class SubmissionAdmin(admin.ModelAdmin):
-    form = SubmissionAdminForm
-
     list_display = (
         'id',
         'ejudge_contest_id',
@@ -93,6 +71,7 @@ class SubmissionAdmin(admin.ModelAdmin):
     )
 
     list_filter = ('result__result', 'ejudge_contest_id',)
+    autocomplete_fields = ('result',)
     search_fields = ('=id', '=ejudge_submit_id',)
 
     @staticmethod
