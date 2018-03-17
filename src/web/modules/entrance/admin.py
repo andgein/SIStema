@@ -1,12 +1,11 @@
 from django.contrib import admin
 from polymorphic.admin import (PolymorphicChildModelAdmin,
                                PolymorphicChildModelFilter)
-from modules.entrance import models
+
+import groups.admin
 import home.models
 import sistema.polymorphic
-
-import users.models
-import groups.admin
+from modules.entrance import models
 
 
 @admin.register(models.EntranceExamTask)
@@ -16,6 +15,7 @@ class EntranceExamTaskAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     list_display_links = ('id', 'get_description_html')
     list_filter = ('exam', PolymorphicChildModelFilter)
     ordering = ('exam', 'order')
+    search_fields = ('title', 'exam__school__name')
 
 
 @admin.register(models.TestEntranceExamTask)
@@ -24,6 +24,7 @@ class EntranceExamTaskAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 @admin.register(models.OutputOnlyEntranceExamTask)
 class EntranceExamTaskChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.EntranceExamTask
+    search_fields = EntranceExamTaskAdmin.search_fields
 
 
 @admin.register(models.EntranceExam)
@@ -43,6 +44,7 @@ class EntranceLevelAdmin(admin.ModelAdmin):
         'order',
         'school',
     )
+    ordering = ('-school__year', '-school__name', 'name')
 
 
 @admin.register(models.EntranceLevelOverride)
@@ -58,6 +60,8 @@ class EntranceLevelOverrideAdmin(admin.ModelAdmin):
         'school',
         'entrance_level',
     )
+
+    autocomplete_fields = ('user',)
 
     search_fields = (
         '=id',
@@ -76,6 +80,7 @@ class EntranceExamTaskSolutionAdmin(
     list_display = ('id', 'get_description_html', 'task', 'user', 'ip')
     list_display_links = ('id', 'get_description_html')
     list_filter = ('task', PolymorphicChildModelFilter)
+    autocomplete_fields = ('task', 'user')
     search_fields = (
         '=user__username',
         '=user__email',
@@ -90,10 +95,25 @@ class EntranceExamTaskSolutionAdmin(
 
 @admin.register(models.TestEntranceExamTaskSolution)
 @admin.register(models.FileEntranceExamTaskSolution)
-@admin.register(models.ProgramEntranceExamTaskSolution)
-@admin.register(models.OutputOnlyEntranceExamTaskSolution)
 class EntranceExamTaskSolutionChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.EntranceExamTaskSolution
+    autocomplete_fields = EntranceExamTaskSolutionAdmin.autocomplete_fields
+
+
+@admin.register(models.OutputOnlyEntranceExamTaskSolution)
+class EjudgeEntranceExamTaskSolutionChildAdmin(PolymorphicChildModelAdmin):
+    base_model = models.EntranceExamTaskSolution
+    autocomplete_fields = EntranceExamTaskSolutionAdmin.autocomplete_fields + (
+        'ejudge_queue_element',
+    )
+
+
+@admin.register(models.ProgramEntranceExamTaskSolution)
+class ProgramEntranceExamTaskSolutionChildAdmin(
+        EjudgeEntranceExamTaskSolutionChildAdmin):
+    autocomplete_fields = (
+        EjudgeEntranceExamTaskSolutionChildAdmin.autocomplete_fields +
+        ('language',))
 
 
 @admin.register(models.EntranceLevelUpgrade)
@@ -107,6 +127,7 @@ class EntranceLevelUpgradeAdmin(admin.ModelAdmin):
     )
 
     list_filter = ('upgraded_to',)
+    autocomplete_fields = ('user',)
     search_fields = (
         '=user__username',
         '=user__email',
@@ -130,36 +151,57 @@ class EntranceLevelUpgradeRequirementAdmin(
 @admin.register(models.SolveTaskEntranceLevelUpgradeRequirement)
 class EntranceLevelUpgradeRequirementChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.EntranceLevelUpgradeRequirement
+    autocomplete_fields = ('task',)
 
 
 @admin.register(models.CheckingGroup)
 class CheckingGroupAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'short_name', 'name')
     list_filter = ('school', )
+    autocomplete_fields = ('tasks',)
+    search_fields = ('school__name', 'name')
 
 
 @admin.register(models.UserInCheckingGroup)
 class UserInCheckingGroupAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'group', 'is_actual')
     list_filter = ('group', 'is_actual')
+    autocomplete_fields = ('user', 'group')
 
 
 @admin.register(models.CheckingLock)
 class CheckingLockAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'task', 'locked_by', 'locked_until')
     list_filter = (('locked_by', admin.RelatedOnlyFieldListFilter), )
+    autocomplete_fields = ('user', 'task', 'locked_by')
 
 
 @admin.register(models.CheckedSolution)
 class CheckedSolutionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'solution', 'checked_by', 'score', 'comment', 'created_at')
+    list_display = (
+        'id',
+        'solution',
+        'checked_by',
+        'score',
+        'comment',
+        'created_at',
+    )
     list_filter = (('checked_by', admin.RelatedOnlyFieldListFilter), )
+    autocomplete_fields = ('solution', 'checked_by')
 
 
 @admin.register(models.CheckingComment)
 class CheckingCommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'school', 'user', 'commented_by', 'comment', 'created_at')
+    list_display = (
+        'id',
+        'school',
+        'user',
+        'commented_by',
+        'comment',
+        'created_at',
+    )
     list_filter = ('school', ('commented_by', admin.RelatedOnlyFieldListFilter))
+    autocomplete_fields = ('user', 'commented_by')
     search_fields = (
         'user__profile__first_name',
         'user__profile__last_name',
@@ -189,6 +231,7 @@ class EntranceStatusAdmin(admin.ModelAdmin):
         'parallel',
         ('created_by', admin.RelatedOnlyFieldListFilter),
     )
+    autocomplete_fields = ('user', 'created_by', 'session', 'parallel')
     search_fields = (
         'user__profile__first_name',
         'user__profile__last_name',
@@ -217,6 +260,7 @@ class AbstractAbsenceReasonAdmin(
         ('created_by', admin.RelatedOnlyFieldListFilter),
         PolymorphicChildModelFilter,
     )
+    autocomplete_fields = ('user', 'created_by')
     search_fields = (
         '=id',
         '=user__id',
@@ -233,19 +277,8 @@ class AbstractAbsenceReasonAdmin(
 @admin.register(models.NotConfirmedAbsenceReason)
 class AbsenceReasonChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.RejectionAbsenceReason
-
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == 'user':
-            kwargs['queryset'] = (
-                users.models.User.objects.filter(
-                    entrance_statuses__status=models.EntranceStatus.Status.ENROLLED
-                ).distinct().order_by('profile__last_name', 'profile__first_name'))
-        if db_field.name == 'created_by':
-            kwargs['queryset'] = (
-                users.models.User.objects.filter(
-                    is_staff=1
-                ).order_by('profile__last_name', 'profile__first_name'))
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    autocomplete_fields = AbstractAbsenceReasonAdmin.autocomplete_fields
+    search_fields = AbstractAbsenceReasonAdmin.search_fields
 
 
 @admin.register(models.EntranceStepsHomePageBlock)
@@ -256,18 +289,22 @@ class EntranceStepsHomePageBlockAdmin(PolymorphicChildModelAdmin):
 @admin.register(models.AbstractEntranceStep)
 class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.AbstractEntranceStep
-    list_display = ('id',
-                    'get_description_html',
-                    'school', 'order',
-                    'get_available_from_time',
-                    'get_available_to_time',
-                    'available_after_step')
+    list_display = (
+        'id',
+        'get_description_html',
+        'school', 'order',
+        'get_available_from_time',
+        'get_available_to_time',
+        'available_after_step',
+    )
     list_display_links = ('id', 'get_description_html')
     list_filter = (
         ('school', admin.RelatedOnlyFieldListFilter),
         PolymorphicChildModelFilter
     )
     ordering = ('school', 'order')
+    autocomplete_fields = ('session', 'parallel')
+    search_fields = ('=id', 'school__name')
 
     def get_class(self, obj):
         """
@@ -295,28 +332,32 @@ class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 
 @admin.register(models.ConfirmProfileEntranceStep)
 @admin.register(models.EnsureProfileIsFullEntranceStep)
-@admin.register(models.FillQuestionnaireEntranceStep)
 @admin.register(models.SolveExamEntranceStep)
 @admin.register(models.ResultsEntranceStep)
 @admin.register(models.MakeUserParticipatingEntranceStep)
 @admin.register(models.MarkdownEntranceStep)
 class EntranceStepChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractEntranceStep
+    autocomplete_fields = EntranceStepsAdmin.autocomplete_fields
+    search_fields = EntranceStepsAdmin.search_fields
+
+
+@admin.register(models.FillQuestionnaireEntranceStep)
+class FillQuestionnaireEntranceStepChildAdmin(EntranceStepChildAdmin):
+    autocomplete_fields = EntranceStepChildAdmin.autocomplete_fields + (
+        'questionnaire',
+    )
 
 
 class UserParticipatedInSchoolEntranceStepExceptionInline(admin.StackedInline):
     model = models.UserParticipatedInSchoolEntranceStepException
     extra = 0
+    autocomplete_fields = ('user',)
 
 
 @admin.register(models.UserParticipatedInSchoolEntranceStep)
-class UserParticipatedInSchoolEntranceStepChildAdmin(
-        PolymorphicChildModelAdmin
-):
-    base_model = models.AbstractEntranceStep
-    inlines = (
-        UserParticipatedInSchoolEntranceStepExceptionInline,
-    )
+class UserParticipatedInSchoolEntranceStepChildAdmin(EntranceStepChildAdmin):
+    inlines = (UserParticipatedInSchoolEntranceStepExceptionInline,)
 
 
 @admin.register(models.EntranceUserMetric)
@@ -330,13 +371,14 @@ class EntranceUserMetricAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 class ParallelScoreEntranceUserMetricFileTaskEntryInline(admin.StackedInline):
     model = models.ParallelScoreEntranceUserMetricFileTaskEntry
     extra = 1
+    autocomplete_fields = ('task',)
 
 
 class ParallelScoreEntranceUserMetricProgramTaskEntryInline(
-        admin.StackedInline
-):
+        admin.StackedInline):
     model = models.ParallelScoreEntranceUserMetricProgramTaskEntry
     extra = 1
+    autocomplete_fields = ('task',)
 
 
 @admin.register(models.ParallelScoreEntranceUserMetric)
@@ -349,5 +391,5 @@ class ParallelScoreEntranceUserMetricAdmin(PolymorphicChildModelAdmin):
 
 
 @admin.register(models.EntranceStatusGroup)
-class EntranceStatusGroupAdmin(groups.admin.AbstractGroupAdmin):
+class EntranceStatusGroupAdmin(groups.admin.AbstractGroupChildAdmin):
     base_model = models.EntranceStatusGroup

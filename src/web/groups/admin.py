@@ -28,11 +28,14 @@ class AbstractGroupAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     ordering = ('-school', 'short_name')
 
 
-@admin.register(models.ManuallyFilledGroup)
-class ManuallyFilledGroupAdmin(PolymorphicChildModelAdmin):
-    base_model = models.ManuallyFilledGroup
+class AbstractGroupChildAdmin(PolymorphicChildModelAdmin):
     autocomplete_fields = AbstractGroupAdmin.autocomplete_fields
     search_fields = AbstractGroupAdmin.search_fields
+
+
+@admin.register(models.ManuallyFilledGroup)
+class ManuallyFilledGroupAdmin(AbstractGroupChildAdmin):
+    base_model = models.ManuallyFilledGroup
 
 
 @admin.register(models.GroupInGroupMembership)
