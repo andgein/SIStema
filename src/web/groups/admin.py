@@ -3,16 +3,16 @@ from polymorphic.admin import (PolymorphicChildModelFilter,
                                PolymorphicChildModelAdmin)
 
 import sistema.polymorphic
-import users.admin
 from groups import models
 
 
 @admin.register(models.AbstractGroup)
-class AbstractGroupAdmin(users.admin.UserAutocompleteModelAdminMixIn, sistema.polymorphic.PolymorphicParentModelAdmin):
+class AbstractGroupAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.AbstractGroup
     list_display = ('id', 'school', 'created_by', 'short_name', 'name',
                     'can_be_deleted', )
     list_filter = (('school', admin.RelatedOnlyFieldListFilter), )
+    autocomplete_fields = ('created_by',)
     search_fields = (
         '=id',
         'created_by__profile__first_name',
@@ -21,7 +21,9 @@ class AbstractGroupAdmin(users.admin.UserAutocompleteModelAdminMixIn, sistema.po
         'created_by__email',
         'short_name',
         'name',
-        'description'
+        'description',
+        'school__name',
+        'school__full_name',
     )
     ordering = ('-school', 'short_name')
 
@@ -29,14 +31,16 @@ class AbstractGroupAdmin(users.admin.UserAutocompleteModelAdminMixIn, sistema.po
 @admin.register(models.ManuallyFilledGroup)
 class ManuallyFilledGroupAdmin(PolymorphicChildModelAdmin):
     base_model = models.ManuallyFilledGroup
+    autocomplete_fields = AbstractGroupAdmin.autocomplete_fields
+    search_fields = AbstractGroupAdmin.search_fields
 
 
 @admin.register(models.GroupInGroupMembership)
 @admin.register(models.UserInGroupMembership)
-class GroupMembershipAdmin(users.admin.UserAutocompleteModelAdminMixIn,
-                           admin.ModelAdmin):
+class GroupMembershipAdmin(admin.ModelAdmin):
     list_display = ('id', 'group', 'member')
     list_filter = (('group', admin.RelatedOnlyFieldListFilter), )
+    autocomplete_fields = ('group', 'added_by', 'member')
 
 
 @admin.register(models.GroupAccess)
@@ -48,12 +52,17 @@ class GroupAccessAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     list_filter = ('to_group__school',
                    'access_type',
                    PolymorphicChildModelFilter)
+    autocomplete_fields = ('created_by', 'to_group')
     ordering = ('to_group__school', '-created_at')
 
 
 @admin.register(models.GroupAccessForUser)
-@admin.register(models.GroupAccessForGroup)
-class GroupAccessChildAdmin(users.admin.UserAutocompleteModelAdminMixIn,
-                            PolymorphicChildModelAdmin):
+class GroupAccessForUserAdmin(PolymorphicChildModelAdmin):
     base_model = models.GroupAccess
+    autocomplete_fields = GroupAccessAdmin.autocomplete_fields + ('user',)
 
+
+@admin.register(models.GroupAccessForGroup)
+class GroupAccessForGroupAdmin(PolymorphicChildModelAdmin):
+    base_model = models.GroupAccess
+    autocomplete_fields = GroupAccessAdmin.autocomplete_fields + ('group',)
