@@ -160,7 +160,7 @@ class Person(models.Model):
         ordering = ('last_name', 'first_name', 'middle_name')
 
     def __str__(self):
-        return self.full_name
+        return '{} ({})'.format(self.full_name, self.poldnev_id)
 
     @property
     def full_name(self):

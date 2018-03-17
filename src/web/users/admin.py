@@ -54,6 +54,11 @@ class UserProfileAdmin(VersionAdmin):
         '=last_name',
     )
 
+    autocomplete_fields = (
+        'user',
+        'poldnev_person',
+    )
+
 
 class UserAutocompleteModelAdminMixIn(AutocompleteModelAdminMixIn):
     """ Add UserAutocompleteModelAdminMixIn as first base class of your
