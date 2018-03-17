@@ -2,7 +2,7 @@
 
 """Tests for poldnev.management.commands.update_poldnev"""
 
-import unittest
+import operator
 
 import django.test
 
@@ -67,19 +67,19 @@ class UpdatePoldnevTestCase(django.test.TestCase):
 
         self.assertEqual(
             update.get_changes(models.Person, update_poldnev.Action.CREATE),
-            ['Броварь Ирина Владимировна'])
+            ['Броварь Ирина Владимировна (4)'])
         self.assertEqual(
             update.get_changes(models.Person, update_poldnev.Action.UPDATE),
-            ['Лопатин Андрей Сергеевич -> Станкевич Андрей Сергеевич'])
+            ['Лопатин Андрей Сергеевич (2) -> Станкевич Андрей Сергеевич (2)'])
         self.assertEqual(
             update.get_changes(models.Person, update_poldnev.Action.DELETE),
-            ['Пушкин Александр Сергеевич'])
+            ['Пушкин Александр Сергеевич (1)'])
 
         update.apply()
 
         self.assertQuerysetEqual(models.Person.objects.all(),
                                  new_persons_full_names,
-                                 transform=str,
+                                 transform=operator.attrgetter('full_name'),
                                  ordered=False)
 
     def test_parse_role(self):
