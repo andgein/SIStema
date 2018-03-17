@@ -15,6 +15,8 @@ class SchoolAdmin(VersionAdmin):
         'full_name'
     )
 
+    ordering = ('-year', '-name')
+
 
 @admin.register(models.Session)
 class SessionAdmin(VersionAdmin):
@@ -28,6 +30,10 @@ class SessionAdmin(VersionAdmin):
     list_filter = (
         'school',
     )
+
+    ordering = ('-school__year', '-school__name', '-start_date')
+
+    search_fields = ('school__name', 'name')
 
 
 class GroupInline(admin.TabularInline):
@@ -52,6 +58,12 @@ class ParallelAdmin(admin.ModelAdmin):
         GroupInline,
     )
 
+    ordering = ('-school__year', '-school__name', 'name')
+
+    autocomplete_fields = ('sessions',)
+
+    search_fields = ('=school__year', 'school__name', 'short_name', 'name')
+
 
 @admin.register(models.SchoolParticipant)
 class SchoolParticipantAdmin(admin.ModelAdmin):
@@ -65,3 +77,4 @@ class SchoolParticipantAdmin(admin.ModelAdmin):
         'school',
         'parallel',
     )
+    autocomplete_fields = ('user', 'parallel')
