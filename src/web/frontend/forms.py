@@ -246,8 +246,11 @@ forms.BoundField.label_tag = add_classes_to_label(
     forms.BoundField.label_tag,
     'control-label',
 )
+# TODO(artemtab): Space at the end of the CSS class is a workaround for
+#     https://code.djangoproject.com/ticket/29221. We can remove it as soon as
+#     we upgrade to Django 2.0.4
 # TODO: Input is private for django, refactor not to reference it
-forms.widgets.Input.render = add_classes_to_label(forms.widgets.Input.render, 'form-control')
-forms.Select.render = add_classes_to_label(forms.Select.render, 'form-control')
+forms.widgets.Input.render = add_classes_to_label(forms.widgets.Input.render, 'form-control ')
+forms.Select.render = add_classes_to_label(forms.Select.render, 'form-control ')
 
 
