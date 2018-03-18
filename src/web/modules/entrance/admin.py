@@ -303,7 +303,12 @@ class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
         PolymorphicChildModelFilter
     )
     ordering = ('school', 'order')
-    autocomplete_fields = ('session', 'parallel')
+    autocomplete_fields = (
+        'session',
+        'parallel',
+        'available_from_time',
+        'available_to_time',
+    )
     search_fields = ('=id', 'school__name')
 
     def get_class(self, obj):
