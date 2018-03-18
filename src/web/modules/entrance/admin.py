@@ -45,6 +45,7 @@ class EntranceLevelAdmin(admin.ModelAdmin):
         'school',
     )
     ordering = ('-school__year', '-school__name', 'name')
+    search_fields = ('short_name', 'name', 'school__name')
 
 
 @admin.register(models.EntranceLevelOverride)

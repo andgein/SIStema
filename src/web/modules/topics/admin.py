@@ -5,12 +5,14 @@ from .entrance import levels
 import modules.entrance.admin as entrance_admin
 
 
+@admin.register(models.TopicQuestionnaire)
 class TopicQuestionnaireAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'school')
+    autocomplete_fields = ('previous',)
+    search_fields = ('title', 'school__name',)
 
-admin.site.register(models.TopicQuestionnaire, TopicQuestionnaireAdmin)
 
-
+@admin.register(models.Topic)
 class TopicAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -22,12 +24,12 @@ class TopicAdmin(admin.ModelAdmin):
     )
 
     list_filter = ('level', 'questionnaire')
-    search_fields = ('=short_name', '=title')
+    autocomplete_fields = ('questionnaire', 'level', 'tags')
+    search_fields = ('short_name', 'title', 'questionnaire__school__name')
     ordering = ('order',)
 
-admin.site.register(models.Topic, TopicAdmin)
 
-
+@admin.register(models.TopicDependency)
 class TopicDependencyAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -36,6 +38,8 @@ class TopicDependencyAdmin(admin.ModelAdmin):
         'source_mark',
         'destination_mark',
     )
+
+    autocomplete_fields = ('source', 'destination')
 
     search_fields = (
         'source__topic__short_name',
@@ -49,15 +53,16 @@ class TopicDependencyAdmin(admin.ModelAdmin):
         'destination_mark',
     )
 
-admin.site.register(models.TopicDependency, TopicDependencyAdmin)
 
-
+@admin.register(models.Level)
 class LevelAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'questionnaire')
+    autocomplete_fields = ('questionnaire',)
+    search_fields = ('name', 'questionnaire__school__name',)
 
-admin.site.register(models.Level, LevelAdmin)
 
-
+@admin.register(models.LevelDownwardDependency)
+@admin.register(models.LevelUpwardDependency)
 class LevelDependencyAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -65,56 +70,74 @@ class LevelDependencyAdmin(admin.ModelAdmin):
         'destination_level',
         'min_percent',
     )
-
-admin.site.register(models.LevelDownwardDependency, LevelDependencyAdmin)
-admin.site.register(models.LevelUpwardDependency, LevelDependencyAdmin)
+    autocomplete_fields = ('questionnaire', 'source_level', 'destination_level')
 
 
+@admin.register(models.Scale)
 class ScaleAdmin(admin.ModelAdmin):
-    list_display = ('id', 'short_name', 'title', 'count_values', 'questionnaire')
+    list_display = (
+        'id',
+        'short_name',
+        'title',
+        'count_values',
+        'questionnaire',
+    )
+    autocomplete_fields = ('questionnaire',)
+    search_fields = ('short_name', 'title', 'questionnaire__school__name')
 
-admin.site.register(models.Scale, ScaleAdmin)
 
-
+@admin.register(models.ScaleLabelGroup)
 class ScaleLabelGroupAdmin(admin.ModelAdmin):
     list_display = ('id', 'short_name', 'scale')
+    autocomplete_fields = ('scale',)
+    search_fields = (
+        'short_name',
+        'scale__short_name',
+        'scale__title',
+        'scale__questionnaire__school__name',
+    )
 
-admin.site.register(models.ScaleLabelGroup, ScaleLabelGroupAdmin)
 
-
+@admin.register(models.ScaleLabel)
 class ScaleLabelAdmin(admin.ModelAdmin):
     list_display = ('id', 'group', 'mark', 'label_text')
+    autocomplete_fields = ('group',)
 
-admin.site.register(models.ScaleLabel, ScaleLabelAdmin)
 
-
+@admin.register(models.ScaleInTopic)
 class ScaleInTopicAdmin(admin.ModelAdmin):
     list_display = ('id', 'topic', 'scale_label_group')
     list_filter = ('scale_label_group',)
-    search_fields = ('=topic__short_name','=topic__title', '=topic__text')
+    autocomplete_fields = ('topic', 'scale_label_group')
+    search_fields = (
+        'topic__short_name',
+        'topic__title',
+        'topic__text',
+        'topic__questionnaire__school__name',
+    )
 
-admin.site.register(models.ScaleInTopic, ScaleInTopicAdmin)
 
-
+@admin.register(models.Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'short_name', 'title', 'questionnaire')
     list_filter = ('questionnaire',)
+    autocomplete_fields = ('questionnaire',)
+    search_fields = ('short_name', 'title', 'questionnaire__school__name')
 
-admin.site.register(models.Tag, TagAdmin)
 
-
+@admin.register(models.UserQuestionnaireStatus)
 class UserQuestionnaireStatusAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'questionnaire', 'status')
     list_filter = ('status', 'questionnaire')
+    autocomplete_fields = ('user', 'questionnaire')
     search_fields = (
         '=user__username',
         '=user__email',
         'user__last_name',
         'user__profile__last_name')
 
-admin.site.register(models.UserQuestionnaireStatus, UserQuestionnaireStatusAdmin)
 
-
+@admin.register(models.UserMark)
 class BaseMarkAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -125,6 +148,7 @@ class BaseMarkAdmin(admin.ModelAdmin):
     )
 
     list_filter = ('mark', 'is_automatically')
+    autocomplete_fields = ('user', 'scale_in_topic')
     search_fields = (
         '=user__username',
         '=user__email',
@@ -132,59 +156,95 @@ class BaseMarkAdmin(admin.ModelAdmin):
         '=scale_in_topic__topic__title',
     )
 
-admin.site.register(models.UserMark, BaseMarkAdmin)
 
-
+@admin.register(models.TopicIssue)
 class TopicIssueAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'topic', 'is_correcting')
     list_filter = ('is_correcting',)
-    search_fields = ('=user__username', '=user__email', '=topic__short_name', '=topic__title')
+    autocomplete_fields = ('user', 'topic')
+    search_fields = (
+        'user__username',
+        'user__email',
+        'user__profile__first_name',
+        'user__profile__last_name',
+        'user__first_name',
+        'user__last_name',
+        'topic__short_name',
+        'topic__title',
+    )
 
-admin.site.register(models.TopicIssue, TopicIssueAdmin)
 
-
+@admin.register(models.ScaleInTopicIssue)
 class ScaleInTopicIssueAdmin(admin.ModelAdmin):
     list_display = ('id', 'topic_issue', 'label_group')
+    autocomplete_fields = ('topic_issue', 'label_group')
 
-admin.site.register(models.ScaleInTopicIssue, ScaleInTopicIssueAdmin)
 
-
+@admin.register(levels.EntranceLevelRequirement)
 class EntranceLevelRequirementAdmin(admin.ModelAdmin):
-    list_display = ('id', 'entrance_level', 'tag', 'max_penalty', 'questionnaire')
+    list_display = (
+        'id',
+        'entrance_level',
+        'tag',
+        'max_penalty',
+        'questionnaire',
+    )
     list_filter = ('questionnaire',)
-    search_fields = ('=entrance_level__short_name', '=entrance_level__name')
-
-admin.site.register(levels.EntranceLevelRequirement, EntranceLevelRequirementAdmin)
-
-
-admin.site.register(models.FillTopicsQuestionnaireEntranceStep,
-                    entrance_admin.EntranceStepChildAdmin)
+    autocomplete_fields = ('entrance_level', 'tag', 'questionnaire')
+    search_fields = ('entrance_level__short_name', 'entrance_level__name')
 
 
+@admin.register(models.FillTopicsQuestionnaireEntranceStep)
+class FillTopicsQuestionnaireEntranceStepAdmin(
+        entrance_admin.EntranceStepChildAdmin):
+    autocomplete_fields = (
+        entrance_admin.EntranceStepChildAdmin.autocomplete_fields +
+        ('questionnaire',))
+
+
+@admin.register(models.QuestionForTopic)
 class QuestionForTopicAdmin(admin.ModelAdmin):
     list_display = ('id', 'scale_in_topic', 'smartq_question', 'mark', 'group')
     list_filter = ('scale_in_topic', 'smartq_question')
-    search_fields = ('topic__short_name', 'question__short_name')
+    autocomplete_fields = ('scale_in_topic', 'smartq_question')
+    search_fields = (
+        'scale_in_topic__topic__short_name',
+        'scale_in_topic__topic__title',
+        'smartq_question__short_name',
+    )
 
-admin.site.register(models.QuestionForTopic, QuestionForTopicAdmin)
 
-
+@admin.register(models.TopicCheckingQuestionnaire)
 class TopicCheckingQuestionnaireAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'topic_questionnaire', 'status', 'checked_at')
     list_filter = ('topic_questionnaire',)
-    search_fields = ('user__profile__first_name', 'user__profile__last_name')
+    autocomplete_fields = ('user', 'topic_questionnaire')
+    search_fields = (
+        'user__username',
+        'user__email',
+        'user__profile__first_name',
+        'user__profile__last_name',
+    )
 
-admin.site.register(models.TopicCheckingQuestionnaire, TopicCheckingQuestionnaireAdmin)
 
-
+@admin.register(models.TopicCheckingQuestionnaireQuestion)
 class TopicCheckingQuestionnaireQuestionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'questionnaire', 'generated_question', 'checker_result', 'checker_message')
+    list_display = (
+        'id',
+        'questionnaire',
+        'generated_question',
+        'checker_result',
+        'checker_message',
+    )
+    autocomplete_fields = (
+        'questionnaire',
+        'generated_question',
+        'topic_mapping',
+    )
     search_fields = ('=questionnaire__id',)
 
-admin.site.register(models.TopicCheckingQuestionnaireQuestion, TopicCheckingQuestionnaireQuestionAdmin)
 
-
+@admin.register(models.TopicCheckingSettings)
 class TopicCheckingSettingsAdmin(admin.ModelAdmin):
     list_display = ('id', 'questionnaire', 'max_questions')
-
-admin.site.register(models.TopicCheckingSettings, TopicCheckingSettingsAdmin)
+    autocomplete_fields = ('questionnaire',)
