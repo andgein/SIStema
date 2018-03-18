@@ -12,3 +12,5 @@ omit =
     */tests/*
     tests.py
     */migrations/*
+    */admin/*
+    admin.py
