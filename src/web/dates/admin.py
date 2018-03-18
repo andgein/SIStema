@@ -6,6 +6,7 @@ from dates import models
 class KeyDateExceptionInline(admin.StackedInline):
     model = models.KeyDateException
     extra = 0
+    autocomplete_fields = ('user',)
 
 
 @admin.register(models.KeyDate)
