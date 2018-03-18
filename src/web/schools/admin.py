@@ -92,3 +92,10 @@ class SchoolParticipantAdmin(admin.ModelAdmin):
         'parallel',
     )
     autocomplete_fields = ('user', 'parallel')
+    search_fields = (
+        'school__name',
+        'user__profile__first_name',
+        'user__profile__last_name',
+        'user__first_name',
+        'user__last_name',
+    )
