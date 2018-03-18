@@ -19,6 +19,7 @@ class FontAdmin(admin.ModelAdmin):
 @admin.register(models.FontFamily)
 class FontFamilyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'normal', 'bold', 'italic', 'bold_italic')
+    autocomplete_fields = ('normal', 'bold', 'italic', 'bold_italic')
     search_fields = ('name', )
     list_display_links = ('id', 'name')
 
@@ -37,6 +38,7 @@ class ParagraphStyleAdmin(admin.ModelAdmin):
         'space_after',
         'left_indent',
     )
+    autocomplete_fields = ('font', 'bullet_font')
     search_fields = ('name', )
 
 
@@ -80,20 +82,28 @@ class AbstractTableStyleCommandInline(StackedPolymorphicInline):
 
 @admin.register(models.AbstractDocumentBlock)
 class AbstractDocumentBlockAdmin(
-        sistema.polymorphic.PolymorphicParentModelAdmin
-):
+        sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.AbstractDocumentBlock
     list_display = ('id', 'document', 'order')
     list_filter = ('document', PolymorphicChildModelFilter)
     ordering = ('-document', 'order')
+    autocomplete_fields = ('document',)
+    search_fields = ('document__name', '=order')
 
 
-@admin.register(models.Paragraph)
 @admin.register(models.PageBreak)
 @admin.register(models.Spacer)
 @admin.register(models.Image)
 class AbstractDocumentBlockChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractDocumentBlock
+    autocomplete_fields = AbstractDocumentBlockAdmin.autocomplete_fields
+
+
+@admin.register(models.Paragraph)
+class ParagraphAdmin(AbstractDocumentBlockChildAdmin):
+    autocomplete_fields = (
+        AbstractDocumentBlockChildAdmin.autocomplete_fields +
+        ('style',))
 
 
 class TableRowInline(admin.TabularInline):
@@ -104,9 +114,10 @@ class TableRowInline(admin.TabularInline):
 
 
 @admin.register(models.Table)
-class TableAdmin(PolymorphicInlineSupportMixin, PolymorphicChildModelAdmin):
-    base_model = models.AbstractDocumentBlock
+class TableAdmin(
+        PolymorphicInlineSupportMixin, AbstractDocumentBlockChildAdmin):
     inlines = (TableRowInline, AbstractTableStyleCommandInline)
+    search_fields = ('document__name', '=order')
 
 
 class TableCellInline(admin.TabularInline):
@@ -122,6 +133,8 @@ class TableRowAdmin(admin.ModelAdmin):
     list_filter = ('table', )
     ordering = ('table', 'order')
     inlines = (TableCellInline,)
+    autocomplete_fields = ('table',)
+    search_fields = ('table__document__name', '=table__order', '=order')
 
 
 @admin.register(models.TableCell)
@@ -129,6 +142,7 @@ class TableCellAdmin(admin.ModelAdmin):
     list_display = ('id', 'row', 'order')
     list_filter = ('row__table', 'row',)
     ordering = ('row__table', 'row', 'order')
+    autocomplete_fields = ('row',)
 
 
 class AbstractDocumentBlockInline(StackedPolymorphicInline):
