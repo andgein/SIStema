@@ -163,3 +163,4 @@ class AbstractDocumentBlockInline(StackedPolymorphicInline):
 class DocumentAdmin(PolymorphicInlineSupportMixin, admin.ModelAdmin):
     list_display = ('id', 'name', 'page_size')
     inlines = (AbstractDocumentBlockInline,)
+    search_fields = ('=id', 'name')
