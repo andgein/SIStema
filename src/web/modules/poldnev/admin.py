@@ -4,6 +4,7 @@ from django.utils import html
 from . import models
 
 
+@admin.register(models.Session)
 class SessionAdmin(admin.ModelAdmin):
     list_display = (
         'poldnev_id',
@@ -11,6 +12,10 @@ class SessionAdmin(admin.ModelAdmin):
         'schools_session',
         'verified',
     )
+    autocomplete_fields = ('schools_session',)
+
+    search_fields = ('=poldnev_id', 'name')
+    ordering = ('-poldnev_id',)
 
     def name_as_url(self, obj):
         if obj.url:
@@ -19,12 +24,8 @@ class SessionAdmin(admin.ModelAdmin):
     name_as_url.short_description = 'Name'
     name_as_url.admin_order_field = 'name'
 
-    search_fields = ('=poldnev_id', '=name')
-    ordering = ('-poldnev_id',)
 
-admin.site.register(models.Session, SessionAdmin)
-
-
+@admin.register(models.Person)
 class PersonAdmin(admin.ModelAdmin):
     list_display = (
         'poldnev_id',
@@ -35,6 +36,8 @@ class PersonAdmin(admin.ModelAdmin):
         'verified',
         'show_url',
     )
+    autocomplete_fields = ('user',)
+    search_fields = ('first_name', 'last_name')
 
     def show_url(self, obj):
         return html.format_html('<a href="{url}">{url}</a>', url=obj.url)
@@ -47,9 +50,8 @@ class PersonAdmin(admin.ModelAdmin):
         'last_name',
     )
 
-admin.site.register(models.Person, PersonAdmin)
 
-
+@admin.register(models.Parallel)
 class ParallelAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -58,22 +60,13 @@ class ParallelAdmin(admin.ModelAdmin):
         'schools_parallel',
     )
 
-    list_filter = (
-        'session',
-    )
-
-    search_fields = (
-        '=name',
-    )
-
-    ordering = (
-        'session',
-        'name',
-    )
-
-admin.site.register(models.Parallel, ParallelAdmin)
+    list_filter = ('session',)
+    autocomplete_fields = ('session', 'schools_parallel')
+    search_fields = ('=name', 'session__name')
+    ordering = ('session', 'name',)
 
 
+@admin.register(models.StudyGroup)
 class StudyGroupAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -81,20 +74,10 @@ class StudyGroupAdmin(admin.ModelAdmin):
         'name',
     )
 
-    list_filter = (
-        'parallel__session',
-    )
-
-    search_fields = (
-        '=name',
-    )
-
-    ordering = (
-        'parallel',
-        'name',
-    )
-
-admin.site.register(models.StudyGroup, StudyGroupAdmin)
+    list_filter = ('parallel__session',)
+    autocomplete_fields = ('parallel', 'schools_group')
+    search_fields = ('name', 'parallel__name', 'parallel__session__name')
+    ordering = ('parallel', 'name',)
 
 
 class HistoryEntryAdmin(admin.ModelAdmin):
@@ -114,6 +97,8 @@ class HistoryEntryAdmin(admin.ModelAdmin):
     list_filter = (
         'session',
     )
+
+    autocomplete_fields = ('person', 'session', 'study_group')
 
     search_fields = (
         'person__first_name',
