@@ -42,7 +42,7 @@
                             {% with field=form|get_item:field_name %}
                                 <div class="section mb20">
                                     <div class="{{ field.errors|yesno:'state-error,' }}">
-                                        <label for="{{ field.id_for_label }}" class="field-label fs16">
+                                        <label class="field-label fs16">
                                             {{ field.label }}
                                             {% if field.field.required %}
                                                 *
