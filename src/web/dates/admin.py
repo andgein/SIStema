@@ -16,7 +16,6 @@ class KeyDateAdmin(admin.ModelAdmin):
         'datetime',
         'name',
     )
-    list_filter = (
-        'school',
-    )
+    list_filter = ('school',)
     inlines = (KeyDateExceptionInline,)
+    search_fields = ('name', 'school__name', 'datetime')
