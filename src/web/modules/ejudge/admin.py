@@ -3,6 +3,7 @@ from django.urls import reverse
 import django.forms
 
 from dal import autocomplete
+from django.utils.safestring import mark_safe
 
 from . import models
 
@@ -15,7 +16,7 @@ class ProgrammingLanguageAdmin(admin.ModelAdmin):
 class QueueElementAdminForm(django.forms.ModelForm):
     class Meta:
         model = models.QueueElement
-        fields = ('__all__')
+        fields = '__all__'
         widgets = {
             'submission': autocomplete.ModelSelect2(
                 url='ejudge:submission-autocomplete')
@@ -45,13 +46,13 @@ class QueueElementAdmin(admin.ModelAdmin):
 
     search_fields = ('=id',)
 
-    def submission_link(self, obj):
+    @staticmethod
+    def submission_link(obj):
         if obj.submission is None:
             return ''
         url = reverse('admin:ejudge_submission_change',
                       args=[obj.submission.id])
-        return '<a href="{}">{}</a>'.format(url, obj.submission)
-    submission_link.allow_tags = True
+        return mark_safe('<a href="{}">{}</a>'.format(url, obj.submission))
 
 
 @admin.register(models.SolutionCheckingResult)
@@ -72,7 +73,7 @@ class SolutionCheckingResultAdmin(admin.ModelAdmin):
 class SubmissionAdminForm(django.forms.ModelForm):
     class Meta:
         model = models.Submission
-        fields = ('__all__')
+        fields = '__all__'
         widgets = {
             'result': autocomplete.ModelSelect2(
                 url='ejudge:solution-checking-result-autocomplete')
@@ -94,11 +95,11 @@ class SubmissionAdmin(admin.ModelAdmin):
     list_filter = ('result__result', 'ejudge_contest_id',)
     search_fields = ('=id', '=ejudge_submit_id',)
 
-    def result_link(self, obj):
+    @staticmethod
+    def result_link(obj):
         url = reverse('admin:ejudge_solutioncheckingresult_change',
                       args=[obj.result.id])
-        return '<a href="{}">{}</a>'.format(url, obj.result)
-    result_link.allow_tags = True
+        return mark_safe('<a href="{}">{}</a>'.format(url, obj.result))
 
 
 admin.site.register(models.TestCheckingResult)

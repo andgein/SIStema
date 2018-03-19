@@ -1,6 +1,7 @@
 import html
 
 import polymorphic.admin
+from django.utils.safestring import mark_safe
 
 
 def get_all_inheritors(klass):
@@ -46,13 +47,12 @@ class PolymorphicParentModelAdmin(polymorphic.admin.PolymorphicParentModelAdmin)
         <div class="field-get_description_html-class_name">{get_class(obj)}</div>
         """
         description = self.get_real_instance_str(obj)
-        return html.escape(description) + \
+        return mark_safe(html.escape(description) + \
                '<div class="field-get_description_html-class_name">{}</div>'.format(
                    html.escape(self.get_class(obj))
-               )
+               ))
 
     get_description_html.short_description = 'Description'
-    get_description_html.allow_tags = True
 
     class Media:
         css = {
