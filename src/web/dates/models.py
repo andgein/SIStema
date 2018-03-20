@@ -57,6 +57,62 @@ class KeyDate(models.Model):
         """
         return self.datetime_for_user(user) < timezone.now()
 
+    # A unique object used as the default argument value in the clone method.
+    # Needed, because we want to handle None.
+    KEEP_VALUE = object()
+
+    def clone(self,
+              *,
+              school=KEEP_VALUE,
+              short_name=KEEP_VALUE,
+              name=KEEP_VALUE,
+              datetime=KEEP_VALUE,
+              copy_exceptions=False):
+        """
+        Make and return the full copy of the key date. The copy should have
+        a unique `(school, short_name)` combination. You can change either of
+        them by setting the corresponding method arguments.
+
+        :param school: The school for the new key date. By default is equal to
+            the source key date's school.
+        :param short_name: The short name for the new key date. By default is
+            equal to the source key date's short name.
+        :param name: The name for the new key date. By default is equal to the
+            source key date's name.
+        :param datetime: The datetime for the new key date. By default is equal
+            to the source key date's datetime.
+        :param copy_exceptions: If true exceptions will be copied to the new key
+            date.
+        :return: The fresh copy of the key date.
+        """
+        if self.pk is None:
+            raise ValueError(
+                "The key date should be in database to be cloned")
+
+        if school is self.KEEP_VALUE:
+            school = self.school
+        if short_name is self.KEEP_VALUE:
+            short_name = self.short_name
+        if name == self.KEEP_VALUE:
+            name = self.name
+        if datetime == self.KEEP_VALUE:
+            datetime = self.datetime
+
+        new_key_date = self.__class__.objects.create(
+            school=school,
+            short_name=short_name,
+            name=name,
+            datetime=datetime,
+        )
+
+        if copy_exceptions:
+            for exception in self.exceptions.all():
+                exception.pk = None
+                exception.key_date = new_key_date
+                exception.save()
+
+        return new_key_date
+
 
 class KeyDateException(models.Model):
     """
