@@ -38,7 +38,7 @@ Jinja2==2.10
 Markdown==2.6.11
 markdown2==2.3.5
 MarkupSafe==1.0
-oauthlib==2.0.6
+oauthlib==2.0.7
 olefile==0.45.1
 packaging==16.8
 Pillow==5.0.0
