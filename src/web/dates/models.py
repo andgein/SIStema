@@ -18,6 +18,10 @@ class KeyDate(models.Model):
                   "пустым, если дата не относится ни к какой школе.",
     )
 
+    short_name = models.SlugField(
+        help_text="Может состоять только из букв, цифр, знака подчеркивания и "
+                  "дефиса.")
+
     datetime = models.DateTimeField(
         verbose_name='дата и время',
     )
@@ -32,6 +36,7 @@ class KeyDate(models.Model):
     class Meta:
         verbose_name = _('key date')
         verbose_name_plural = _('key dates')
+        unique_together = ('school', 'short_name')
 
     def __str__(self):
         return '{}: {}'.format(self.datetime, self.name)
