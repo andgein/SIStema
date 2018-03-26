@@ -84,13 +84,18 @@ class TopicCheckingQuestionnaire(models.Model):
 
     checked_at = models.DateTimeField(blank=True, null=True, default=None)
 
-    status = models.PositiveIntegerField(choices=Status.choices, validators=[Status.validator])
+    status = models.PositiveIntegerField(
+        choices=Status.choices,
+        validators=[Status.validator],
+    )
 
     @classmethod
     def get_latest(cls, user, topic_questionnaire):
         try:
-            smartq_q = cls.objects.filter(
-                user=user, topic_questionnaire=topic_questionnaire).latest('created_at')
+            smartq_q = (
+                cls.objects
+                .filter(user=user, topic_questionnaire=topic_questionnaire)
+                .latest('created_at'))
             return smartq_q
         except cls.DoesNotExist:
             return None
@@ -98,19 +103,23 @@ class TopicCheckingQuestionnaire(models.Model):
     def errors_count(self):
         err_count = 0
         for q in self.questions.all():
-            # I was counting ok_counts, but artemtab made me think in negative way
-            if q.checker_result != TopicCheckingQuestionnaireQuestion.CheckerResult.OK:
+            # I was counting ok_counts, but artemtab made me think in negative
+            # way
+            if (q.checker_result !=
+                    TopicCheckingQuestionnaireQuestion.CheckerResult.OK):
                 err_count += 1
         return err_count
 
     def has_check_failed(self):
+        failed = TopicCheckingQuestionnaireQuestion.CheckerResult.CHECK_FAILED
         for q in self.questions.all():
-            if q.checker_result == TopicCheckingQuestionnaireQuestion.CheckerResult.CHECK_FAILED:
+            if q.checker_result == failed:
                 return True
         return False
 
     def is_check_failed_expired(self):
-        return django.utils.timezone.now() >= self.checked_at + timedelta(minutes=30)
+        return (django.utils.timezone.now() >= self.checked_at +
+                timedelta(minutes=30))
 
 
 class Level(models.Model):
