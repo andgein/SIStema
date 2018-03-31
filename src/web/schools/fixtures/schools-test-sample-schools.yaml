@@ -1,0 +1,26 @@
+- model: schools.school
+  pk: 1
+  fields:
+    short_name: test-school-1
+    name: School 1
+    full_name: 'Test School #1'
+    year: 2048
+    is_public: yes
+
+- model: schools.school
+  pk: 2
+  fields:
+    short_name: test-school-2
+    name: School 2
+    full_name: 'Test School #2'
+    year: 2049
+    is_public: yes
+
+- model: schools.school
+  pk: 3
+  fields:
+    short_name: test-school-3-non-public
+    name: School 3
+    full_name: 'Test School #3 (not public)'
+    year: 2050
+    is_public: no

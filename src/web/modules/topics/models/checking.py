@@ -134,6 +134,15 @@ class QuestionForTopic(models.Model):
         return '{} -> {}'.format((self.scale_in_topic, self.mark),
                                  self.smartq_question)
 
+    def copy_to_questionnaire(self, to_questionnaire):
+        return self.__class__.objects.create(
+            scale_in_topic=self.scale_in_topic.get_clone_in_questionnaire(
+                to_questionnaire),
+            mark=self.mark,
+            smartq_question=self.smartq_question,
+            group=self.group,
+        )
+
 
 class TopicCheckingSettings(models.Model):
     questionnaire = models.ForeignKey(
@@ -147,3 +156,9 @@ class TopicCheckingSettings(models.Model):
     def allowed_errors_map(self):
         # TODO: not hardcode
         return {1: 0, 2: 0, 3: 0, 4: 1, 5: 1, 6: 2}
+
+    def copy_to_questionnaire(self, to_questionnaire):
+        return self.__class__.objects.create(
+            questionnaire=to_questionnaire,
+            max_questions=self.max_questions,
+        )

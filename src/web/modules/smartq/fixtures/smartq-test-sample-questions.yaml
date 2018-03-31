@@ -1,0 +1,21 @@
+- model: smartq.Question
+  pk: 1
+  fields:
+    short_name: riddle-1
+    template_html: <div></div>
+    template_css: ''
+    template_js: ''
+    code: ''
+    created_date: 2048-01-01
+    modified_date: 2048-01-01
+
+- model: smartq.Question
+  pk: 2
+  fields:
+    short_name: riddle-2
+    template_html: <div></div>
+    template_css: ''
+    template_js: ''
+    code: ''
+    created_date: 2048-01-01
+    modified_date: 2048-01-01

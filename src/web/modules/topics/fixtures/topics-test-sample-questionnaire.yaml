@@ -1,0 +1,185 @@
+- model: topics.TopicQuestionnaire
+  pk: 1
+  fields:
+    school: 1
+    title: TQ 1
+    close_time: ~
+    previous: ~
+
+# Levels
+
+- model: topics.Level
+  pk: 1
+  fields:
+    questionnaire: 1
+    name: Level 1
+
+- model: topics.Level
+  pk: 2
+  fields:
+    questionnaire: 1
+    name: Level 2
+
+# Level dependencies
+
+- model: topics.LevelUpwardDependency
+  pk: 1
+  fields:
+    questionnaire: 1
+    source_level: 1
+    destination_level: 2
+    min_percent: 20
+
+- model: topics.LevelDownwardDependency
+  pk: 2
+  fields:
+    questionnaire: 1
+    source_level: 2
+    destination_level: 1
+    min_percent: 80
+
+# Tags
+
+- model: topics.Tag
+  pk: 1
+  fields:
+    questionnaire: 1
+    short_name: tag-1
+    title: Tag 1
+
+- model: topics.Tag
+  pk: 2
+  fields:
+    questionnaire: 1
+    short_name: tag-2
+    title: Tag 2
+
+# Topics
+
+- model: topics.Topic
+  pk: 1
+  fields:
+    questionnaire: 1
+    short_name: dfs
+    title: Depth-first search
+    text: Lorem ipsum
+    level: 1
+    tags: [1, 2]
+    order: 1
+
+- model: topics.Topic
+  pk: 2
+  fields:
+    questionnaire: 1
+    short_name: bfs
+    title: Breadth-first search
+    text: Dolor sit amet
+    level: 2
+    tags: [2]
+    order: 2
+
+# Scales
+
+- model: topics.Scale
+  pk: 1
+  fields:
+    questionnaire: 1
+    short_name: theory
+    title: Theoretical scale
+    count_values: 3
+
+- model: topics.Scale
+  pk: 2
+  fields:
+    questionnaire: 1
+    short_name: practice
+    title: Practical scale
+    count_values: 4
+
+# Scale label groups
+
+- model: topics.ScaleLabelGroup
+  pk: 1
+  fields:
+    scale: 2
+    short_name: generic
+
+- model: topics.ScaleLabelGroup
+  pk: 2
+  fields:
+    scale: 2
+    short_name: data_structures
+
+# Scale labels
+
+- model: topics.ScaleLabel
+  pk: 1
+  fields:
+    group: 1
+    mark: 1
+    label_text: This is first option
+
+- model: topics.ScaleLabel
+  pk: 2
+  fields:
+    group: 1
+    mark: 3
+    label_text: This is third option
+
+# ScaleInTopic objects
+
+- model: topics.ScaleInTopic
+  pk: 1
+  fields:
+    topic: 1
+    scale_label_group: 1
+
+- model: topics.ScaleInTopic
+  pk: 2
+  fields:
+    topic: 2
+    scale_label_group: 2
+
+# Topic dependencies
+
+- model: topics.TopicDependency
+  pk: 1
+  fields:
+    source: 1
+    destination: 2
+    source_mark: 1
+    destination_mark: 1
+
+- model: topics.TopicDependency
+  pk: 2
+  fields:
+    source: 1
+    destination: 2
+    source_mark: 2
+    destination_mark: 2
+
+# QuestionForTopic mapping
+
+- model: topics.QuestionForTopic
+  pk: 1
+  fields:
+    scale_in_topic: 1
+    mark: 2
+    smartq_question: 1
+    group: ~
+
+- model: topics.QuestionForTopic
+  pk: 2
+  fields:
+    scale_in_topic: 2
+    mark: 2
+    smartq_question: 2
+    group: ~
+
+# TopicCheckingSettings
+
+- model: topics.TopicCheckingSettings
+  pk: 1
+  fields:
+    questionnaire: 1
+    max_questions: 6

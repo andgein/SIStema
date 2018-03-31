@@ -46,7 +46,7 @@ class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
 
     def build(self, user):
         # It's here to avoid cyclic imports
-        import modules.topics.models.main as topics_models
+        import modules.topics.models as topics_models
 
         block = super().build(user)
         if block is not None:

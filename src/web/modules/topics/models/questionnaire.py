@@ -1,8 +1,9 @@
 import django.utils.timezone
 from django import forms
+from django.apps import apps
 from django.conf import settings
 from django.core import validators
-from django.db import models
+from django.db import models, transaction
 from django.forms import widgets
 from django.urls import reverse
 from djchoices import choices
@@ -56,11 +57,108 @@ class TopicQuestionnaire(models.Model):
             status=UserQuestionnaireStatus.Status.FINISHED
         ).values_list('user_id', flat=True)
 
+    KEEP_VALUE = object()
+
+    @transaction.atomic
+    def clone(self,
+              *,
+              school,
+              title=KEEP_VALUE,
+              close_time=KEEP_VALUE,
+              previous=None):
+        """
+        Make and return a full copy of the topics questionnaire.
+
+        :param school: A school to clone the questionnaire to.
+        :param title: Title for the new questionnaire. Not changed by default.
+        :param close_time: Close time for the new questionnaire. Not changed
+            by default.
+        :param previous: Previous questionnaire for the new questionnaire. Set
+            to None by default.
+        :return: The fresh copy of a questionnaire.
+        """
+        if self.pk is None:
+            raise ValueError(
+                "The questionnaire should be in database to be cloned")
+
+        if title is self.KEEP_VALUE:
+            title = self.title
+        if close_time is self.KEEP_VALUE:
+            close_time = self.close_time
+
+        new_questionnaire = TopicQuestionnaire.objects.create(
+            school=school,
+            title=title,
+            close_time=close_time,
+            previous=previous,
+        )
+
+        self._copy_levels_with_deps_to_questionnaire(new_questionnaire)
+        self._copy_tags_to_questionnaire(new_questionnaire)
+        self._copy_topics_to_questionnaire(new_questionnaire)
+        self._copy_scales_with_labels_to_questionnaire(new_questionnaire)
+        self._copy_scales_in_topics_to_questionnaire(new_questionnaire)
+        self._copy_topic_deps_to_questionnaire(new_questionnaire)
+        self._copy_checking_settings_to_questionnaire(new_questionnaire)
+        self._copy_checking_questions_to_questionnaire(new_questionnaire)
+
+        return new_questionnaire
+
+    def _copy_levels_with_deps_to_questionnaire(self, to_questionnaire):
+        for level in self.levels.all():
+            level.copy_to_questionnaire(to_questionnaire)
+
+        for dep in LevelUpwardDependency.objects.filter(questionnaire=self):
+            dep.copy_to_questionnaire(to_questionnaire)
+
+        for dep in LevelDownwardDependency.objects.filter(questionnaire=self):
+            dep.copy_to_questionnaire(to_questionnaire)
+
+    def _copy_tags_to_questionnaire(self, to_questionnaire):
+        for tag in self.tags.all():
+            tag.copy_to_questionnaire(to_questionnaire)
+
+    def _copy_topics_to_questionnaire(self, to_questionnaire):
+        for topic in self.topics.all():
+            topic.copy_to_questionnaire(to_questionnaire)
+
+    def _copy_scales_with_labels_to_questionnaire(self, to_questionnaire):
+        for scale in self.scales.all():
+            scale.copy_to_questionnaire(to_questionnaire)
+
+    def _copy_scales_in_topics_to_questionnaire(self, to_questionnaire):
+        scale_in_topics = ScaleInTopic.objects.filter(topic__questionnaire=self)
+        for scale_in_topic in scale_in_topics:
+            scale_in_topic.copy_to_questionnaire(to_questionnaire)
+
+    def _copy_topic_deps_to_questionnaire(self, to_questionnaire):
+        src_deps = (
+            TopicDependency.objects
+            .filter(source__topic__questionnaire=self))
+        for dep in src_deps:
+            dep.copy_to_questionnaire(to_questionnaire)
+
+    def _copy_checking_settings_to_questionnaire(self, to_questionnaire):
+        checking_settings = (
+            apps.get_model('topics', 'TopicCheckingSettings').objects
+            .filter(questionnaire=self))
+        for s in checking_settings:
+            s.copy_to_questionnaire(to_questionnaire)
+
+    def _copy_checking_questions_to_questionnaire(self, to_questionnaire):
+        checking_question_for_topics = (
+            apps.get_model('topics', 'QuestionForTopic').objects
+            .filter(scale_in_topic__topic__questionnaire=self)
+        )
+        for q in checking_question_for_topics:
+            q.copy_to_questionnaire(to_questionnaire)
+
 
 class Level(models.Model):
     questionnaire = models.ForeignKey(
         TopicQuestionnaire,
         on_delete=models.CASCADE,
+        related_name='levels',
     )
 
     name = models.CharField(max_length=20)
@@ -70,6 +168,15 @@ class Level(models.Model):
 
     def __str__(self):
         return '%s. %s' % (self.questionnaire, self.name)
+
+    def copy_to_questionnaire(self, to_questionnaire):
+        return self.__class__.objects.create(
+            questionnaire=to_questionnaire,
+            name=self.name,
+        )
+
+    def get_clone_in_questionnaire(self, questionnaire):
+        return questionnaire.levels.get(name=self.name)
 
 
 class LevelDependency(models.Model):
@@ -126,6 +233,18 @@ class LevelDependency(models.Model):
         abstract = True
         unique_together = ('source_level', 'destination_level')
 
+    def copy_to_questionnaire(self, to_questionnaire):
+        src = self.source_level.get_clone_in_questionnaire(to_questionnaire)
+        dst = self.destination_level.get_clone_in_questionnaire(
+            to_questionnaire,
+        )
+        return self.__class__.objects.create(
+            questionnaire=to_questionnaire,
+            source_level=src,
+            destination_level=dst,
+            min_percent=self.min_percent,
+        )
+
 
 class LevelDownwardDependency(LevelDependency):
     """
@@ -151,6 +270,7 @@ class Scale(models.Model):
     questionnaire = models.ForeignKey(
         TopicQuestionnaire,
         on_delete=models.CASCADE,
+        related_name='scales',
     )
 
     short_name = models.CharField(
@@ -184,6 +304,22 @@ class Scale(models.Model):
     def max_mark(self):
         return self.count_values - 1
 
+    def copy_to_questionnaire(self, to_questionnaire):
+        new_scale = self.__class__.objects.create(
+            questionnaire=to_questionnaire,
+            short_name=self.short_name,
+            title=self.title,
+            count_values=self.count_values,
+        )
+
+        for label_group in self.label_groups.all():
+            label_group.copy_to_questionnaire(to_questionnaire)
+
+        return new_scale
+
+    def get_clone_in_questionnaire(self, questionnaire):
+        return questionnaire.scales.get(short_name=self.short_name)
+
 
 class ScaleLabelGroup(models.Model):
     scale = models.ForeignKey(
@@ -202,6 +338,25 @@ class ScaleLabelGroup(models.Model):
 
     class Meta:
         unique_together = ('scale', 'short_name')
+
+    def copy_to_questionnaire(self, to_questionnaire):
+        dst_scale = self.scale.get_clone_in_questionnaire(to_questionnaire)
+        new_label_group = self.__class__.objects.create(
+            scale=dst_scale,
+            short_name=self.short_name,
+        )
+        for label in self.labels.all():
+            label.pk = None
+            label.group = new_label_group
+            label.save()
+        return new_label_group
+
+    def get_clone_in_questionnaire(self, questionnaire):
+        scale_clone = self.scale.get_clone_in_questionnaire(questionnaire)
+        return self.__class__.objects.get(
+            scale=scale_clone,
+            short_name=self.short_name,
+        )
 
 
 class ScaleLabel(models.Model):
@@ -223,6 +378,7 @@ class Tag(models.Model):
     questionnaire = models.ForeignKey(
         TopicQuestionnaire,
         on_delete=models.CASCADE,
+        related_name='tags',
     )
 
     short_name = models.CharField(
@@ -238,11 +394,19 @@ class Tag(models.Model):
     class Meta:
         unique_together = ('questionnaire', 'short_name')
 
+    def copy_to_questionnaire(self, to_questionnaire):
+        return self.__class__.objects.create(
+            questionnaire=to_questionnaire,
+            short_name=self.short_name,
+            title=self.title,
+        )
+
 
 class Topic(models.Model):
     questionnaire = models.ForeignKey(
         TopicQuestionnaire,
         on_delete=models.CASCADE,
+        related_name='topics',
     )
 
     short_name = models.CharField(
@@ -312,6 +476,23 @@ class Topic(models.Model):
 
         return type('%sForm' % self.short_name, (forms.Form,), fields)
 
+    def copy_to_questionnaire(self, to_questionnaire):
+        new_topic = self.__class__.objects.create(
+            questionnaire=to_questionnaire,
+            short_name=self.short_name,
+            title=self.title,
+            text=self.text,
+            level=self.level.get_clone_in_questionnaire(to_questionnaire),
+            order=self.order,
+        )
+        for tag in self.tags.all():
+            dst_tag = to_questionnaire.tags.get(short_name=tag.short_name)
+            new_topic.tags.add(dst_tag)
+        return new_topic
+
+    def get_clone_in_questionnaire(self, questionnaire):
+        return questionnaire.topics.get(short_name=self.short_name)
+
 
 class ScaleInTopic(models.Model):
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
@@ -336,6 +517,22 @@ class ScaleInTopic(models.Model):
 
     class Meta:
         unique_together = ('topic', 'scale_label_group')
+
+    def copy_to_questionnaire(self, to_questionnaire):
+        dst_topic = self.topic.get_clone_in_questionnaire(to_questionnaire)
+        dst_scale_label_group = (
+            self.scale_label_group.get_clone_in_questionnaire(to_questionnaire))
+        return self.__class__.objects.create(
+            topic=dst_topic,
+            scale_label_group=dst_scale_label_group,
+        )
+
+    def get_clone_in_questionnaire(self, questionnaire):
+        return self.__class__.objects.get(
+            topic=self.topic.get_clone_in_questionnaire(questionnaire),
+            scale_label_group=self.scale_label_group.get_clone_in_questionnaire(
+                questionnaire)
+        )
 
 
 class TopicDependency(models.Model):
@@ -386,6 +583,15 @@ class TopicDependency(models.Model):
     class Meta:
         index_together = (('source', 'destination'), ('source', 'source_mark'))
         verbose_name_plural = 'Topic dependencies'
+
+    def copy_to_questionnaire(self, to_questionnaire):
+        return self.__class__.objects.create(
+            source=self.source.get_clone_in_questionnaire(to_questionnaire),
+            destination=self.destination.get_clone_in_questionnaire(
+                to_questionnaire),
+            source_mark=self.source_mark,
+            destination_mark=self.destination_mark,
+        )
 
 
 class UserQuestionnaireStatus(models.Model):
