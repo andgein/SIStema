@@ -12,14 +12,6 @@ class Command(management.base.BaseCommand):
     requires_migrations_checks = True
 
     @staticmethod
-    def get_all_models():
-        all_models = []
-        app_configs = apps.get_app_configs()
-        for app_config in app_configs:
-            all_models.extend(app_config.get_models())
-        return all_models
-
-    @staticmethod
     def get_model_relations(model):
         return [
             f for f in model._meta.get_fields(include_hidden=True)
@@ -31,6 +23,8 @@ class Command(management.base.BaseCommand):
 
     def get_related_models(self, model):
         relations = self.get_model_relations(model)
+        # TODO (andgein): Find relations with on_delete=models.PROTECT
+        # and do something with it?
         relations = [f for f in relations if f.on_delete is models.CASCADE]
         return [field.related_model for field in relations]
 
@@ -54,10 +48,11 @@ class Command(management.base.BaseCommand):
             model._meta.app_label + '.' + model._meta.model_name
             for model in related_models
         ]
+        options['exclude'] = model_names
         options['traceback'] = True
         options['use_natural_foreign_keys'] = True
         options['use_natural_primary_keys'] = True
         management.call_command(
-            "dumpdata", exclude=model_names, **options
+            'dumpdata', **options
         )
 
