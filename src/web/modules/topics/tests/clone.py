@@ -6,7 +6,7 @@ from schools.models import School
 from modules.topics import models
 
 
-class QuestionnaireCloneTestCase(django.test.TestCase):
+class QuestionnaireCloneTestCase(django.test.TransactionTestCase):
     fixtures = [
         'schools-test-sample-schools',
         'smartq-test-sample-questions',
