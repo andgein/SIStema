@@ -628,7 +628,7 @@ class UserQuestionnaireStatus(models.Model):
 
 
 class BaseMark(models.Model):
-    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     scale_in_topic = models.ForeignKey('ScaleInTopic', on_delete=models.CASCADE)
 
