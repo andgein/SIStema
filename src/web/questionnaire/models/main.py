@@ -6,6 +6,7 @@ import django.utils.timezone
 import djchoices
 import polymorphic.models
 from cached_property import cached_property
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.urls import reverse
 from django.db import models, transaction, IntegrityError
 
@@ -34,6 +35,11 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
         default=0,
         help_text='Блоки выстраиваются по возрастанию порядка')
 
+    is_top_level = models.BooleanField(
+        help_text='True, если блок находится на верхнем уровне вложенности',
+        default=True,
+    )
+
     is_question = False
 
     class Meta:
@@ -43,7 +49,12 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
         ordering = ('questionnaire_id', 'order')
 
     def __str__(self):
-        return '%s. %s' % (self.questionnaire, self.short_name)
+        obj = self.get_real_instance()
+        if hasattr(obj, 'text'):
+            description = '%s (%s)' % (obj.text, self.short_name)
+        else:
+            description = self.short_name
+        return '%s. %s' % (self.questionnaire, description)
 
     def copy_to_questionnaire(self, to_questionnaire):
         """
@@ -98,6 +109,18 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
         """
         pass
 
+    @property
+    def block_name(self):
+        """
+        Name of template file in `templates/questionnaire/blocks/`.
+        Also part of css class for this type's blocks
+        (i.e. `questionnaire__block__markdown` for MarkdownQuestionnaireBlock)
+        """
+        raise NotImplementedError(
+            "%s doesn't implement block_name property " %
+            self.__class__.__name__
+        )
+
 
 class MarkdownQuestionnaireBlock(AbstractQuestionnaireBlock):
     block_name = 'markdown'
@@ -106,6 +129,63 @@ class MarkdownQuestionnaireBlock(AbstractQuestionnaireBlock):
 
     def __str__(self):
         return self.markdown[:40]
+
+
+class InlineQuestionnaireBlock(AbstractQuestionnaireBlock):
+    block_name = 'inline'
+
+    text = models.TextField(
+        help_text='Общий текст для вопросов в блоке',
+        blank=True
+    )
+
+    help_text = models.CharField(
+        max_length=400,
+        blank=True,
+        help_text='Подсказка, помогающая ответить на вопросы в блоке',
+    )
+
+    def __str__(self):
+        return '%s: %s' % (
+            self.text,
+            ', '.join([c.block.short_name for c in self.children.all()])
+        )
+
+
+class InlineQuestionnaireBlockChild(models.Model):
+    parent = models.ForeignKey(
+        InlineQuestionnaireBlock,
+        related_name='children',
+        on_delete=models.CASCADE,
+    )
+
+    block = models.ForeignKey(
+        'AbstractQuestionnaireQuestion',
+        related_name='+',
+        on_delete=models.CASCADE,
+        help_text='Вопрос, вложенный в InlineBlock'
+    )
+
+    xs_width = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text='Размер на телефонах. От 1 до 12',
+        default=12
+    )
+
+    sm_width = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text='Размер на устройствах шириной от 768 до 992 пикселей. От 1 до 12',
+        default=12
+    )
+
+    md_width = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text='Размер на остальных устройствах. От 1 до 12',
+        default=6
+    )
+
+    def __str__(self):
+        return str(self.block)
 
 
 class AbstractQuestionnaireQuestion(AbstractQuestionnaireBlock):
@@ -365,7 +445,7 @@ class Questionnaire(models.Model):
 
     def save(self, *args, **kwargs):
         if (self.school is not None and self.session is not None and
-                self.session.school != self.school):
+            self.session.school != self.school):
             raise IntegrityError(
                 "Questionnaire's session should belong to the questionnaire's "
                 "school")
@@ -379,6 +459,10 @@ class Questionnaire(models.Model):
     @cached_property
     def ordered_blocks(self):
         return self.blocks.order_by('order')
+
+    @cached_property
+    def ordered_top_level_blocks(self):
+        return self.blocks.filter(is_top_level=True).order_by('order')
 
     @cached_property
     def questions(self):
@@ -638,19 +722,19 @@ class QuestionnaireBlockShowCondition(models.Model):
         """
         target_block = (
             to_questionnaire.blocks
-            .filter(short_name=self.block.short_name)
-            .first())
+                .filter(short_name=self.block.short_name)
+                .first())
         if target_block is None:
             return None
 
         source_variant_block = self.need_to_be_checked.question
         target_variant = (
             ChoiceQuestionnaireQuestionVariant.objects
-            .filter(
+                .filter(
                 question__questionnaire=to_questionnaire,
                 question__short_name=source_variant_block.short_name,
                 order=self.need_to_be_checked.order)
-            .first())
+                .first())
         if target_variant is None:
             return None
 

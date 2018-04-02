@@ -1,0 +1,22 @@
+.questionnaire__question-label,
+.admin-form label.questionnaire__question-label {
+    font-size: 18px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.questionnaire__block__inline .questionnaire__question-label,
+.admin-form .questionnaire__block__inline label.questionnaire__question-label{
+    font-size: 15px;
+    margin-bottom: 10px;
+}
+
+.questionnaire__block {
+    margin-bottom: 40px;
+}
+
+.questionnaire__block__inline .questionnaire__block {
+    margin-bottom: 10px;
+    margin-top: 15px;
+    vertical-align: top;
+}

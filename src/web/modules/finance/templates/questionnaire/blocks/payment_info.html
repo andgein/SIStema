@@ -1,0 +1,5 @@
+{% load finance_questionnaire %}
+
+{% with block_with_amount=block|fill_for_user:user %}
+    {% include 'questionnaire/blocks/markdown.html' with block=block_with_amount %}
+{% endwith %}

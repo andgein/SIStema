@@ -25,16 +25,26 @@ class AbstractQuestionnaireBlockAdmin(
         'id',
         'questionnaire',
         'short_name',
+        'get_text',
         'order',
+        'is_top_level'
     )
     list_filter = ('questionnaire', PolymorphicChildModelFilter)
-    ordering = ('questionnaire', 'order')
-    autocomplete_fields = ('questionnaire',)
+    ordering = ('questionnaire', 'is_top_level', 'order')
+    autocomplete_fields = ('questionnaire', )
     search_fields = (
         'short_name',
         'questionnaire__title',
         'questionnaire__school__name',
     )
+
+    def get_text(self, obj):
+        obj = obj.get_real_instance()
+        if hasattr(obj, 'text'):
+            return obj.text
+        return None
+
+    get_text.short_description = 'Text'
 
 
 class QuestionnaireBlockShowConditionInline(admin.StackedInline):
@@ -44,6 +54,14 @@ class QuestionnaireBlockShowConditionInline(admin.StackedInline):
 
 
 @admin.register(models.AbstractQuestionnaireQuestion)
+class AbstractQuestionnaireQuestionAdmin(
+    sistema.polymorphic.PolymorphicParentModelAdmin
+):
+    base_model = models.AbstractQuestionnaireQuestion
+    autocomplete_fields = AbstractQuestionnaireBlockAdmin.autocomplete_fields
+    search_fields = AbstractQuestionnaireBlockAdmin.search_fields
+
+
 @admin.register(models.MarkdownQuestionnaireBlock)
 @admin.register(models.TextQuestionnaireQuestion)
 @admin.register(models.YesNoQuestionnaireQuestion)
@@ -53,6 +71,21 @@ class AbstractQuestionnaireBlockChildAdmin(PolymorphicChildModelAdmin):
     inlines = (QuestionnaireBlockShowConditionInline,)
     autocomplete_fields = AbstractQuestionnaireBlockAdmin.autocomplete_fields
     search_fields = AbstractQuestionnaireBlockAdmin.search_fields
+
+
+class InlineQuestionnaireBlockChildInline(admin.TabularInline):
+    model = models.InlineQuestionnaireBlockChild
+    extra = 1
+    ordering = ('block__order', )
+    autocomplete_fields = ('block', )
+
+
+@admin.register(models.InlineQuestionnaireBlock)
+class InlineQuestionnaireBlockChildAdmin(PolymorphicChildModelAdmin):
+    base_model = models.AbstractQuestionnaireBlock
+    inlines = AbstractQuestionnaireBlockChildAdmin.inlines + (
+        InlineQuestionnaireBlockChildInline,
+    )
 
 
 class ChoiceQuestionnaireQuestionVariantInline(admin.TabularInline):

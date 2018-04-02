@@ -1,7 +1,7 @@
 {% load dict_tags %}
 
 <div class="{{ question.errors|yesno:'state-error,' }}">
-    <label for="{{ question.id_for_label }}" class="fs18 block mb5">
+    <label for="{{ question.id_for_label }}" class="questionnaire__question-label">
         <span class="{{ question.field.disabled|yesno:'text-muted,' }}">
             {{ question.label }}
             {% if question.field.required %}
@@ -14,6 +14,7 @@
         <p class="help-block">{{ question.help_text }}</p>
     {% endif %}
 </div>
+
 {% if question.errors %}
     {% for error in question.errors %}
         <em>{{ error }}</em>

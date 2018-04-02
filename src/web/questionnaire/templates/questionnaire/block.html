@@ -1,0 +1,11 @@
+{% load dict_tags %}
+
+<div class="questionnaire__block questionnaire__block__{{ block.block_name }}" id="questionnaire__block__{{ block.short_name }}">
+    {% if block.is_question %}
+        {% include 'questionnaire/blocks/question.html' with question=form|get_item:block.short_name %}
+    {% else %}
+        {% with template_name='questionnaire/blocks/'|add:block.block_name|add:'.html' %}
+            {% include template_name with block=block %}
+        {% endwith %}
+    {% endif %}
+</div>

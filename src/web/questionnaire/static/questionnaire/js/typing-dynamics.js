@@ -21,8 +21,8 @@ $(document).ready(function() {
             });
         });
         $form.submit(function() {
-          $input.val(JSON.stringify({data: typingData}));
-          return true;
+            $input.val(JSON.stringify({data: typingData}));
+            return true;
         });
     });
 });

@@ -1,0 +1,15 @@
+<div class="fs18 block mb5">
+    {{ block.text }}
+</div>
+
+{% if block.help_text %}
+    <p class="help-block">{{ block.help_text }}</p>
+{% endif %}
+
+<div class="row">
+    {% for child in block.children.all %}
+        <div class="col-xs-{{ child.xs_width }} col-sm-{{ child.sm_width }} col-md-{{ child.md_width }}">
+            {% include 'questionnaire/block.html' with block=child.block %}
+        </div>
+    {% endfor %}
+</div>

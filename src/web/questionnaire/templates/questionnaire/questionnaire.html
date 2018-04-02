@@ -7,6 +7,7 @@
 
 {% block css %}
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/datepicker/css/bootstrap-datetimepicker.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'questionnaire/css/questionnaire.css' %}">
 {% endblock %}
 
 {% block scripts %}
@@ -76,23 +77,15 @@
                                 </div>
                             {% endif %}
 
-                            {% for block in questionnaire.ordered_blocks %}
-                                <div class="section mb40 questionnaire__block__{{ block.block_name }}" id="questionnaire__block__{{ block.short_name }}">
-                                    {% if block.is_question %}
-                                        {% include 'questionnaire/_question.html' with question=form|get_item:block.short_name %}
-                                    {% else %}
-                                        {% with template_name='questionnaire/_block_'|add:block.block_name|add:'.html' %}
-                                            {% include template_name with block=block %}
-                                        {% endwith %}
-                                    {% endif %}
-                                </div>
+                            {% for block in questionnaire.ordered_top_level_blocks %}
+                                {% include 'questionnaire/block.html' with block=block %}
                             {% endfor %}
 
                         </div>
 
                         {% if not is_closed %}
                             {% if typing_dynamics_form %}
-                              {{ typing_dynamics_form.typing_data }}
+                                {{ typing_dynamics_form.typing_data }}
                             {% endif %}
                             <div class="panel-footer p25 text-right">
                                 <button type="submit" class="button btn-success">Отправить</button>
