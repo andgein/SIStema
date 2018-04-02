@@ -81,8 +81,24 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
 
         self._copy_fields_to_instance(new_instance)
         new_instance.save()
-        self._copy_dependencies_to_instance(new_instance)
+        # self._copy_dependencies_to_instance(new_instance)
         return new_instance
+
+    def copy_dependencies_to_instance(self, other_block):
+        """
+        Copies dependencies between blocks. This method is called
+        when all blocks are copied
+        :param other_block: Block from other questionnaire where
+        dependencies should be copied
+
+        Override this method in a subclass to copy any objects having a
+        reference to this block and other blocks.
+
+        The override must:
+        - call super().copy_dependencies_to_instance(other),
+        - make copies of the dependencies for the passed instance.
+        """
+        pass
 
     def _copy_fields_to_instance(self, other):
         """
@@ -93,19 +109,6 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
         - copy its field values to the passed instance.
 
         :param other: The instance to copy field values to.
-        """
-        pass
-
-    def _copy_dependencies_to_instance(self, other):
-        """
-        Override this method in a subclass to copy any objects having a
-        reference to this block.
-
-        The override must:
-        - call super()._copy_dependencies_to_instance(other),
-        - make copies of the dependencies for the passed instance.
-
-        :param other: The instance to copy dependencies for.
         """
         pass
 
@@ -150,6 +153,16 @@ class InlineQuestionnaireBlock(AbstractQuestionnaireBlock):
             self.text,
             ', '.join([c.block.short_name for c in self.children.all()])
         )
+
+    def copy_dependencies_to_instance(self, other):
+        super().copy_dependencies_to_instance(other)
+        for child in self.children.all():
+            child.pk = None
+            child.parent = other
+            child.block = other.questionnaire.blocks.single(
+                short_name=child.block.short_name
+            )
+            child.save()
 
 
 class InlineQuestionnaireBlockChild(models.Model):
@@ -305,8 +318,8 @@ class ChoiceQuestionnaireQuestion(AbstractQuestionnaireQuestion):
 
     is_inline = models.BooleanField()
 
-    def _copy_dependencies_to_instance(self, other):
-        super()._copy_dependencies_to_instance(other)
+    def copy_dependencies_to_instance(self, other):
+        super().copy_dependencies_to_instance(other)
         for variant in self.variants.all():
             variant.pk = None
             variant.question = other
@@ -590,6 +603,7 @@ class Questionnaire(models.Model):
         new_questionnaire.save()
 
         self._copy_blocks_to_questionnaire(new_questionnaire)
+        self._copy_block_dependencies(new_questionnaire)
         self._copy_block_show_conditions_to_questionnaire(new_questionnaire)
 
         return new_questionnaire
@@ -620,6 +634,16 @@ class Questionnaire(models.Model):
                 else:
                     copied_count += 1
         return copied_count, skipped_count
+
+    def _copy_block_dependencies(self, to_questionnaire):
+        """
+        Copy block's dependencies when all blocks are already created
+        """
+        for block in self.blocks.all():
+            other_block = to_questionnaire.blocks.single(
+                short_name=block.short_name
+            )
+            block.copy_dependencies_to_other_blocks(other_block)
 
 
 class QuestionnaireAnswer(models.Model):

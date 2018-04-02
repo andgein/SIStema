@@ -13,7 +13,7 @@ class QuestionnaireBlocksTestCase(django.test.TestCase):
     @mock.patch.object(models.AbstractQuestionnaireBlock,
                        '_copy_fields_to_instance')
     @mock.patch.object(models.AbstractQuestionnaireBlock,
-                       '_copy_dependencies_to_instance')
+                       'copy_dependencies_to_instance')
     def test_copy_method_overrides_call_super(
             self, copy_deps_mock, copy_fields_mock):
         """
@@ -33,7 +33,7 @@ class QuestionnaireBlocksTestCase(django.test.TestCase):
                     klass.__name__))
 
             copy_deps_mock.reset_mock()
-            instance._copy_dependencies_to_instance(object())
+            instance.copy_dependencies_to_instance(object())
             self.assertEqual(
                 copy_deps_mock.call_count,
                 1,
