@@ -6,7 +6,7 @@ import django.utils.timezone
 import djchoices
 import polymorphic.models
 from cached_property import cached_property
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core import validators
 from django.urls import reverse
 from django.db import models, transaction, IntegrityError
 
@@ -180,19 +180,28 @@ class InlineQuestionnaireBlockChild(models.Model):
     )
 
     xs_width = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        validators=[
+            validators.MinValueValidator(1),
+            validators.MaxValueValidator(12)
+        ],
         help_text='Размер на телефонах. От 1 до 12',
         default=12
     )
 
     sm_width = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        validators=[
+            validators.MinValueValidator(1),
+            validators.MaxValueValidator(12)
+        ],
         help_text='Размер на устройствах шириной от 768 до 992 пикселей. От 1 до 12',
         default=12
     )
 
     md_width = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        validators=[
+            validators.MinValueValidator(1),
+            validators.MaxValueValidator(12)
+        ],
         help_text='Размер на остальных устройствах. От 1 до 12',
         default=6
     )
