@@ -154,12 +154,12 @@ class InlineQuestionnaireBlock(AbstractQuestionnaireBlock):
             ', '.join([c.block.short_name for c in self.children.all()])
         )
 
-    def copy_dependencies_to_instance(self, other):
-        super().copy_dependencies_to_instance(other)
+    def copy_dependencies_to_instance(self, other_block):
+        super().copy_dependencies_to_instance(other_block)
         for child in self.children.all():
             child.pk = None
-            child.parent = other
-            child.block = other.questionnaire.blocks.single(
+            child.parent = other_block
+            child.block = other_block.questionnaire.blocks.single(
                 short_name=child.block.short_name
             )
             child.save()
@@ -199,6 +199,12 @@ class InlineQuestionnaireBlockChild(models.Model):
 
     def __str__(self):
         return str(self.block)
+
+    def save(self, *args, **kwargs):
+        if self.parent.questionnaire_id != self.block.questionnaire_id:
+            raise IntegrityError('Selected questionnaire and block '
+                                 'should belong to one school')
+        super().save(*args, **kwargs)
 
 
 class AbstractQuestionnaireQuestion(AbstractQuestionnaireBlock):
@@ -318,11 +324,11 @@ class ChoiceQuestionnaireQuestion(AbstractQuestionnaireQuestion):
 
     is_inline = models.BooleanField()
 
-    def copy_dependencies_to_instance(self, other):
-        super().copy_dependencies_to_instance(other)
+    def copy_dependencies_to_instance(self, other_block):
+        super().copy_dependencies_to_instance(other_block)
         for variant in self.variants.all():
             variant.pk = None
-            variant.question = other
+            variant.question = other_block
             variant.save()
 
     def get_form_field(self, attrs=None):
@@ -643,7 +649,7 @@ class Questionnaire(models.Model):
             other_block = to_questionnaire.blocks.single(
                 short_name=block.short_name
             )
-            block.copy_dependencies_to_other_blocks(other_block)
+            block.copy_dependencies_to_instance(other_block)
 
 
 class QuestionnaireAnswer(models.Model):
@@ -755,9 +761,9 @@ class QuestionnaireBlockShowCondition(models.Model):
         target_variant = (
             ChoiceQuestionnaireQuestionVariant.objects
                 .filter(
-                question__questionnaire=to_questionnaire,
-                question__short_name=source_variant_block.short_name,
-                order=self.need_to_be_checked.order)
+                    question__questionnaire=to_questionnaire,
+                    question__short_name=source_variant_block.short_name,
+                    order=self.need_to_be_checked.order)
                 .first())
         if target_variant is None:
             return None
