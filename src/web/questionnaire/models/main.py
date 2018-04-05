@@ -35,6 +35,8 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
         default=0,
         help_text='Блоки выстраиваются по возрастанию порядка')
 
+    # TODO (andgein): it may be better to make another model with storing
+    # top-level blocks of questionnaire (and orders of them)
     is_top_level = models.BooleanField(
         help_text='True, если блок находится на верхнем уровне вложенности',
         default=True,
@@ -81,7 +83,6 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
 
         self._copy_fields_to_instance(new_instance)
         new_instance.save()
-        # self._copy_dependencies_to_instance(new_instance)
         return new_instance
 
     def copy_dependencies_to_instance(self, other_block):
@@ -173,6 +174,9 @@ class InlineQuestionnaireBlockChild(models.Model):
     )
 
     block = models.ForeignKey(
+        # TODO (andgein): Maybe it should be foreign key
+        # to AbstractQuestionnaireBlock, not to Question?
+        # In future some blocks may nice fit in InlineQuestionnaireBlock.
         'AbstractQuestionnaireQuestion',
         related_name='+',
         on_delete=models.CASCADE,
