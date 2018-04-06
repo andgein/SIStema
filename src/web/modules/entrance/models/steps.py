@@ -1,10 +1,13 @@
 import enum
 
 from django.db import models, transaction
+from django.conf import settings
 from polymorphic import models as polymorphic_models
 
 import questionnaire.models
 import schools.models
+from . import main as main_models
+from .. import forms
 
 
 class EntranceStepState(enum.Enum):
@@ -600,3 +603,149 @@ class MarkdownEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
             self.markdown[:20]
         )
 
+
+class SelectEnrollmentTypeEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
+    """
+    Entrance step for choosing enrollment type: with entrance exam,
+    auto-enrollment etc. Creates moderation request for some options.
+    Options are described in EnrollmentType model.
+    """
+    template_file = 'enrollment_type.html'
+
+    with_background = False
+
+    text_on_moderation = models.TextField(
+        help_text='Текст, который показывается пользователю, пока выбранный вариант '
+                  'находится на модерации. Поддерживается Markdown'
+    )
+
+    def __str__(self):
+        return 'Шаг выбора способа поступления для {}'.format(self.school)
+
+    def is_passed(self, user):
+        if not super().is_passed(user):
+            return False
+
+        # Looking for enrollment type already selected in this step by this user
+        selected = SelectedEnrollmentType.objects.filter(
+            user=user,
+            enrollment_type__step=self
+        ).first()
+
+        # If user haven't selected the enrollment type, then step is not passed
+        if selected is None:
+            return False
+
+        # If selected enrollment type don't need moderation, step is passed
+        if not selected.enrollment_type.need_moderation:
+            return True
+
+        return selected.is_approved
+
+    def build(self, user):
+        block = super().build(user)
+
+        selected = SelectedEnrollmentType.objects.filter(
+            user=user,
+            step=self,
+        ).first()
+        block.selected = selected
+
+        initial = {}
+        form_enrollment_types = self.enrollment_types.all()
+        if selected is not None:
+            initial = {'enrollment_type': selected.enrollment_type_id}
+            form_enrollment_types = [selected.enrollment_type]
+
+        block.form = forms.SelectEnrollmentTypeForm(
+            form_enrollment_types,
+            disabled=selected is not None,
+            initial=initial,
+        )
+
+        block.is_moderated = SelectedEnrollmentType.objects.filter(
+            user=user,
+            step=self,
+            is_moderated=False,
+        ).exists()
+
+        return block
+
+
+class EnrollmentType(models.Model):
+    step = models.ForeignKey(
+        SelectEnrollmentTypeEntranceStep,
+        on_delete=models.CASCADE,
+        related_name='enrollment_types',
+    )
+
+    text = models.TextField(
+        help_text='Например, «По вступительной работе»',
+    )
+
+    need_moderation = models.BooleanField(
+        help_text='Нужна ли модерация, если пользователь выбрал этот тип поступления',
+    )
+
+    def __str__(self):
+        return 'Поступление {} для {}'.format(self.text, self.step.school)
+
+
+class SelectedEnrollmentType(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    step = models.ForeignKey(
+        SelectEnrollmentTypeEntranceStep,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    enrollment_type = models.ForeignKey(
+        EnrollmentType,
+        on_delete=models.CASCADE,
+        related_name='selections',
+    )
+
+    is_moderated = models.BooleanField(
+        help_text='Обработан ли запрос',
+        db_index=True,
+    )
+
+    is_approved = models.BooleanField(
+        help_text='Одобрен ли запрос',
+        db_index=True,
+    )
+
+    entrance_level = models.ForeignKey(
+        main_models.EntranceLevel,
+        help_text='Выставленный уровень вступительной',
+        on_delete=models.CASCADE,
+        related_name='+',
+        default=None,
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        unique_together = ('user', 'step')
+
+    def __str__(self):
+        return '{} поступает в {}. {}'.format(
+            self.user, self.step.school, self.enrollment_type
+        )
+
+    def save(self, *args, **kwargs):
+        if self.entrance_level is not None and \
+           self.enrollment_type.step.school_id != self.entrance_level.school_id:
+            raise ValueError('Can\'t save EnrollmentTypeModerationRequest: '
+                             'Entrance step should belong to the same school '
+                             'as entrance level')
+        if self.enrollment_type.step_id != self.step_id:
+            raise ValueError('Can\'t save EnrollmentTypeModerationRequest: '
+                             'Enrollment type should belong to the same step '
+                             'as this object')
+        super().save(*args, **kwargs)

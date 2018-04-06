@@ -1,7 +1,9 @@
-<script type="text/javascript" src="//vk.com/js/api/openapi.js?143"></script>
+{% if request.META.HTTP_HOST != '127.0.0.1:8000' %}
+    <script type="text/javascript" src="//vk.com/js/api/openapi.js?143"></script>
 
-<!-- VK Widget -->
-<div id="vk_community_messages"></div>
-<script type="text/javascript">
-VK.Widgets.CommunityMessages("vk_community_messages", 222235, {tooltipButtonText: "Есть вопросы?"});
-</script>
+    <!-- VK Widget -->
+    <div id="vk_community_messages"></div>
+    <script type="text/javascript">
+    VK.Widgets.CommunityMessages("vk_community_messages", 222235, {tooltipButtonText: "Есть вопросы?"});
+    </script>
+{% endif %}

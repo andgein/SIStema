@@ -2,7 +2,11 @@
 {% if wrap_label %}
     <label
         {% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %}
-        class="option {% if widget.label.disabled %}option-disabled{% else %}option-alert{% endif %} {% if widget.attrs.inline %}inline{% else %}block{% endif %} mt5">
+        class="option
+                {% if widget.label.disabled %}option-disabled{% elif widget.attrs.theme == 'primary' %}option-primary{% else %}option-alert{% endif %}
+                {% if widget.attrs.inline %}inline{% else %}block{% endif %}
+                mt5
+              ">
 {% endif %}
 {% include "frontend/forms/widgets/input.html" %}
 {% if wrap_label %} {% if widget.label.label %}{{ widget.label.label }}{% else %}{{ widget.label }}{% endif %}

@@ -355,6 +355,25 @@ class FillQuestionnaireEntranceStepChildAdmin(EntranceStepChildAdmin):
     )
 
 
+@admin.register(models.EnrollmentType)
+class EnrollmentTypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'text', 'step', 'need_moderation')
+    list_display_links = ('id', 'text')
+    list_filter = ('step__school', 'need_moderation')
+    search_fields = ('=id', 'text')
+    ordering = ('step__school', 'step', 'text')
+
+
+class EnrollmentTypeInline(admin.TabularInline):
+    model = models.EnrollmentType
+    extra = 0
+
+
+@admin.register(models.SelectEnrollmentTypeEntranceStep)
+class SelectEnrollmentTypeEntranceStepChildAdmin(EntranceStepChildAdmin):
+    inlines = (EnrollmentTypeInline, )
+
+
 class UserParticipatedInSchoolEntranceStepExceptionInline(admin.StackedInline):
     model = models.UserParticipatedInSchoolEntranceStepException
     extra = 0
@@ -364,6 +383,18 @@ class UserParticipatedInSchoolEntranceStepExceptionInline(admin.StackedInline):
 @admin.register(models.UserParticipatedInSchoolEntranceStep)
 class UserParticipatedInSchoolEntranceStepChildAdmin(EntranceStepChildAdmin):
     inlines = (UserParticipatedInSchoolEntranceStepExceptionInline,)
+
+
+@admin.register(models.SelectedEnrollmentType)
+class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'user', 'enrollment_type',
+        'is_moderated', 'is_approved',
+        'entrance_level'
+    )
+    list_display_links = ('id', 'user')
+    list_filter = ('enrollment_type__step__school', 'is_moderated', 'is_approved')
+    autocomplete_fields = ('user', 'step', 'enrollment_type', 'entrance_level')
 
 
 @admin.register(models.EntranceUserMetric)

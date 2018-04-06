@@ -8,12 +8,12 @@ from hashlib import sha1
 from django.core.cache import cache as _djcache
 
 
-def cache(seconds = 900):
+def cache(seconds=900):
     """
-    Cache the result of a function call for the specified number of seconds, 
+    Cache the result of a function call for the specified number of seconds,
     using Django's caching mechanism.
     Assumes that the function never returns None (as the cache returns None to indicate a miss), and that the function's result only depends on its parameters.
-    Note that the ordering of parameters is important. e.g. myFunction(x = 1, y = 2), myFunction(y = 2, x = 1), and myFunction(1,2) will each be cached separately. 
+    Note that the ordering of parameters is important. e.g. myFunction(x = 1, y = 2), myFunction(y = 2, x = 1), and myFunction(1,2) will each be cached separately.
 
     Usage:
 
@@ -34,11 +34,13 @@ def cache(seconds = 900):
     return doCache
 # TODO: to here
 
+
 # TODO(artemtab): I've made this timeout 10 days long as a workaround for
 #     checking 2017. We need to be able to see and export enrolling table
 #     without waiting forever. There shouldn't be any harm in doing that,
 #     because entrance levels do not change after exam is over.
-@cache(10 * 24 * 60 * 60)
+# TODO(andgein): In 2018 I've revered timeout back to 10 minutes
+@cache(10 * 60)
 def get_base_entrance_level(school, user):
     override = (models.EntranceLevelOverride.objects
                 .filter(school=school, user=user).first())
@@ -47,7 +49,8 @@ def get_base_entrance_level(school, user):
 
     limiters = [modules.topics.entrance.levels.TopicsEntranceLevelLimiter,
                 modules.entrance.levels.AlreadyWasEntranceLevelLimiter,
-                modules.entrance.levels.AgeEntranceLevelLimiter
+                modules.entrance.levels.AgeEntranceLevelLimiter,
+                modules.entrance.levels.EnrollmentTypeEntranceLevelLimiter,
                 ]
 
     current_limit = modules.entrance.levels.EntranceLevelLimit(None)

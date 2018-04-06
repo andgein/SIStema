@@ -1,6 +1,6 @@
 from django.conf.urls import url, include
+
 from . import views
-from .staff import views as staff_views
 
 app_name = 'entrance'
 
@@ -15,6 +15,11 @@ urlpatterns = [
 
     url(r'^results/$', views.results, name='results'),
     url(r'^results/data/$', views.results_data, name='results_data'),
+
+    url(r'^steps/(?P<step_id>\d+)/', include(([
+        url(r'^set_enrollment_type/$', views.set_enrollment_type, name='set_enrollment_type'),
+        url(r'^reset/$', views.reset_step, name='reset'),
+    ], 'steps'), namespace='steps')),
 
     # Submodules
     url(r'^scans/', include('modules.enrolled_scans.urls', namespace='enrolled_scans')),

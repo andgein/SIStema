@@ -85,3 +85,21 @@ class AgeEntranceLevelLimiter(EntranceLevelLimiter):
 
         return EntranceLevelLimit(self._find_minimal_level())
 
+
+class EnrollmentTypeEntranceLevelLimiter(EntranceLevelLimiter):
+    def get_limit(self, user):
+        selected_enrollment_types = list(models.SelectedEnrollmentType.objects.filter(
+            user=user,
+            step__school=self.school
+        ))
+
+        current_limit = EntranceLevelLimit(None)
+        for selected_enrollment_type in selected_enrollment_types:
+            if selected_enrollment_type.is_moderated and \
+               selected_enrollment_type.is_approved and \
+               selected_enrollment_type.entrance_level is not None:
+                current_limit.update_with_other(
+                    EntranceLevelLimit(selected_enrollment_type.entrance_level)
+                )
+
+        return current_limit

@@ -1,0 +1,53 @@
+{% extends 'entrance/steps/base.html' %}
+
+{% load markdown_deux_tags %}
+
+{% block title %}Способ поступления{% endblock %}
+
+{% block not_passed_text %}
+    <div class="fs18 mb5">
+        {{ entrance_block.step.text_step_is_not_passed|markdown }}
+    </div>
+{% endblock %}
+
+{% block not_passed_after_text %}
+
+    {% if entrance_block.selected %}
+        <form method="POST" action="{% url 'school:entrance:steps:reset' request.school.short_name entrance_block.step.id %}" class="admin-form">
+    {% else %}
+        <form method="POST" action="{% url 'school:entrance:steps:set_enrollment_type' request.school.short_name entrance_block.step.id %}" class="admin-form">
+    {% endif %}
+        {% csrf_token %}
+        {{ entrance_block.form }}
+
+        {% if entrance_block.is_moderated %}
+            <div class="help-block">
+                {{ entrance_block.step.text_on_moderation|markdown }}
+            </div>
+        {% endif %}
+
+        {% if entrance_block.selected %}
+            <div class="pt10">
+                <button type="submit" class="btn btn-danger">
+                    Изменить выбор
+                </button>
+            </div>
+        {% else %}
+            <div class="pt25 text-right">
+                <button type="submit" class="btn btn-primary">
+                    Выбрать
+                </button>
+            </div>
+        {% endif %}
+    </form>
+{% endblock %}
+
+{% block passed_after_text %}
+    <form method="POST" action="{% url 'school:entrance:steps:reset' request.school.short_name entrance_block.step.id %}" class="admin-form">
+        {{ entrance_block.form }}
+        {% csrf_token %}
+        <div class="pt25">
+            <button type="submit" class="btn btn-danger">Изменить выбор</button>
+        </div>
+    </form>
+{% endblock %}

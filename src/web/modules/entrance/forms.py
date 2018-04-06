@@ -91,3 +91,23 @@ class OutputOnlyEntranceTaskForm(EntranceTaskForm):
             }
         )
     )
+
+
+class SelectEnrollmentTypeForm(forms.Form):
+    def __init__(self, enrollment_types, disabled=False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        choices = []
+        for enrollment_type in enrollment_types:
+            choices.append((enrollment_type.pk, enrollment_type.text))
+
+        self.fields['enrollment_type'] = forms.TypedChoiceField(
+            choices=choices,
+            required=True,
+            label='',
+            widget=frontend.forms.SistemaRadioSelect(attrs={
+                'theme': 'primary',
+            }),
+            coerce=int,
+            disabled=disabled,
+        )

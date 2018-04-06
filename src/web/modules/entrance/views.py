@@ -1,5 +1,5 @@
-import operator
-
+import django.urls
+import ipware.ip
 import ipware.ip
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -10,11 +10,7 @@ from django.http.response import (HttpResponseNotFound,
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST
-import django.urls
 
-import ipware.ip
-
-from frontend.table.utils import TableDataSource
 import frontend.icons
 import frontend.table
 import modules.ejudge.queue
@@ -24,10 +20,10 @@ import questionnaire.models
 import sistema.helpers
 import sistema.uploads
 import users.models
-
+from frontend.table.utils import TableDataSource
 from . import models
 from . import upgrades
-
+from . import forms
 
 def get_entrance_level_and_tasks(school, user):
     base_level = upgrades.get_base_entrance_level(school, user)
@@ -388,3 +384,49 @@ def results(request):
 def results_data(request):
     table = EntrancedUsersTable(request.school)
     return TableDataSource(table).get_response(request)
+
+
+@require_POST
+@login_required
+def set_enrollment_type(request, step_id):
+    step = get_object_or_404(
+        models.SelectEnrollmentTypeEntranceStep,
+        id=step_id, school=request.school
+    )
+    form = forms.SelectEnrollmentTypeForm(
+        step.enrollment_types.all(),
+        data=request.POST
+    )
+    if form.is_valid():
+        enrollment_type = models.EnrollmentType.objects.get(
+            pk=form.cleaned_data['enrollment_type']
+        )
+        models.SelectedEnrollmentType.objects.update_or_create(
+            user=request.user,
+            step=step,
+            defaults={
+                'enrollment_type': enrollment_type,
+                'is_moderated': not enrollment_type.need_moderation,
+                'is_approved': not enrollment_type.need_moderation,
+                'entrance_level': None
+            }
+        )
+    else:
+        # TODO (andgein): show error if form is not valid
+        raise ValueError('Errors: ' + ', '.join(map(str, form.errors)))
+    return redirect('school:user', request.school.short_name)
+
+
+@require_POST
+@login_required
+def reset_step(request, step_id):
+    step = get_object_or_404(
+        models.SelectEnrollmentTypeEntranceStep,
+        id=step_id, school=request.school
+    )
+    models.SelectedEnrollmentType.objects.filter(
+        user=request.user,
+        step=step
+    ).delete()
+
+    return redirect('school:user', request.school.short_name)
