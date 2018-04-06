@@ -163,11 +163,20 @@ def exam(request, selected_task_id=None):
     except ValueError:
         selected_task_id = None
 
+    categories = list(sorted(
+        {task.category for task in tasks},
+        key=operator.attrgetter('order'),
+    ))
+    categories_with_tasks = [
+        (category, [task for task in tasks if task.category == category])
+        for category in categories
+    ]
+
     return render(request, 'entrance/exam.html', {
         'is_closed': is_closed,
         'entrance_level': base_level,
         'school': request.school,
-        'tasks': tasks,
+        'categories_with_tasks': categories_with_tasks,
         'is_user_at_maximum_level': upgrades.is_user_at_maximum_level(
             request.school,
             request.user,

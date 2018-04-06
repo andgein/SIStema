@@ -21,10 +21,12 @@
             {% include 'entrance/_exam_tasks_navigation.html' %}
         </ul>
         <div class="tab-content">
-            {% for task in tasks %}
-                <div class="entrance-exam__tab tab-pane {% ifequal task.id selected_task_id %}active{% endifequal %}" data-task-id="{{ task.id }}">
-                    {% include 'entrance/exam/'|add:task.template_file with index=forloop.counter task=task solution=test_task.user_solution.solution%}
-                </div>
+            {% for category, tasks in categories_with_tasks %}
+                {% for task in tasks %}
+                    <div class="entrance-exam__tab tab-pane {% ifequal task.id selected_task_id %}active{% endifequal %}" data-task-id="{{ task.id }}">
+                        {% include 'entrance/exam/'|add:task.template_file with index=forloop.counter task=task solution=test_task.user_solution.solution%}
+                    </div>
+                {% endfor %}
             {% endfor %}
         </div>
     </div>
