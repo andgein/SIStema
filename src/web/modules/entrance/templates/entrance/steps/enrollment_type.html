@@ -11,7 +11,6 @@
 {% endblock %}
 
 {% block not_passed_after_text %}
-
     {% if entrance_block.selected %}
         <form method="POST" action="{% url 'school:entrance:steps:reset' request.school.short_name entrance_block.step.id %}" class="admin-form">
     {% else %}
@@ -20,9 +19,14 @@
         {% csrf_token %}
         {{ entrance_block.form }}
 
-        {% if entrance_block.is_moderated %}
+        {% if entrance_block.is_moderating %}
             <div class="help-block">
                 {{ entrance_block.step.text_on_moderation|markdown }}
+            </div>
+        {% endif %}
+        {% if entrance_block.failed_moderation %}
+            <div class="text-danger mt5 mb10">
+                {{ entrance_block.step.text_failed_moderation|markdown }}
             </div>
         {% endif %}
 
@@ -46,6 +50,11 @@
     <form method="POST" action="{% url 'school:entrance:steps:reset' request.school.short_name entrance_block.step.id %}" class="admin-form">
         {{ entrance_block.form }}
         {% csrf_token %}
+        {% if entrance_block.passed_moderation %}
+            <div class="text-success-dark mt5">
+                {{ entrance_block.step.text_passed_moderation|markdown }}
+            </div>
+        {% endif %}
         <div class="pt25">
             <button type="submit" class="btn btn-danger">Изменить выбор</button>
         </div>

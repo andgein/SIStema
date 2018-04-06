@@ -619,6 +619,16 @@ class SelectEnrollmentTypeEntranceStep(AbstractEntranceStep, EntranceStepTextsMi
                   'находится на модерации. Поддерживается Markdown'
     )
 
+    text_passed_moderation = models.TextField(
+        help_text='Текст, который показывается пользователю, когда выбранный вариант '
+                  'прошёл модерацию. Поддерживается Markdown'
+    )
+
+    text_failed_moderation = models.TextField(
+        help_text='Текст, который показывается пользователю, когда выбранный вариант '
+                  'не прошёл модерацию. Поддерживается Markdown'
+    )
+
     def __str__(self):
         return 'Шаг выбора способа поступления для {}'.format(self.school)
 
@@ -663,11 +673,11 @@ class SelectEnrollmentTypeEntranceStep(AbstractEntranceStep, EntranceStepTextsMi
             initial=initial,
         )
 
-        block.is_moderated = SelectedEnrollmentType.objects.filter(
-            user=user,
-            step=self,
-            is_moderated=False,
-        ).exists()
+        block.is_moderating = selected is not None and not selected.is_moderated
+        block.passed_moderation = \
+            selected is not None and selected.is_moderated and selected.is_approved
+        block.failed_moderation = \
+            selected is not None and selected.is_moderated and not selected.is_approved
 
         return block
 
