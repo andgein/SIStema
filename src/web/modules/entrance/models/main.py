@@ -1,11 +1,12 @@
 import re
 
-from django.db import models, transaction, IntegrityError
-from django.urls import reverse
 import django.utils.timezone
+import djchoices
 import polymorphic.models
 import sizefield.models
-import djchoices
+from django.db import IntegrityError
+from django.db import models, transaction
+from django.urls import reverse
 
 import modules.ejudge.models
 import schools.models
@@ -86,11 +87,16 @@ class TestEntranceExamTask(EntranceExamTask):
     template_file = 'test.html'
     type_title = 'Тестовые задания'
 
-    correct_answer_re = models.CharField(max_length=100, help_text='Правильный ответ (регулярное выражение)')
+    correct_answer_re = models.CharField(
+        max_length=100,
+        help_text='Правильный ответ (регулярное выражение)',
+    )
 
-    validation_re = models.CharField(max_length=100,
-                                     help_text='Регулярное выражение для валидации ввода',
-                                     blank=True)
+    validation_re = models.CharField(
+        max_length=100,
+        help_text='Регулярное выражение для валидации ввода',
+        blank=True,
+    )
 
     def check_solution(self, solution):
         return re.fullmatch(self.correct_answer_re, solution) is not None
@@ -106,7 +112,10 @@ class TestEntranceExamTask(EntranceExamTask):
         initial = {}
         if len(user_solutions) > 0:
             initial['solution'] = user_solutions[0].solution
-        form = forms.TestEntranceTaskForm(self, initial=initial, *args, **kwargs)
+        form = forms.TestEntranceTaskForm(
+            self,
+            initial=initial,
+            *args, **kwargs)
         if self.exam.is_closed():
             form['solution'].field.widget.attrs['readonly'] = True
         return form
@@ -591,6 +600,7 @@ class EntranceStatus(models.Model):
     class Meta:
         verbose_name_plural = 'User entrance statuses'
         unique_together = ('school', 'user')
+
 
 # For using in templates
 EntranceStatus.do_not_call_in_templates = True
