@@ -46,6 +46,16 @@
     </form>
 {% endblock %}
 
+{% block passed_text %}
+    <div class="fs18 mb5">
+        {% if entrance_block.step_is_closed and entrance_block.step.text_after_finish_date_if_passed %}
+            {{ entrance_block.step.text_after_finish_date_if_passed|markdown }}
+        {% else %}
+            {{ entrance_block.step.text_step_is_passed|markdown }}
+        {% endif %}
+    </div>
+{% endblock %}
+
 {% block passed_after_text %}
     <form method="POST" action="{% url 'school:entrance:steps:reset' request.school.short_name entrance_block.step.id %}" class="admin-form">
         {{ entrance_block.form }}
