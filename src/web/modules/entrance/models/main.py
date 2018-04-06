@@ -14,6 +14,149 @@ import users.models
 from modules.entrance import forms
 
 
+class EntranceExam(models.Model):
+    school = models.OneToOneField(
+        schools.models.School,
+        on_delete=models.CASCADE,
+        related_name='entrance_exam',
+    )
+
+    close_time = models.DateTimeField(blank=True, default=None, null=True)
+
+    def __str__(self):
+        return 'Вступительная работа для %s' % self.school
+
+    def is_closed(self):
+        return (self.close_time is not None and
+                django.utils.timezone.now() >= self.close_time)
+
+    def get_absolute_url(self):
+        return reverse('school:entrance:exam', kwargs={
+            'school_name': self.school.short_name
+        })
+
+
+class EntranceLevel(models.Model):
+    """
+    Уровень вступительной работы.
+    Для каждой задачи могут быть указаны уровни, для которых она предназначена.
+    Уровень школьника определяется с помощью EntranceLevelLimiter'ов (например,
+    на основе тематической анкеты из модуля topics, класса в школе
+    или учёбы в других параллелях в прошлые годы)
+    """
+    school = models.ForeignKey(schools.models.School, on_delete=models.CASCADE)
+
+    short_name = models.CharField(
+        max_length=100,
+        help_text='Используется в урлах. '
+                  'Лучше обойтись латинскими буквами, цифрами и подчёркиванием'
+    )
+
+    name = models.CharField(max_length=100)
+
+    order = models.IntegerField(default=0)
+
+    tasks = models.ManyToManyField(
+        'EntranceExamTask',
+        blank=True,
+        related_name='entrance_levels',
+    )
+
+    def __str__(self):
+        return 'Уровень «%s» для %s' % (self.name, self.school)
+
+    def __gt__(self, other):
+        return self.order > other.order
+
+    def __lt__(self, other):
+        return self.order < other.order
+
+    def __ge__(self, other):
+        return self.order >= other.order
+
+    def __le__(self, other):
+        return self.order <= other.order
+
+    class Meta:
+        ordering = ('school_id', 'order')
+
+
+class EntranceLevelOverride(models.Model):
+    """
+    If present this level is used instead of dynamically computed one.
+    """
+    school = models.ForeignKey(
+        schools.models.School,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    user = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+        related_name='entrance_level_overrides',
+    )
+
+    entrance_level = models.ForeignKey(
+        EntranceLevel,
+        on_delete=models.CASCADE,
+        related_name='overrides',
+    )
+
+    class Meta:
+        unique_together = ('school', 'user')
+
+    def __str__(self):
+        return 'Уровень {} для {}'.format(self.entrance_level, self.user)
+
+    def save(self, *args, **kwargs):
+        if self.school != self.entrance_level.school:
+            raise IntegrityError(
+                'Entrance level override should belong to the same school as '
+                'its entrance level')
+        super().save(*args, **kwargs)
+
+
+class EntranceLevelUpgrade(models.Model):
+    user = models.ForeignKey(
+        users.models.User,
+        on_delete=models.CASCADE,
+    )
+
+    upgraded_to = models.ForeignKey(
+        EntranceLevel,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class EntranceLevelUpgradeRequirement(polymorphic.models.PolymorphicModel):
+    base_level = models.ForeignKey(
+        EntranceLevel,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_met_by_user(self, user):
+        # Always met by default. Override when subclassing.
+        return True
+
+
+class SolveTaskEntranceLevelUpgradeRequirement(EntranceLevelUpgradeRequirement):
+    task = models.ForeignKey(
+        'EntranceExamTask',
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    def is_met_by_user(self, user):
+        return self.task.is_solved_by_user(user)
+
+
 class EntranceExamTask(polymorphic.models.PolymorphicModel):
     title = models.CharField(max_length=100, help_text='Название')
 
@@ -218,109 +361,6 @@ class OutputOnlyEntranceExamTask(EjudgeEntranceExamTask):
         return OutputOnlyEntranceExamTaskSolution
 
 
-class EntranceExam(models.Model):
-    school = models.OneToOneField(
-        schools.models.School,
-        on_delete=models.CASCADE,
-        related_name='entrance_exam',
-    )
-
-    close_time = models.DateTimeField(blank=True, default=None, null=True)
-
-    def __str__(self):
-        return 'Вступительная работа для %s' % self.school
-
-    def is_closed(self):
-        return (self.close_time is not None and
-                django.utils.timezone.now() >= self.close_time)
-
-    def get_absolute_url(self):
-        return reverse('school:entrance:exam', kwargs={
-            'school_name': self.school.short_name
-        })
-
-
-class EntranceLevel(models.Model):
-    """
-    Уровень вступительной работы.
-    Для каждой задачи могут быть указаны уровни, для которых она предназначена.
-    Уровень школьника определяется с помощью EntranceLevelLimiter'ов (например,
-    на основе тематической анкеты из модуля topics, класса в школе
-    или учёбы в других параллелях в прошлые годы)
-    """
-    school = models.ForeignKey(schools.models.School, on_delete=models.CASCADE)
-
-    short_name = models.CharField(
-        max_length=100,
-        help_text='Используется в урлах. '
-                  'Лучше обойтись латинскими буквами, цифрами и подчёркиванием'
-    )
-
-    name = models.CharField(max_length=100)
-
-    order = models.IntegerField(default=0)
-
-    tasks = models.ManyToManyField(
-        EntranceExamTask,
-        blank=True,
-        related_name='entrance_levels',
-    )
-
-    def __str__(self):
-        return 'Уровень «%s» для %s' % (self.name, self.school)
-
-    def __gt__(self, other):
-        return self.order > other.order
-
-    def __lt__(self, other):
-        return self.order < other.order
-
-    def __ge__(self, other):
-        return self.order >= other.order
-
-    def __le__(self, other):
-        return self.order <= other.order
-
-    class Meta:
-        ordering = ('school_id', 'order')
-
-
-class EntranceLevelOverride(models.Model):
-    """
-    If present this level is used instead of dynamically computed one.
-    """
-    school = models.ForeignKey(
-        schools.models.School,
-        on_delete=models.CASCADE,
-        related_name='+',
-    )
-
-    user = models.ForeignKey(
-        users.models.User,
-        on_delete=models.CASCADE,
-        related_name='entrance_level_overrides',
-    )
-
-    entrance_level = models.ForeignKey(
-        EntranceLevel,
-        on_delete=models.CASCADE,
-        related_name='overrides',
-    )
-
-    class Meta:
-        unique_together = ('school', 'user')
-
-    def __str__(self):
-        return 'Уровень {} для {}'.format(self.entrance_level, self.user)
-
-    def save(self, *args, **kwargs):
-        if self.school != self.entrance_level.school:
-            raise IntegrityError(
-                'Entrance level override should belong to the same school as '
-                'its entrance level')
-        super().save(*args, **kwargs)
-
-
 class EntranceExamTaskSolution(polymorphic.models.PolymorphicModel):
     task = models.ForeignKey(
         EntranceExamTask,
@@ -392,46 +432,6 @@ class ProgramEntranceExamTaskSolution(EjudgeEntranceExamTaskSolution):
 
 class OutputOnlyEntranceExamTaskSolution(EjudgeEntranceExamTaskSolution):
     pass
-
-
-class EntranceLevelUpgrade(models.Model):
-    user = models.ForeignKey(
-        users.models.User,
-        on_delete=models.CASCADE,
-    )
-
-    upgraded_to = models.ForeignKey(
-        EntranceLevel,
-        on_delete=models.CASCADE,
-        related_name='+',
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-class EntranceLevelUpgradeRequirement(polymorphic.models.PolymorphicModel):
-    base_level = models.ForeignKey(
-        EntranceLevel,
-        on_delete=models.CASCADE,
-        related_name='+',
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def is_met_by_user(self, user):
-        # Always met by default. Override when subclassing.
-        return True
-
-
-class SolveTaskEntranceLevelUpgradeRequirement(EntranceLevelUpgradeRequirement):
-    task = models.ForeignKey(
-        EntranceExamTask,
-        on_delete=models.CASCADE,
-        related_name='+',
-    )
-
-    def is_met_by_user(self, user):
-        return self.task.is_solved_by_user(user)
 
 
 class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
