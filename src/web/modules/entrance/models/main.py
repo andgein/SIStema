@@ -4,19 +4,18 @@ import django.utils.timezone
 import djchoices
 import polymorphic.models
 import sizefield.models
+from django.conf import settings
 from django.db import IntegrityError
 from django.db import models, transaction
 from django.urls import reverse
 
 import modules.ejudge.models
-import schools.models
-import users.models
 from modules.entrance import forms
 
 
 class EntranceExam(models.Model):
     school = models.OneToOneField(
-        schools.models.School,
+        'schools.School',
         on_delete=models.CASCADE,
         related_name='entrance_exam',
     )
@@ -44,7 +43,7 @@ class EntranceLevel(models.Model):
     на основе тематической анкеты из модуля topics, класса в школе
     или учёбы в других параллелях в прошлые годы)
     """
-    school = models.ForeignKey(schools.models.School, on_delete=models.CASCADE)
+    school = models.ForeignKey('schools.School', on_delete=models.CASCADE)
 
     short_name = models.CharField(
         max_length=100,
@@ -86,19 +85,19 @@ class EntranceLevelOverride(models.Model):
     If present this level is used instead of dynamically computed one.
     """
     school = models.ForeignKey(
-        schools.models.School,
+        'schools.School',
         on_delete=models.CASCADE,
         related_name='+',
     )
 
     user = models.ForeignKey(
-        users.models.User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='entrance_level_overrides',
     )
 
     entrance_level = models.ForeignKey(
-        EntranceLevel,
+        'EntranceLevel',
         on_delete=models.CASCADE,
         related_name='overrides',
     )
@@ -119,12 +118,12 @@ class EntranceLevelOverride(models.Model):
 
 class EntranceLevelUpgrade(models.Model):
     user = models.ForeignKey(
-        users.models.User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
     )
 
     upgraded_to = models.ForeignKey(
-        EntranceLevel,
+        'EntranceLevel',
         on_delete=models.CASCADE,
         related_name='+',
     )
@@ -134,7 +133,7 @@ class EntranceLevelUpgrade(models.Model):
 
 class EntranceLevelUpgradeRequirement(polymorphic.models.PolymorphicModel):
     base_level = models.ForeignKey(
-        EntranceLevel,
+        'EntranceLevel',
         on_delete=models.CASCADE,
         related_name='+',
     )
@@ -363,13 +362,13 @@ class OutputOnlyEntranceExamTask(EjudgeEntranceExamTask):
 
 class EntranceExamTaskSolution(polymorphic.models.PolymorphicModel):
     task = models.ForeignKey(
-        EntranceExamTask,
+        'EntranceExamTask',
         on_delete=models.CASCADE,
         related_name='solutions',
     )
 
     user = models.ForeignKey(
-        users.models.User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='entrance_exam_solutions',
     )
@@ -405,7 +404,7 @@ class FileEntranceExamTaskSolution(EntranceExamTaskSolution):
 
 class EjudgeEntranceExamTaskSolution(EntranceExamTaskSolution):
     ejudge_queue_element = models.ForeignKey(
-        modules.ejudge.models.QueueElement,
+        'ejudge.QueueElement',
         on_delete=models.CASCADE,
     )
 
@@ -424,7 +423,7 @@ class EjudgeEntranceExamTaskSolution(EntranceExamTaskSolution):
 
 class ProgramEntranceExamTaskSolution(EjudgeEntranceExamTaskSolution):
     language = models.ForeignKey(
-        modules.ejudge.models.ProgrammingLanguage,
+        'ejudge.ProgrammingLanguage',
         on_delete=models.CASCADE,
         related_name='+',
     )
@@ -436,13 +435,13 @@ class OutputOnlyEntranceExamTaskSolution(EjudgeEntranceExamTaskSolution):
 
 class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
     school = models.ForeignKey(
-        schools.models.School,
+        'schools.School',
         on_delete=models.CASCADE,
         related_name='absence_reasons'
     )
 
     user = models.ForeignKey(
-        users.models.User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='absence_reasons',
     )
@@ -458,7 +457,7 @@ class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
     )
 
     created_by = models.ForeignKey(
-        users.models.User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='+',
         null=True,
@@ -509,20 +508,20 @@ class EntranceStatus(models.Model):
         IN_RESERVE_LIST = djchoices.ChoiceItem(6, 'В резервном списке')
 
     school = models.ForeignKey(
-        schools.models.School,
+        'schools.School',
         on_delete=models.CASCADE,
         related_name='entrance_statuses',
     )
 
     user = models.ForeignKey(
-        users.models.User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='entrance_statuses',
     )
 
     # created_by=None means system's auto creating
     created_by = models.ForeignKey(
-        users.models.User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='+',
         blank=True,
@@ -547,7 +546,7 @@ class EntranceStatus(models.Model):
         validators=[Status.validator])
 
     session = models.ForeignKey(
-        schools.models.Session,
+        'schools.Session',
         on_delete=models.CASCADE,
         blank=True,
         null=True,
@@ -555,7 +554,7 @@ class EntranceStatus(models.Model):
     )
 
     parallel = models.ForeignKey(
-        schools.models.Parallel,
+        'schools.Parallel',
         on_delete=models.CASCADE,
         blank=True,
         null=True,
