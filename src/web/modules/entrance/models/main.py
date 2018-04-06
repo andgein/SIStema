@@ -5,8 +5,7 @@ import djchoices
 import polymorphic.models
 import sizefield.models
 from django.conf import settings
-from django.db import IntegrityError
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.urls import reverse
 
 import modules.ejudge.models
@@ -156,6 +155,42 @@ class SolveTaskEntranceLevelUpgradeRequirement(EntranceLevelUpgradeRequirement):
         return self.task.is_solved_by_user(user)
 
 
+class EntranceExamTaskCategory(models.Model):
+    """
+    Tasks are displayed in these categories on the exam page.
+    """
+    exam = models.ForeignKey(
+        'EntranceExam',
+        on_delete=models.CASCADE,
+        verbose_name="экзамен",
+        related_name='task_categories',
+    )
+
+    short_name = models.SlugField(
+        help_text="Может состоять только из букв, цифр, знака подчеркивания и "
+                  "дефиса.",
+    )
+
+    title = models.CharField(
+        verbose_name="заголовок",
+        max_length=100,
+        help_text="Заголовок категории, например «Практические задачи:»",
+    )
+
+    order = models.IntegerField(
+        verbose_name="порядок",
+        help_text="Категории задач отображаются в заданном порядке",
+    )
+
+    class Meta:
+        unique_together = [('exam', 'short_name'), ('exam', 'order')]
+        verbose_name = 'category'
+        verbose_name_plural = 'categories'
+
+    def __str__(self):
+        return 'Категория задач «{}» для «{}»'.format(self.title, self.exam)
+
+
 class EntranceExamTask(polymorphic.models.PolymorphicModel):
     title = models.CharField(max_length=100, help_text='Название')
 
@@ -165,6 +200,13 @@ class EntranceExamTask(polymorphic.models.PolymorphicModel):
         'EntranceExam',
         on_delete=models.CASCADE,
         related_name='%(class)s',
+    )
+
+    category = models.ForeignKey(
+        'EntranceExamTaskCategory',
+        on_delete=models.CASCADE,
+        verbose_name='категория',
+        related_name='tasks',
     )
 
     help_text = models.CharField(
@@ -192,6 +234,14 @@ class EntranceExamTask(polymorphic.models.PolymorphicModel):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if self.category.exam_id != self.exam_id:
+            raise IntegrityError(
+                "{}.{}: task's category should belong to the same exam as the "
+                "task itself".format(self.__module__, self.__class__.__name__)
+            )
+        super().save(*args, **kwargs)
 
     def is_solved_by_user(self, user):
         # Always not solved by default. Override when subclassing.

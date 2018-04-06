@@ -11,11 +11,20 @@ from modules.entrance import models
 @admin.register(models.EntranceExamTask)
 class EntranceExamTaskAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     base_model = models.EntranceExamTask
-    list_display = ('id', 'get_description_html', 'exam', 'order')
+    list_display = ('id', 'get_description_html', 'category', 'order')
     list_display_links = ('id', 'get_description_html')
     list_filter = ('exam', PolymorphicChildModelFilter)
     ordering = ('exam', 'order')
     search_fields = ('title', 'exam__school__name')
+
+
+@admin.register(models.EntranceExamTaskCategory)
+class EntranceExamTaskCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'exam', 'title', 'order')
+    list_filter = ('exam',)
+    ordering = ('-exam', 'order')
+    autocomplete_fields = ('exam',)
+    search_fields = ('=id', 'title', 'exam__school__name')
 
 
 @admin.register(models.TestEntranceExamTask)
@@ -31,7 +40,7 @@ class EntranceExamTaskChildAdmin(PolymorphicChildModelAdmin):
 class EntranceExamAdmin(admin.ModelAdmin):
     list_display = ('id', 'school', 'close_time')
     list_filter = ('school',)
-    search_fields = ('=id',)
+    search_fields = ('=id', 'school__name')
     ordering = ('-school', 'id')
 
 
