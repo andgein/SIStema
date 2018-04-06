@@ -1,4 +1,5 @@
 import enum
+import operator
 
 from django.db import models, transaction, IntegrityError
 from django.conf import settings
@@ -364,20 +365,23 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
         for task in tasks:
             task.is_solved = task.is_solved_by_user(user)
 
-        test_tasks = [t for t in tasks
-                      if type(t) is entrance_models.TestEntranceExamTask]
-        file_tasks = [t for t in tasks
-                      if type(t) is entrance_models.FileEntranceExamTask]
-        practice_tasks = [t for t in tasks
-                          if isinstance(t, entrance_models.EjudgeEntranceExamTask)]
+        categories = list(sorted(
+            {task.category for task in tasks},
+            key=operator.attrgetter('order'),
+        ))
+        categories_with_tasks = [
+            (category, [task for task in tasks if task.category == category])
+            for category in categories
+        ]
 
-        block.test_tasks_count = len(test_tasks)
-        block.file_tasks_count = len(file_tasks)
-        block.practice_tasks_count = len(practice_tasks)
-
-        block.test_tasks_solved_count = self._get_solved_count(test_tasks)
-        block.file_tasks_solved_count = self._get_solved_count(file_tasks)
-        block.practice_tasks_solved_count = self._get_solved_count(practice_tasks)
+        block.task_category_stats = [
+            {
+                'category': category,
+                'total_count': len(tasks),
+                'solved_count': self._get_solved_count(tasks)
+            }
+            for category, tasks in categories_with_tasks
+        ]
 
         block.level = entrance_upgrades.get_maximum_issued_entrance_level(
             self.school,
