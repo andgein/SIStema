@@ -767,11 +767,11 @@ class SelectedEnrollmentType(models.Model):
     def save(self, *args, **kwargs):
         if (self.entrance_level is not None and
            self.enrollment_type.step.school_id != self.entrance_level.school_id):
-            raise IntegrityError('Can\'t save EnrollmentTypeModerationRequest: '
+            raise IntegrityError('Can\'t save SelectedEnrollmentType: '
                                  'Entrance step should belong to the same school '
                                  'as entrance level')
         if self.enrollment_type.step_id != self.step_id:
-            raise IntegrityError('Can\'t save EnrollmentTypeModerationRequest: '
+            raise IntegrityError('Can\'t save SelectedEnrollmentType: '
                                  'Enrollment type should belong to the same step '
                                  'as this object')
         super().save(*args, **kwargs)
