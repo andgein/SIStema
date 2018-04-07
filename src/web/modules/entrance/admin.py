@@ -403,7 +403,13 @@ class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
     )
     list_display_links = ('id', 'user')
     list_filter = ('enrollment_type__step__school', 'is_moderated', 'is_approved')
-    autocomplete_fields = ('user', 'step', 'enrollment_type', 'entrance_level')
+    autocomplete_fields = (
+        'user',
+        'step',
+        'enrollment_type',
+        'parallel',
+        'entrance_level',
+    )
 
 
 @admin.register(models.EntranceUserMetric)
