@@ -29,40 +29,34 @@ class EntranceLevelLimit:
 
 class AlreadyWasEntranceLevelLimiter(EntranceLevelLimiter):
     # TODO: move it to settings?
-    question_short_name = 'previous_parallels'
+    limit_for_parallel = {
+        'a': 'a',
+        'a0': 'a',
+        'a_ml': 'a',
+        'a_prime': 'a',
+        'aa': 'a',
+        'as': 'a',
+        'ay': 'a',
+        'b': 'a_prime',
+        'b_prime': 'b',
+        'c': 'b_prime',
+        'c.cpp': 'b_prime',
+        'c.python': 'b_prime',
+        'c_prime': 'c',
+        'd': 'c_prime',
+    }
 
     def get_limit(self, user):
-        qs = QuestionnaireAnswer.objects.filter(
-            questionnaire__school=self.school,
-            user=user,
-            question_short_name=self.question_short_name
-        )
-        if not qs.exists():
-            return EntranceLevelLimit(self._find_minimal_level())
-
-        answers = list(qs)
-        variants = list(ChoiceQuestionnaireQuestionVariant.objects.filter(
-                question__questionnaire__school=self.school,
-                question__short_name=self.question_short_name
-        ))
-        answers = [a.answer for a in answers]
-        variants = [v.text for v in variants if str(v.id) in answers]
-
         levels = models.EntranceLevel.objects.filter(school=self.school)
-        if 'A' in variants or 'AS' in variants or 'AA' in variants or 'A\'' in variants or 'AY' in variants:
-            return EntranceLevelLimit(levels.filter(short_name='a').get())
-        if 'B' in variants or 'P' in variants:
-            return EntranceLevelLimit(levels.filter(short_name='a_prime').get())
-        if 'B\'' in variants:
-            return EntranceLevelLimit(levels.filter(short_name='b').get())
-        if 'C' in variants:
-            return EntranceLevelLimit(levels.filter(short_name='b_prime').get())
-        if 'C\'' in variants:
-            return EntranceLevelLimit(levels.filter(short_name='c').get())
-        if 'D' in variants:
-            return EntranceLevelLimit(levels.filter(short_name='c_prime').get())
+        limit = EntranceLevelLimit(self._find_minimal_level())
+        for participation in user.school_participations.all():
+            limit_short_name = self.limit_for_parallel.get(
+                participation.parallel.short_name)
+            if limit_short_name is not None:
+                limit_level = levels.get(short_name=limit_short_name)
+                limit.update_with_other(EntranceLevelLimit(limit_level))
 
-        return EntranceLevelLimit(self._find_minimal_level())
+        return limit
 
 
 class AgeEntranceLevelLimiter(EntranceLevelLimiter):
