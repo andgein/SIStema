@@ -5,6 +5,7 @@ from allauth.account import forms as account_forms
 from allauth.socialaccount import forms as social_account_forms
 
 from django.core import exceptions as django_exceptions
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from frontend.forms import TextInputWithFaIcon, PasswordInputWithFaIcon, \
     SistemaRadioSelect, SistemaCheckboxSelect
@@ -253,17 +254,15 @@ class UserProfileForm(forms.Form):
         coerce=bool,
         choices=[(
             True,
-            {
+            mark_safe(
                 # TODO (andgein): doesn't hard-code url to the agreement.pdf
-                'label':
-                    'Я даю свое согласие на передачу организатору ЛКШ, НОУ «МЦНМО», '
-                    'анкеты, содержащей мои персональные данные, и согласен с тем, '
-                    'что они будут храниться в НОУ «МЦНМО» и будут использованы '
-                    'в соответствии с Федеральным законом «О персональных данных». '
-                    'Даю согласие на обработку и проверку своего вступительного '
-                    'испытания. Ознакомлен с <a href="/static/users/agreement.pdf">договором присоединения</a>.',
-                'is_html': True,
-             }
+                'Я даю свое согласие на передачу организатору ЛКШ, НОУ&nbsp;«МЦНМО», '
+                'анкеты, содержащей мои персональные данные, и согласен с&nbsp;тем, '
+                'что они будут храниться в&nbsp;НОУ&nbsp;«МЦНМО» и будут использованы '
+                'в соответствии с&nbsp;Федеральным законом «О&nbsp;персональных данных». '
+                'Даю согласие на&nbsp;обработку и проверку своего вступительного '
+                'испытания. Ознакомлен с&nbsp;<a href="/static/users/agreement.pdf">договором присоединения</a>.'
+            )
         )],
         label='Согласие на обработку персональных данных',
         required=True,
