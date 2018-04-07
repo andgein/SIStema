@@ -26,7 +26,11 @@
         {% endif %}
         {% if entrance_block.failed_moderation %}
             <div class="text-danger mt5 mb10">
-                {{ entrance_block.step.text_failed_moderation|markdown }}
+                {% if entrance_block.selected.custom_resolution_text %}
+                    {{ entrance_block.selected.custom_resolution_text|markdown }}
+                {% else %}
+                    {{ entrance_block.step.text_failed_moderation|markdown }}
+                {% endif %}
             </div>
         {% endif %}
 
@@ -62,7 +66,11 @@
         {% csrf_token %}
         {% if entrance_block.passed_moderation %}
             <div class="text-success-dark mt5">
-                {{ entrance_block.step.text_passed_moderation|markdown }}
+                {% if entrance_block.selected.custom_resolution_text %}
+                    {{ entrance_block.selected.custom_resolution_text|markdown }}
+                {% else %}
+                    {{ entrance_block.step.text_passed_moderation|markdown }}
+                {% endif %}
             </div>
         {% endif %}
         <div class="pt25">

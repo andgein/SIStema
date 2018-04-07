@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, IntegrityError
 
 import modules.entrance.models.steps as entrance_steps
 
@@ -36,7 +36,7 @@ class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
         if (self.questionnaire_id is not None and
            self.questionnaire.school is not None and
            self.school_id != self.questionnaire.school_id):
-            raise ValueError(
+            raise IntegrityError(
                 'topics.entrance.steps.FillTopicsQuestionnaireEntranceStep: '
                 'questionnaire should belong to step\'s school')
         super().save(*args, **kwargs)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.urls import reverse
-from django.db import models
+from django.db import models, IntegrityError
 import django.utils.dateformat
 
 from constance import config
@@ -170,7 +170,7 @@ class Group(models.Model):
 
     def save(self, *args, **kwargs):
         if self.parallel.school_id != self.session.school_id:
-            raise ValueError(
+            raise IntegrityError(
                 'Error while saving study group: parallel ({}) and session '
                 '({}) should belong to the same school.'
                 .format(self.parallel, self.session)

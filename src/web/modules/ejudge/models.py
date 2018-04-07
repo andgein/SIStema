@@ -1,5 +1,5 @@
 import djchoices
-from django.db import models
+from django.db import models, IntegrityError
 
 
 class ProgrammingLanguage(models.Model):
@@ -183,7 +183,7 @@ class QueueElement(models.Model):
     def save(self, *args, **kwargs):
         if (self.status == QueueElement.Status.CHECKED and
                 self.submission is None):
-            raise ValueError(
+            raise IntegrityError(
                 'modules.ejudge.models.QueueElement: submission can\'t be None '
                 'if status is CHECKED')
 

@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, IntegrityError
 
 import groups.models
 from questionnaire.models import Questionnaire
@@ -28,7 +28,7 @@ class UsersNotFilledQuestionnaireGroup(groups.models.AbstractGroup):
 
     def save(self, *args, **kwargs):
         if self.questionnaire.must_fill is None:
-            raise ValueError('Questionnaire should have not-null field must_fill')
+            raise IntegrityError('Questionnaire should have not-null field must_fill')
         super().save(*args, **kwargs)
 
     @property

@@ -95,9 +95,9 @@ class EnrollmentTypeEntranceLevelLimiter(EntranceLevelLimiter):
 
         current_limit = EntranceLevelLimit(None)
         for selected_enrollment_type in selected_enrollment_types:
-            if selected_enrollment_type.is_moderated and \
-               selected_enrollment_type.is_approved and \
-               selected_enrollment_type.entrance_level is not None:
+            if (selected_enrollment_type.is_moderated and
+               selected_enrollment_type.is_approved and
+               selected_enrollment_type.entrance_level is not None):
                 current_limit.update_with_other(
                     EntranceLevelLimit(selected_enrollment_type.entrance_level)
                 )

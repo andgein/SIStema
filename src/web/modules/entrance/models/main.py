@@ -1,6 +1,6 @@
 import re
 
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.urls import reverse
 import django.utils.timezone
 import polymorphic.models
@@ -306,7 +306,7 @@ class EntranceLevelOverride(models.Model):
 
     def save(self, *args, **kwargs):
         if self.school != self.entrance_level.school:
-            raise ValueError(
+            raise IntegrityError(
                 'Entrance level override should belong to the same school as '
                 'its entrance level')
         super().save(*args, **kwargs)

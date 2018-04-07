@@ -357,9 +357,9 @@ class FillQuestionnaireEntranceStepChildAdmin(EntranceStepChildAdmin):
 
 @admin.register(models.EnrollmentType)
 class EnrollmentTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'text', 'step', 'need_moderation')
+    list_display = ('id', 'text', 'step', 'needs_moderation')
     list_display_links = ('id', 'text')
-    list_filter = ('step__school', 'need_moderation')
+    list_filter = ('step__school', 'needs_moderation')
     search_fields = ('=id', 'text')
     ordering = ('step__school', 'step', 'text')
 

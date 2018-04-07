@@ -1,6 +1,6 @@
 import enum
 
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.conf import settings
 from polymorphic import models as polymorphic_models
 
@@ -192,12 +192,16 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
     def save(self, *args, **kwargs):
         if (self.session is not None and
            self.session.school_id != self.school_id):
-            raise ValueError('modules.entrance.models.AbstractEntranceStep: '
-                             'session should belong to the same school as step')
+            raise IntegrityError(
+                'AbstractEntranceStep: '
+                'session should belong to the same school as step'
+            )
         if (self.parallel is not None and
            self.parallel.school_id != self.school_id):
-            raise ValueError('modules.entrance.models.AbstractEntranceStep: '
-                             'parallel should belong to the same school as step')
+            raise IntegrityError(
+                'AbstractEntranceStep: '
+                'parallel should belong to the same school as step'
+            )
         super().save(*args, **kwargs)
 
     def is_opened(self, user):
@@ -306,8 +310,10 @@ class FillQuestionnaireEntranceStep(AbstractEntranceStep,
         if (self.questionnaire_id is not None and
            self.questionnaire.school is not None and
            self.school_id != self.questionnaire.school_id):
-            raise ValueError('entrance.steps.FillQuestionnaireEntranceStep: '
-                             'questionnaire should belong to step\'s school')
+            raise IntegrityError(
+                'FillQuestionnaireEntranceStep: '
+                'questionnaire should belong to the same school as step'
+            )
         super().save(*args, **kwargs)
 
     def is_passed(self, user):
@@ -333,8 +339,10 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
     def save(self, *args, **kwargs):
         if (self.exam is not None and
            self.school_id != self.exam.school_id):
-            raise ValueError('entrance.steps.SolveExamEntranceStep: '
-                             'exam should belong to step\'s school')
+            raise IntegrityError(
+                'entrance.steps.SolveExamEntranceStep: '
+                'exam should belong to step\'s school'
+            )
         super().save(*args, **kwargs)
 
     def is_passed(self, user):
@@ -441,9 +449,9 @@ class ResultsEntranceStep(AbstractEntranceStep):
         elif entrance_status.is_in_reserve_list:
             message = ('Вы находитесь в резервном списке на поступление. '
                        'Вы будете зачислены в ' + self.school.name + ' '
-                       'в случае появления свободных мест. '
-                       'К сожалению, мы не можем гарантировать, '
-                       'что это произойдёт.')
+                                                                     'в случае появления свободных мест. '
+                                                                     'К сожалению, мы не можем гарантировать, '
+                                                                     'что это произойдёт.')
             if entrance_status.public_comment:
                 message += '\nПричина: ' + entrance_status.public_comment
         else:
@@ -476,6 +484,7 @@ class MakeUserParticipatingEntranceStep(AbstractEntranceStep):
     Invisible step for add record about participating user
     in school enrollment process. I.e. insert it before SolveExamEntranceStep
     """
+
     def is_visible(self, user):
         return False
 
@@ -490,7 +499,7 @@ class MakeUserParticipatingEntranceStep(AbstractEntranceStep):
                     user=user,
                 ).first()
                 if (current is None or
-                   current.status == entrance_models.EntranceStatus.Status.NOT_PARTICIPATED):
+                    current.status == entrance_models.EntranceStatus.Status.NOT_PARTICIPATED):
                     entrance_models.EntranceStatus.create_or_update(
                         self.school,
                         user,
@@ -531,14 +540,14 @@ class UserParticipatedInSchoolEntranceStep(AbstractEntranceStep,
 
     def is_passed(self, user):
         return (
-            user.school_participations
-            .filter(school=self.school_to_check_participation)
-            .exists()
-        ) or (
-            self.exceptions
-            .filter(user_id=user.id)
-            .exists()
-        )
+                   user.school_participations
+                       .filter(school=self.school_to_check_participation)
+                       .exists()
+               ) or (
+                   self.exceptions
+                       .filter(user_id=user.id)
+                       .exists()
+               )
 
     def build(self, user):
         block = super().build(user)
@@ -573,9 +582,9 @@ class UserParticipatedInSchoolEntranceStepException(models.Model):
     def __str__(self):
         return (
             'Исключение для пользователя {} в шаге проверки участия в {} для {}'
-            .format(self.user,
-                    self.step.school_to_check_participation,
-                    self.step.school)
+                .format(self.user,
+                        self.step.school_to_check_participation,
+                        self.step.school)
         )
 
 
@@ -610,7 +619,7 @@ class SelectEnrollmentTypeEntranceStep(AbstractEntranceStep, EntranceStepTextsMi
     auto-enrollment etc. Creates moderation request for some options.
     Options are described in EnrollmentType model.
     """
-    template_file = 'enrollment_type.html'
+    template_file = 'select_enrollment_type.html'
 
     with_background = False
 
@@ -646,8 +655,8 @@ class SelectEnrollmentTypeEntranceStep(AbstractEntranceStep, EntranceStepTextsMi
         if selected is None:
             return False
 
-        # If selected enrollment type don't need moderation, step is passed
-        if not selected.enrollment_type.need_moderation:
+        # If selected enrollment type doesn't need moderation, step is passed
+        if not selected.enrollment_type.needs_moderation:
             return True
 
         return selected.is_approved
@@ -693,7 +702,7 @@ class EnrollmentType(models.Model):
         help_text='Например, «По вступительной работе»',
     )
 
-    need_moderation = models.BooleanField(
+    needs_moderation = models.BooleanField(
         help_text='Нужна ли модерация, если пользователь выбрал этот тип поступления',
     )
 
@@ -721,12 +730,12 @@ class SelectedEnrollmentType(models.Model):
     )
 
     is_moderated = models.BooleanField(
-        help_text='Обработан ли запрос',
+        help_text='Обработана ли заявка',
         db_index=True,
     )
 
     is_approved = models.BooleanField(
-        help_text='Одобрен ли запрос',
+        help_text='Одобрена ли заявка',
         db_index=True,
     )
 
@@ -740,6 +749,13 @@ class SelectedEnrollmentType(models.Model):
         null=True,
     )
 
+    custom_resolution_text = models.TextField(
+        help_text='Текст, объясняющий решение организаторов. Можно не указывать, '
+                  'тогда школьнику покажется текст по умолчанию в зависимости '
+                  'от того, одобрена ли заявка. Поддерживается Markdown',
+        blank=True,
+    )
+
     class Meta:
         unique_together = ('user', 'step')
 
@@ -749,13 +765,13 @@ class SelectedEnrollmentType(models.Model):
         )
 
     def save(self, *args, **kwargs):
-        if self.entrance_level is not None and \
-           self.enrollment_type.step.school_id != self.entrance_level.school_id:
-            raise ValueError('Can\'t save EnrollmentTypeModerationRequest: '
-                             'Entrance step should belong to the same school '
-                             'as entrance level')
+        if (self.entrance_level is not None and
+           self.enrollment_type.step.school_id != self.entrance_level.school_id):
+            raise IntegrityError('Can\'t save EnrollmentTypeModerationRequest: '
+                                 'Entrance step should belong to the same school '
+                                 'as entrance level')
         if self.enrollment_type.step_id != self.step_id:
-            raise ValueError('Can\'t save EnrollmentTypeModerationRequest: '
-                             'Enrollment type should belong to the same step '
-                             'as this object')
+            raise IntegrityError('Can\'t save EnrollmentTypeModerationRequest: '
+                                 'Enrollment type should belong to the same step '
+                                 'as this object')
         super().save(*args, **kwargs)

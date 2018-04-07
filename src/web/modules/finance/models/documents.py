@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, IntegrityError
 import django.db.migrations.writer
 from django.conf import settings
 
@@ -71,7 +71,7 @@ class DocumentType(models.Model):
 
     def save(self, *args, **kwargs):
         if self.session is not None and self.session.school_id != self.school_id:
-            raise ValueError('Session should belong to the same school ')
+            raise IntegrityError('Session should belong to the same school ')
         super().save(*args, **kwargs)
 
     def is_need_for_user(self, user):

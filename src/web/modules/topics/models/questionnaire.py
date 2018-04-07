@@ -3,7 +3,7 @@ from django import forms
 from django.apps import apps
 from django.conf import settings
 from django.core import validators
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.forms import widgets
 from django.urls import reverse
 from djchoices import choices
@@ -216,7 +216,7 @@ class LevelDependency(models.Model):
         q1 = self.source_level.questionnaire
         q2 = self.destination_level.questionnaire
         if q1 != q2 or q2 != self.questionnaire:
-            raise ValueError(
+            raise IntegrityError(
                 'topics.settings.LevelDependency: source_level and '
                 'destination_level should be set up as one of questionnaire '
                 'level')
@@ -441,8 +441,9 @@ class Topic(models.Model):
         if self.level.questionnaire == self.questionnaire:
             super(Topic, self).save(*args, **kwargs)
         else:
-            raise ValueError('topics.settings.Topic: level must be set up as '
-                             'one of questionnaire level')
+            raise IntegrityError(
+                'topics.settings.Topic: level must be set up as '
+                'one of questionnaire level')
 
     def __str__(self):
         return '%s. Тема «%s»' % (self.questionnaire, self.title)
@@ -569,11 +570,12 @@ class TopicDependency(models.Model):
     destination_mark = models.PositiveIntegerField()
 
     def save(self, *args, **kwargs):
-        if self.source.questionnaire == self.destination.questionnaire:
-            super(TopicDependency, self).save(*args, **kwargs)
-        else:
-            raise ValueError('topics.settings.TopicDependency: source and '
-                             'destination should be from one questionnaire')
+        if self.source.questionnaire.id != self.destination.questionnaire.id:
+            raise IntegrityError(
+                'topics.settings.TopicDependency: source and '
+                'destination should be from one questionnaire'
+            )
+        super(TopicDependency, self).save(*args, **kwargs)
 
     def __str__(self):
         return 'Зависимость от «%s» (оценка %d) к «%s» (оценка %d)' % (

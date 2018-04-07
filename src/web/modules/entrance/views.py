@@ -406,8 +406,8 @@ def set_enrollment_type(request, step_id):
             step=step,
             defaults={
                 'enrollment_type': enrollment_type,
-                'is_moderated': not enrollment_type.need_moderation,
-                'is_approved': not enrollment_type.need_moderation,
+                'is_moderated': not enrollment_type.needs_moderation,
+                'is_approved': not enrollment_type.needs_moderation,
                 'entrance_level': None
             }
         )

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django import conf
-from django.db import models
+from django.db import models, IntegrityError
 import schools.models
 
 
@@ -213,11 +213,13 @@ class HistoryEntry(models.Model):
 
     def save(self, *args, **kwargs):
         if (self.session is not None
-                and self.study_group is not None
-                and self.study_group.parallel is not None
-                and self.session != self.study_group.parallel.session):
-            raise ValueError('poldnev.models.HistoryEntry: '
-                             'study_group should belong to entry\'s session')
+           and self.study_group is not None
+           and self.study_group.parallel is not None
+           and self.session != self.study_group.parallel.session):
+            raise IntegrityError(
+                'poldnev.models.HistoryEntry: '
+                'study_group should belong to entry\'s session'
+            )
         super().save(*args, **kwargs)
 
     def __str__(self):
