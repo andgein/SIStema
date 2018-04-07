@@ -743,10 +743,24 @@ class SelectedEnrollmentType(models.Model):
         db_index=True,
     )
 
+    parallel = models.ForeignKey(
+        'schools.Parallel',
+        on_delete=models.CASCADE,
+        verbose_name='параллель',
+        related_name='+',
+        null=True,
+        blank=True,
+        help_text="Параллель, в которую школьник зачислен без выполнения "
+                  "вступительной",
+    )
+
     entrance_level = models.ForeignKey(
         main_models.EntranceLevel,
-        help_text='Выставленный уровень вступительной',
         on_delete=models.CASCADE,
+        verbose_name='уровень вступительной',
+        help_text='Выставленный уровень вступительной. Должен содержать '
+                  'задачи, необходимые для поступления в следующую параллель '
+                  'после той, в которую школьник зачислен автоматически.',
         related_name='+',
         default=None,
         blank=True,
