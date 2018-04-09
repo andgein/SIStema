@@ -4,6 +4,7 @@ import operator
 from django.db import models, transaction, IntegrityError
 from django.conf import settings
 from polymorphic import models as polymorphic_models
+from django.utils import timezone
 
 import questionnaire.models
 import schools.models
@@ -778,6 +779,24 @@ class SelectedEnrollmentType(models.Model):
                   'тогда школьнику покажется текст по умолчанию в зависимости '
                   'от того, одобрена ли заявка. Поддерживается Markdown',
         blank=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name='модератор',
+        null=True,
+        help_text="Пользователь, который одобрил или отклонил заявку",
+    )
+
+    reviewed_at = models.DateTimeField(
+        verbose_name='время модерации',
+        null=True,
+        blank=True,
+        default=None,
+        help_text='Когда заявка была рассмотрена',
     )
 
     class Meta:

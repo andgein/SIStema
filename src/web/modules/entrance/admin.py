@@ -398,9 +398,14 @@ class UserParticipatedInSchoolEntranceStepChildAdmin(EntranceStepChildAdmin):
 @admin.register(models.SelectedEnrollmentType)
 class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'user', 'enrollment_type',
-        'is_moderated', 'is_approved',
-        'entrance_level'
+        'id',
+        'user',
+        'is_moderated',
+        'is_approved',
+        'parallel',
+        'entrance_level',
+        'reviewed_by',
+        'enrollment_type',
     )
     list_display_links = ('id', 'user')
     list_filter = ('enrollment_type__step__school', 'is_moderated', 'is_approved')
@@ -410,6 +415,7 @@ class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
         'enrollment_type',
         'parallel',
         'entrance_level',
+        'reviewed_by',
     )
 
 
