@@ -60,6 +60,11 @@ def get_base_entrance_level(school, user):
     return current_limit.min_level
 
 
+def get_topics_entrance_level(school, user):
+    limiter = modules.topics.entrance.levels.TopicsEntranceLevelLimiter(school)
+    return limiter.get_limit(user).min_level
+
+
 def get_maximum_issued_entrance_level(school, user, base_level):
     user_upgrades = models.EntranceLevelUpgrade.objects.filter(user=user, upgraded_to__school=school)
     maximum_upgrade = user_upgrades.order_by('-upgraded_to__order').first()

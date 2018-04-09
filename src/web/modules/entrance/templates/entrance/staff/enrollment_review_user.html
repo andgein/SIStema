@@ -1,0 +1,186 @@
+{% extends 'staff_layout.html' %}
+
+{% load dict_tags %}
+{% load range %}
+{% load number_to_text %}
+{% load math %}
+{% load markdown_deux_tags %}
+{% load groups %}
+
+{% block title %}{{ user_for_review.get_full_name }}, «{{ task.title }}»{% endblock %}
+
+{% block topbar_left %}
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            <a href="{#% url 'school:entrance:check' request.school.short_name %#}">Модерация автопоступления</a>
+        </li>
+        <li class="crumb-link crumb-trail">
+            {% ifingroup 'entrance__admins' %}
+                <a href="{% url 'school:entrance:enrolling_user' request.school.short_name user_for_review.id %}">{{ user_for_review.get_full_name }}</a>
+            {% else %}
+                {{ user_for_review.get_full_name }}
+            {% endifingroup %}
+        </li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+    <div class="mtn5 mb15 text-muted">
+        Выданы задания уровня <span class="label label-sm label-{{ level_upgrades|yesno:'primary,success' }}">{{ base_entrance_level.name }}</span>
+        {% if level_upgrades %}
+            , повышения до
+            {% for upgrade in level_upgrades %}
+                <span class="label label-sm label-{{ forloop.last|yesno:'success,primary' }}" title="{{ upgrade.created_at }}">
+                {{ upgrade.upgraded_to.name }}
+            </span>
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% comment %}
+        TODO: review progress
+        <div class="pull-right">
+            Проверено {{ task.checked_solutions_count }} из {{ task.total_solutions_count }} решени{{ task.total_solutions_count|russian_pluralize:'я,й,й' }} этой задачи
+            {% if group %}
+                (в&nbsp;группе)
+            {% endif %}
+            <div class="progress progress-bar-xxs mbn mt5 bg-danger">
+                {% with percents=task.checked_solutions_count|multiply:100|divide:task.total_solutions_count|to_int %}
+                    <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ task.checked_solutions_count }}" aria-valuemin="0" aria-valuemax="{{ task.total_solutions_count }}" style="width: {{ percents }}%;">
+                    </div>
+                {% endwith %}
+            </div>
+        </div>
+        {% endcomment %}
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12 col-md-6">
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="panel-title" title="Автопоступление">
+                        Автопоступление
+                        <span class="fs12 text-muted pull-right mr10">{{ selected_enrollment_type.created_at }}</span>
+                    </span>
+                </div>
+                <div class="panel-body">
+                    <p><b>ФИО:</b> {{ user_for_review.profile.last_name }} {{ user_for_review.profile.first_name }} {{ user_for_review.profile.middle_name }}</p>
+                    <p><b>{{ user_for_review.profile.current_class }} класс</b>, {{ user_for_review.profile.school_name }}, {{ user_for_review.profile.city }}</p>
+                    <p><b>Способ поступления:</b> {{ selected_enrollment_type.enrollment_type.text }}</p>
+                    <p>
+                        <b>
+                            {% ifingroup 'entrance__admins' %}
+                                <a href="{% url 'school:entrance:user_topics' request.school.short_name user_for_review.id %}"
+                                   target="_blank"
+                                   title="Тематическая анкета, откроется в новой вкладке">ТА:</a>
+                            {% else %}
+                                ТА:
+                            {% endifingroup %}
+                        </b>
+                        <span class="label label-sm label-success">{{ topics_entrance_level.name }}</span>
+                    </p>
+                    {% if user_for_review.profile.poldnev_person %}
+                        <p>
+                            <a href="{{ user_for_review.profile.poldnev_person.url }}"
+                               target="_blank">poldnev.ru</a>
+                        </p>
+                    {% endif %}
+
+                    {# TODO(artemtab): locking #}
+                    {% if locked_by_me %}
+                        <h3>Модерировать</h3>
+
+                        <div class="admin-form">
+                            <form action="" method="POST">
+                                {% csrf_token %}
+                                {# TODO: form #}
+
+                                <button type="submit" name="approve" class="btn btn-success mt15">Одобрить</button>
+                                <button type="submit" name="reject" class="btn btn-danger mt15">Отказать</button>
+                                <button type="submit" name="refuse" class="btn btn-info mt15 pull-right">Отказаться от&nbsp;проверки</button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">
+                            Заявка заблокирована другим модератором
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="panel-group">
+                <div class="panel">
+                    <div class="panel-heading">
+                        <span class="panel-title">
+                            История
+                        </span>
+                    </div>
+                    <div class="panel-body ptn pbn p10">
+                        {% if participations %}
+                            <ol class="timeline-list">
+                                {% for participation in participations %}
+                                    <li class="timeline-item">
+                                        <div class="timeline-icon bg-success light">
+
+                                        </div>
+                                        <div class="timeline-desc">
+                                            <b>{{ participation.school.name }}</b><br/>
+                                            {{ participation.study_result.theory }}/{{ participation.study_result.practice }}
+                                            {# TODO(artemtab): check for membership in study_results.student_comments_viewers for each school #}
+                                            {% ifingroup 'entrance__admins' %}
+                                                {% if participation.study_result.comments.exists %}
+                                                    <div>
+                                                        {% for comment in participation.study_result.comments.all %}
+                                                            <b>{{ comment.verbose_type }}:</b><br/>
+                                                            {{ comment.comment }}<br/>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            {% endifingroup %}
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ol>
+                        {% else %}
+                            Не принимал(а) участие в ЛКШ
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xs-12 col-md-6">
+            {% if review_info %}
+                <div class="panel">
+                    <div class="panel-heading">
+                        <span class="panel-title">Информация для модератора</span>
+                    </div>
+                    <div class="panel-body">
+                        {{ review_info|markdown }}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if checks %}
+                <div class="panel">
+                    <div class="panel-heading">
+                        <span class="panel-title">Нечто 2</span>
+                    </div>
+                    <div class="panel-body pt10">
+                        лорем ипсум
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="panel-title">Общие комментарии</span>
+                </div>
+                <div class="panel-body pt5">
+                    {% include 'entrance/staff/_checking_comments.html' with user=user_for_review %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

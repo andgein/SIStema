@@ -815,3 +815,66 @@ def initial_auto_reject(request):
             status=models.EntranceStatus.Status.AUTO_REJECTED
         )]
     })
+
+
+@sistema.staff.only_staff
+@groups.decorators.only_for_groups(entrance_groups.enrollment_type_reviewers)
+def review_enrollment_type_for_user(request, user_id):
+    user = get_object_or_404(users.models.User, id=user_id)
+    entrance_step = get_object_or_404(
+        models.SelectEnrollmentTypeEntranceStep,
+        school=request.school,
+    )
+    selected_enrollment_type = get_object_or_404(
+        models.SelectedEnrollmentType,
+        user=user,
+        step=entrance_step,
+        enrollment_type__needs_moderation=True,
+    )
+
+    # TODO(artemtab): add locking
+    # locked_by_me = True
+    # with transaction.atomic():
+
+    base_entrance_level = upgrades.get_base_entrance_level(
+        request.school, user)
+    level_upgrades = models.EntranceLevelUpgrade.objects.filter(
+        upgraded_to__school=request.school,
+        user=user
+    )
+    topics_entrance_level = upgrades.get_topics_entrance_level(
+        request.school, user)
+
+    if request.method == 'POST':
+        pass
+        # Handle review
+    else:
+        pass
+        # Initialize review form
+
+    add_checking_comment_form = forms.AddCheckingCommentForm()
+    checking_comments = models.CheckingComment.objects.filter(
+        school=request.school,
+        user=user
+    )
+
+    # TODO(artemtab): better ordering, now it's not exactly chronological
+    participations = (
+        user.school_participations
+        .order_by('-school__year', '-school__name'))
+
+    return render(request, 'entrance/staff/enrollment_review_user.html', {
+        'user_for_review': user,
+        'participations': participations,
+
+        'base_entrance_level': base_entrance_level,
+        'level_upgrades': level_upgrades,
+        'topics_entrance_level': topics_entrance_level,
+
+        'selected_enrollment_type': selected_enrollment_type,
+        'review_info': entrance_step.review_info,
+        # 'locked_by_me': locked_by_me,
+
+        'add_checking_comment_form': add_checking_comment_form,
+        'checking_comments': checking_comments,
+    })

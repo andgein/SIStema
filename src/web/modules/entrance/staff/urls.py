@@ -1,4 +1,6 @@
-from django.conf.urls import url, include
+from django.conf.urls import url
+from django.urls import path
+
 from . import views
 from .export import ExportCompleteEnrollingTable
 
@@ -60,4 +62,8 @@ urlpatterns = [
     url(r'^initial/auto_reject/$',
         views.initial_auto_reject,
         name='initial.auto_reject'),
+
+    path('enrollment_type/review/<int:user_id>',
+         views.review_enrollment_type_for_user,
+         name='enrollment_type_review_user')
 ]
