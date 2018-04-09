@@ -643,6 +643,13 @@ class SelectEnrollmentTypeEntranceStep(AbstractEntranceStep, EntranceStepTextsMi
                   'не прошёл модерацию. Поддерживается Markdown'
     )
 
+    review_info = models.TextField(
+        verbose_name='информация для модераторов',
+        blank=True,
+        default='',
+        help_text='Поддерживается Markdown',
+    )
+
     def __str__(self):
         return 'Шаг выбора способа поступления для {}'.format(self.school)
 
