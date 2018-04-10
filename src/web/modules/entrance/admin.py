@@ -6,6 +6,8 @@ import groups.admin
 import home.models
 import sistema.polymorphic
 from modules.entrance import models
+from django.utils.safestring import mark_safe
+from django.urls import reverse
 
 
 @admin.register(models.EntranceExamTask)
@@ -400,6 +402,7 @@ class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'user',
+        'get_review_page_link',
         'is_moderated',
         'is_approved',
         'parallel',
@@ -417,6 +420,19 @@ class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
         'entrance_level',
         'reviewed_by',
     )
+
+    def get_review_page_link(self, obj):
+        return mark_safe(
+            '<a href="{}" target="_blank">Информация</a>'
+            .format(reverse(
+                'school:entrance:enrollment_type_review_user',
+                kwargs={
+                    'school_name': obj.step.school.short_name,
+                    'user_id': obj.user_id,
+                }))
+        )
+
+    get_review_page_link.short_description = 'информация'
 
 
 @admin.register(models.EntranceUserMetric)
