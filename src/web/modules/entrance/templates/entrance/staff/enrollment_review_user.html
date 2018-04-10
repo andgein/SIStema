@@ -124,18 +124,18 @@
 
                                         </div>
                                         <div class="timeline-desc">
-                                            <b>{{ participation.school.name }}</b><br/>
-                                            {{ participation.study_result.theory }}/{{ participation.study_result.practice }}
+                                            <p>
+                                                <b>{{ participation.school.name }}</b><br/>
+                                                {{ participation.study_result.theory }}/{{ participation.study_result.practice }}
+                                            </p>
                                             {# TODO(artemtab): check for membership in study_results.student_comments_viewers for each school #}
                                             {% ifingroup 'entrance__admins' %}
-                                                {% if participation.study_result.comments.exists %}
-                                                    <div>
-                                                        {% for comment in participation.study_result.comments.all %}
-                                                            <b>{{ comment.verbose_type }}:</b><br/>
-                                                            {{ comment.comment }}<br/>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% endif %}
+                                                {% for comment in participation.study_result.comments.all %}
+                                                    <p>
+                                                        <i class="fa fa-comment"></i> <b>{{ comment.verbose_type }}:</b><br/>
+                                                        {{ comment.comment }}<br/>
+                                                    </p>
+                                                {% endfor %}
                                             {% endifingroup %}
                                         </div>
                                     </li>
