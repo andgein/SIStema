@@ -182,6 +182,13 @@ class EntranceExamTaskCategory(models.Model):
         help_text="Категории задач отображаются в заданном порядке",
     )
 
+    is_mandatory = models.BooleanField(
+        verbose_name="обязательная категория",
+        default=True,
+        help_text="Обязательно ли решать задачи в этой категории, чтобы "
+                  "вступительная считалась выполненной?",
+    )
+
     class Meta:
         unique_together = [('exam', 'short_name'), ('exam', 'order')]
         verbose_name = 'category'

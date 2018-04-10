@@ -375,14 +375,15 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
             for category in categories
         ]
 
-        block.task_category_stats = [
-            {
+        block.task_category_stats = []
+        for category, tasks in categories_with_tasks:
+            solved_count = self._get_solved_count(tasks)
+            block.task_category_stats.append({
                 'category': category,
                 'total_count': len(tasks),
-                'solved_count': self._get_solved_count(tasks)
-            }
-            for category, tasks in categories_with_tasks
-        ]
+                'solved_count': solved_count,
+                'needs_attention': category.is_mandatory and solved_count == 0,
+            })
 
         block.level = entrance_upgrades.get_maximum_issued_entrance_level(
             self.school,
