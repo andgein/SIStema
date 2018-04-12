@@ -22,7 +22,7 @@ django-sizefield==0.9.1
 django-hijack==2.1.7
 django-hijack-admin==2.1.7
 django-htmlmin==0.10.0
-django-ipware==2.0.1
+django-ipware==2.0.2
 django-jinja==2.4.1
 django-markdown-deux==1.0.5
 django-nose==1.4.5
