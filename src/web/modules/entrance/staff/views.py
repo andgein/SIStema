@@ -268,7 +268,7 @@ def check_user(request, user, group=None):
             if type(task) is models.TestEntranceExamTask:
                 if len(task.user_solutions) > 0:
                     task.last_try = task.user_solutions[0].solution
-                    task.is_last_correct = task.check_solution(task.last_try)
+                    task.is_last_correct = task.is_solution_correct(task.last_try)
                 else:
                     task.last_try = None
                     task.is_last_correct = None

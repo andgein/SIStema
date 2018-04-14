@@ -250,6 +250,10 @@ class EntranceExamTask(polymorphic.models.PolymorphicModel):
             )
         super().save(*args, **kwargs)
 
+    def is_accepted_for_user(self, user):
+        # Always not accepted by default. Override when subclassing.
+        return False
+
     def is_solved_by_user(self, user):
         # Always not solved by default. Override when subclassing.
         return False
@@ -297,15 +301,19 @@ class TestEntranceExamTask(EntranceExamTask):
         blank=True,
     )
 
-    def check_solution(self, solution):
+    def is_solution_valid(self, solution):
+        return re.fullmatch(self.validation_re, solution) is not None
+
+    def is_solution_correct(self, solution):
         return re.fullmatch(self.correct_answer_re, solution) is not None
 
+    def is_accepted_for_user(self, user):
+        last_solution = self.solutions.filter(user=user).last()
+        return self.is_solution_valid(last_solution.solution)
+
     def is_solved_by_user(self, user):
-        solutions = list(self.solutions.filter(user=user))
-        for solution in solutions:
-            if self.check_solution(solution.solution):
-                return True
-        return False
+        last_solution = self.solutions.filter(user=user).last()
+        return self.is_solution_correct(last_solution.solution)
 
     def get_form(self, user_solutions, *args, **kwargs):
         initial = {}
@@ -337,7 +345,7 @@ class FileEntranceExamTask(EntranceExamTask):
                   'Поддерживается Markdown',
     )
 
-    def is_solved_by_user(self, user):
+    def is_accepted_for_user(self, user):
         return self.solutions.filter(user=user).exists()
 
     def get_form(self, user_solutions, *args, **kwargs):
@@ -358,6 +366,9 @@ class EjudgeEntranceExamTask(EntranceExamTask):
     ejudge_problem_id = models.PositiveIntegerField(
         help_text='ID задачи в еджадже'
     )
+
+    def is_accepted_for_user(self, user):
+        return self.is_solved_by_user(user)
 
     def is_solved_by_user(self, user):
         user_solutions = self.solution_class.objects.filter(

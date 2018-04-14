@@ -53,6 +53,14 @@
     border-left-color: #5dbf5d;
 }
 
+.entrance-exam .tabs-left > li:not(.active) > a.not-solved.accepted {
+    background-color: #FFFDE7;
+}
+
+.entrance-exam .tabs-border.tabs-left > li.active > a.not-solved.accepted {
+    border-left-color: #FDD835;
+}
+
 .entrance-exam .tabs-left > li:not(.active) > a.not-solved {
     background-color: #FFE8E8;
 }

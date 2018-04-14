@@ -156,6 +156,7 @@ def exam(request, selected_task_id=None):
         task.user_solutions = list(
             task.solutions.filter(user=request.user).order_by('-created_at')
         )
+        task.is_accepted = task.is_accepted_for_user(request.user)
         task.is_solved = task.is_solved_by_user(request.user)
         task.form = task.get_form(task.user_solutions)
 
