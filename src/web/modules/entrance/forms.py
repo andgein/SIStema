@@ -55,7 +55,7 @@ class ProgramEntranceTaskForm(EntranceTaskForm):
     )
 
     solution = frontend.forms.RestrictedFileField(
-        max_upload_size=512 * 1024,
+        max_upload_size=64 * 1024,
         required=True,
         label='Выберите файл с программой',
         label_suffix='',
