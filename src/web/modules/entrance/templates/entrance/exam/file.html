@@ -1,5 +1,7 @@
 {% extends 'entrance/exam/base.html' %}
 
+{% load markdown_deux_tags %}
+
 {% block panel_icon %}
     <i class="fa fa-file-pdf-o"></i>
 {% endblock %}
@@ -24,8 +26,12 @@
     <div class="mw400">
         <form method="POST" action="" enctype="multipart/form-data">
             {% if not is_closed %}
-                <h3 class="mt10">Выберите файл с&nbsp;решением</h3>
-                {{ task.form }}
+                {% if category.is_closed %}
+                    {{ category.text_after_closing|markdown }}
+                {% else %}
+                    <h3 class="mt10">Выберите файл с&nbsp;решением</h3>
+                    {{ task.form }}
+                {% endif %}
             {% endif %}
             {% if task.user_solution %}
                 <div>

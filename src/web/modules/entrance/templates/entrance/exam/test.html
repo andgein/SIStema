@@ -1,5 +1,7 @@
 {% extends 'entrance/exam/base.html' %}
 
+{% load markdown_deux_tags %}
+
 {% block panel_icon %}
     <i class="fa fa-bolt"></i>
 {% endblock %}
@@ -28,5 +30,10 @@
             </span>
         {% endif %}
         <em class="status"></em>
+        {% if category.is_closed and category.text_after_closing %}
+            <p>
+                {{ category.text_after_closing|markdown }}
+            </p>
+        {% endif %}
     </div>
 {% endblock %}

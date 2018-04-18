@@ -1,5 +1,7 @@
 {% extends 'entrance/exam/base.html' %}
 
+{% load markdown_deux_tags %}
+
 {% block panel_icon %}
     <i class="fa fa-code"></i>
 {% endblock %}
@@ -22,24 +24,30 @@
 {% block answer_form %}
     <div class="row">
         {% if not is_closed %}
-            <div class="col-sm-12 col-md-5 mw400">
-                <form method="POST" action="" enctype="multipart/form-data">
-                    {% block form_title %}
-                    {% endblock %}
-                    {{ task.form.as_p }}
-                    {% if task.help_text %}
-                        <span class="help-block mbn">
-                            {{ task.help_text }}
-                        </span>
-                    {% endif %}
-                    {% if not is_closed %}
-                        <button class="entrance-exam__task__program__submit btn btn-info btn-small mt10">Отправить решение</button>
-                    {% endif %}
-                    <div class="mv20">
-                        <em class="status"></em>
-                    </div>
-                </form>
-            </div>
+            {% if category.is_closed %}
+                <div class="col-sm-12 col-md-5 mw400">
+                    {{ category.text_after_closing|markdown }}
+                </div>
+            {% else %}
+                <div class="col-sm-12 col-md-5 mw400">
+                    <form method="POST" action="" enctype="multipart/form-data">
+                        {% block form_title %}
+                        {% endblock %}
+                            {{ task.form.as_p }}
+                            {% if task.help_text %}
+                                <span class="help-block mbn">
+                                    {{ task.help_text }}
+                                </span>
+                            {% endif %}
+                            {% if not is_closed %}
+                                <button class="entrance-exam__task__program__submit btn btn-info btn-small mt10">Отправить решение</button>
+                            {% endif %}
+                            <div class="mv20">
+                                <em class="status"></em>
+                            </div>
+                    </form>
+                </div>
+            {% endif %}
         {% endif %}
 
         <div class="entrance-exam__task__program__submits col-sm-12 col-md-6 {{ is_closed|yesno:',col-md-offset-1' }}">

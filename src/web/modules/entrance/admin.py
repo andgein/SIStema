@@ -25,7 +25,7 @@ class EntranceExamTaskCategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'exam', 'title', 'order')
     list_filter = ('exam',)
     ordering = ('-exam', 'order')
-    autocomplete_fields = ('exam',)
+    autocomplete_fields = ('exam', 'available_from_time', 'available_to_time')
     search_fields = ('=id', 'title', 'exam__school__name')
 
 

@@ -22,11 +22,13 @@
         </ul>
         <div class="tab-content">
             {% for category, tasks in categories_with_tasks %}
-                {% for task in tasks %}
-                    <div class="entrance-exam__tab tab-pane {% ifequal task.id selected_task_id %}active{% endifequal %}" data-task-id="{{ task.id }}">
-                        {% include 'entrance/exam/'|add:task.template_file with index=forloop.counter task=task solution=test_task.user_solution.solution%}
-                    </div>
-                {% endfor %}
+                {% if category.is_started %}
+                    {% for task in tasks %}
+                        <div class="entrance-exam__tab tab-pane {% ifequal task.id selected_task_id %}active{% endifequal %}" data-task-id="{{ task.id }}">
+                            {% include 'entrance/exam/'|add:task.template_file with index=forloop.counter category=category task=task solution=test_task.user_solution.solution %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
             {% endfor %}
         </div>
     </div>

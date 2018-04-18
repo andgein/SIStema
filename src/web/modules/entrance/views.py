@@ -204,11 +204,12 @@ def task(request, task_id):
 @require_POST
 def submit(request, task_id):
     entrance_exam = get_object_or_404(models.EntranceExam, school=request.school)
-    is_closed = entrance_exam.is_closed()
 
     task = get_object_or_404(models.EntranceExamTask, pk=task_id)
     if task.exam_id != entrance_exam.id:
         return HttpResponseNotFound()
+
+    is_closed = entrance_exam.is_closed() or task.category.is_closed()
 
     ip = ipware.ip.get_ip(request) or ''
 

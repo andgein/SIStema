@@ -7,6 +7,8 @@ import sizefield.models
 from django.conf import settings
 from django.db import models, transaction, IntegrityError
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 import modules.ejudge.models
 from modules.entrance import forms
@@ -189,13 +191,59 @@ class EntranceExamTaskCategory(models.Model):
                   "вступительная считалась выполненной?",
     )
 
+    available_from_time = models.ForeignKey(
+        'dates.KeyDate',
+        on_delete=models.CASCADE,
+        verbose_name="доступна c",
+        related_name='+',
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Момент времени, начиная с которого задачи этой категории "
+                  "показываются пользователям. Оставьте пустым, если задачи "
+                  "должны быть доступны с начала вступительной работы.",
+    )
+
+    available_to_time = models.ForeignKey(
+        'dates.KeyDate',
+        on_delete=models.CASCADE,
+        verbose_name="доступна до",
+        related_name='+',
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Момент времени, после которого возможность послать решения "
+                  "по задачам этой категории будет закрыта. Оставьте пустым, "
+                  "если задачи должны быть доступны до конца вступительной "
+                  "работы.",
+    )
+
+    text_after_closing = models.TextField(
+        blank=True,
+        verbose_name="текст после закрытия",
+        help_text="Текст, который показывается вместо формы отправки решения "
+                  "после закрытия задач этой категории, но до конца "
+                  "вступительной работы.\n"
+                  "Поддерживается Markdown.",
+    )
+
     class Meta:
         unique_together = [('exam', 'short_name'), ('exam', 'order')]
-        verbose_name = 'category'
-        verbose_name_plural = 'categories'
+        verbose_name = _('task category')
+        verbose_name_plural = _('task categories')
 
     def __str__(self):
         return 'Категория задач «{}» для «{}»'.format(self.title, self.exam)
+
+    def is_started(self):
+        if self.available_from_time is None:
+            return True
+        return self.available_from_time.datetime < timezone.now()
+
+    def is_closed(self):
+        if self.available_to_time is None:
+            return False
+        return self.available_to_time.datetime < timezone.now()
 
 
 class EntranceExamTask(polymorphic.models.PolymorphicModel):
@@ -325,7 +373,7 @@ class TestEntranceExamTask(EntranceExamTask):
             self,
             initial=initial,
             *args, **kwargs)
-        if self.exam.is_closed():
+        if self.exam.is_closed() or self.category.is_closed():
             form['solution'].field.widget.attrs['readonly'] = True
         return form
 

@@ -1,18 +1,20 @@
 {% load types %}
 
 {% for category, tasks in categories_with_tasks %}
-    <li class="tabs-group">
-        <a class="tabs-group">{{ category.title }}:</a>
-    </li>
-    {% for task in tasks %}
-        <li class="{% ifequal task.id selected_task_id %}active{% endifequal %}">
-            <a href="{% url 'school:entrance:task' request.school.short_name task.id %}"
-               data-toggle="tab"
-               title="{{ task.title }}"
-               class="{{ task.is_solved|yesno:'solved,not-solved' }} {{ task.is_accepted|yesno:'accepted,' }}"
-               data-task-id="{{ task.id }}">
-                {{ forloop.counter }}. {{ task.title|truncatechars:20 }}
-            </a>
+    {% if category.is_started %}
+        <li class="tabs-group">
+            <a class="tabs-group">{{ category.title }}:</a>
         </li>
-    {% endfor %}
+        {% for task in tasks %}
+            <li class="{% ifequal task.id selected_task_id %}active{% endifequal %}">
+                <a href="{% url 'school:entrance:task' request.school.short_name task.id %}"
+                   data-toggle="tab"
+                   title="{{ task.title }}"
+                   class="{{ task.is_solved|yesno:'solved,not-solved' }} {{ task.is_accepted|yesno:'accepted,' }}"
+                   data-task-id="{{ task.id }}">
+                    {{ forloop.counter }}. {{ task.title|truncatechars:20 }}
+                </a>
+            </li>
+        {% endfor %}
+    {% endif %}
 {% endfor %}
