@@ -26,7 +26,7 @@
     <div class="mw400">
         <form method="POST" action="" enctype="multipart/form-data">
             {% if not is_closed %}
-                {% if category.is_closed %}
+                {% if category.is_finished %}
                     {{ category.text_after_closing|markdown }}
                 {% else %}
                     <h3 class="mt10">Выберите файл с&nbsp;решением</h3>

@@ -24,7 +24,7 @@
 {% block answer_form %}
     <div class="row">
         {% if not is_closed %}
-            {% if category.is_closed %}
+            {% if category.is_finished %}
                 {% if category.text_after_closing %}
                     <div class="col-sm-12 col-md-5 mw400">
                         {{ category.text_after_closing|markdown }}

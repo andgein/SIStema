@@ -30,7 +30,7 @@
             </span>
         {% endif %}
         <em class="status"></em>
-        {% if category.is_closed and category.text_after_closing %}
+        {% if category.is_finished and category.text_after_closing %}
             <p>
                 {{ category.text_after_closing|markdown }}
             </p>

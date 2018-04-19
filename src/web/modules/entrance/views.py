@@ -209,7 +209,7 @@ def submit(request, task_id):
     if task.exam_id != entrance_exam.id:
         return HttpResponseNotFound()
 
-    is_closed = entrance_exam.is_closed() or task.category.is_closed()
+    is_closed = entrance_exam.is_closed() or task.category.is_finished()
 
     ip = ipware.ip.get_ip(request) or ''
 

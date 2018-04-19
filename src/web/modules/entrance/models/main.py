@@ -240,7 +240,7 @@ class EntranceExamTaskCategory(models.Model):
             return True
         return self.available_from_time.datetime < timezone.now()
 
-    def is_closed(self):
+    def is_finished(self):
         if self.available_to_time is None:
             return False
         return self.available_to_time.datetime < timezone.now()
@@ -373,7 +373,7 @@ class TestEntranceExamTask(EntranceExamTask):
             self,
             initial=initial,
             *args, **kwargs)
-        if self.exam.is_closed() or self.category.is_closed():
+        if self.exam.is_closed() or self.category.is_finished():
             form['solution'].field.widget.attrs['readonly'] = True
         return form
 
