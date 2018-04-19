@@ -25,6 +25,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='entranceexamtaskcategory',
             name='text_after_closing',
-            field=models.TextField(blank=True, help_text='Текст, который показывается вместо формы отправки решения после закрытия задач этой категории, но до конца вступительной работы.\nПоддерживается Markdown.', verbose_name='текст после закрытия'),
+            field=models.TextField(blank=True, help_text='Текст, который показывается на странице задачи после закрытия задач этой категории, но до конца вступительной работы.\nПоддерживается Markdown.', verbose_name='текст после закрытия'),
         ),
     ]
