@@ -17,7 +17,7 @@
         <div class="col-xs-12 col-sm-6 fs13">
             <h4>Статистика</h4>
             {% for stats_entry in entrance_block.task_category_stats %}
-                {% if stats_entry.category.is_started %}
+                {% if stats_entry.is_started %}
                     <span class="{{ stats_entry.needs_attention|yesno:'text-danger,' }}">
                         {{ stats_entry.category.title }}:
                         <b>отправлено {{ stats_entry.solved_count }} из {{ stats_entry.total_count }}</b>

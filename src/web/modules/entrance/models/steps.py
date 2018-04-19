@@ -381,6 +381,7 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
             accepted_count = self._get_accepted_count(tasks)
             block.task_category_stats.append({
                 'category': category,
+                'is_started': category.is_started_for_user(user),
                 'total_count': len(tasks),
                 'solved_count': accepted_count,
                 'needs_attention': category.is_mandatory and accepted_count == 0,

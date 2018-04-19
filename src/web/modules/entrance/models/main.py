@@ -235,15 +235,15 @@ class EntranceExamTaskCategory(models.Model):
     def __str__(self):
         return 'Категория задач «{}» для «{}»'.format(self.title, self.exam)
 
-    def is_started(self):
+    def is_started_for_user(self, user):
         if self.available_from_time is None:
             return True
-        return self.available_from_time.datetime < timezone.now()
+        return self.available_from_time.passed_for_user(user)
 
-    def is_finished(self):
+    def is_finished_for_user(self, user):
         if self.available_to_time is None:
             return False
-        return self.available_to_time.datetime < timezone.now()
+        return self.available_to_time.passed_for_user(user)
 
 
 class EntranceExamTask(polymorphic.models.PolymorphicModel):
@@ -309,23 +309,22 @@ class EntranceExamTask(polymorphic.models.PolymorphicModel):
     @property
     def template_file(self):
         """
-        Returns template file name in folder templates/entrance/exam/
+        Return template file name in folder templates/entrance/exam/
         """
         raise NotImplementedError('Child should define property template_file')
 
     @property
     def type_title(self):
         """
-        Returns title of blocks with these tasks
+        Return title of blocks with these tasks
         """
         raise NotImplementedError('Child should define property type_title')
 
-    def get_form(self, user_solutions, *args, **kwargs):
+    def get_form_for_user(self, user, *args, **kwargs):
         """
-        Returns form for this task with user_solutions as previous solutions.
-        user_solutions are ordered by descending time
+        Return form for this task for the specified user
         """
-        raise NotImplementedError('Child should define get_form()')
+        raise NotImplementedError('Child should define get_form_for_user()')
 
     @property
     def solution_class(self):
@@ -365,15 +364,20 @@ class TestEntranceExamTask(EntranceExamTask):
         return (last_solution is not None and
                 self.is_solution_correct(last_solution.solution))
 
-    def get_form(self, user_solutions, *args, **kwargs):
+    def get_form_for_user(self, user, *args, **kwargs):
         initial = {}
-        if len(user_solutions) > 0:
-            initial['solution'] = user_solutions[0].solution
+        last_solution = (
+            self.solutions
+            .filter(user=user)
+            .order_by('-created_at')
+            .first())
+        if last_solution is not None:
+            initial['solution'] = last_solution.solution
         form = forms.TestEntranceTaskForm(
             self,
             initial=initial,
             *args, **kwargs)
-        if self.exam.is_closed() or self.category.is_finished():
+        if self.exam.is_closed() or self.category.is_finished_for_user(user):
             form['solution'].field.widget.attrs['readonly'] = True
         return form
 
@@ -398,7 +402,7 @@ class FileEntranceExamTask(EntranceExamTask):
     def is_accepted_for_user(self, user):
         return self.solutions.filter(user=user).exists()
 
-    def get_form(self, user_solutions, *args, **kwargs):
+    def get_form_for_user(self, user, *args, **kwargs):
         return forms.FileEntranceTaskForm(self, *args, **kwargs)
 
     @property
@@ -458,7 +462,7 @@ class ProgramEntranceExamTask(EjudgeEntranceExamTask):
 
     output_format = models.TextField(blank=True)
 
-    def get_form(self, user_solutions, *args, **kwargs):
+    def get_form_for_user(self, user, *args, **kwargs):
         return forms.ProgramEntranceTaskForm(self, *args, **kwargs)
 
     @property
@@ -470,7 +474,7 @@ class OutputOnlyEntranceExamTask(EjudgeEntranceExamTask):
     template_file = 'output_only.html'
     solutions_template_file = '_output_only_solutions.html'
 
-    def get_form(self, user_solutions, *args, **kwargs):
+    def get_form_for_user(self, user, *args, **kwargs):
         return forms.OutputOnlyEntranceTaskForm(self, *args, **kwargs)
 
     @property

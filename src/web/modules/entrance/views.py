@@ -153,12 +153,9 @@ def exam(request, selected_task_id=None):
     # Order task by type and order
     tasks = sorted(tasks, key=lambda t: (t.type_title, t.order))
     for task in tasks:
-        task.user_solutions = list(
-            task.solutions.filter(user=request.user).order_by('-created_at')
-        )
         task.is_accepted = task.is_accepted_for_user(request.user)
         task.is_solved = task.is_solved_by_user(request.user)
-        task.form = task.get_form(task.user_solutions)
+        task.form = task.get_form_for_user(request.user)
 
     if selected_task_id is None and len(tasks) > 0:
         selected_task_id = tasks[0].id
@@ -171,6 +168,9 @@ def exam(request, selected_task_id=None):
         {task.category for task in tasks},
         key=operator.attrgetter('order'),
     ))
+    for category in categories:
+        category.is_started = category.is_started_for_user(request.user)
+        category.is_finished = category.is_finished_for_user(request.user)
     categories_with_tasks = [
         (category, [task for task in tasks if task.category == category])
         for category in categories
@@ -209,11 +209,13 @@ def submit(request, task_id):
     if task.exam_id != entrance_exam.id:
         return HttpResponseNotFound()
 
-    is_closed = entrance_exam.is_closed() or task.category.is_finished()
+    is_closed = (
+        entrance_exam.is_closed() or
+        task.category.is_finished_for_user(request.user))
 
     ip = ipware.ip.get_ip(request) or ''
 
-    form = task.get_form([], data=request.POST, files=request.FILES)
+    form = task.get_form_for_user(request.user, data=request.POST, files=request.FILES)
 
     # TODO (andgein): extract this logic to models
     if type(task) is models.TestEntranceExamTask:
