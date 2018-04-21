@@ -109,14 +109,14 @@ def enrolling_data(request):
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def user_profile(request, user_id):
     user = get_object_or_404(users.models.User, id=user_id)
     return users.views.profile_for_user(request, user)
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def user_questionnaire(request, user_id, questionnaire_name):
     user = get_object_or_404(users.models.User, id=user_id)
     # TODO: use staff interface for showing questionnaire (here, in user_profile() and in user_topics())
@@ -124,7 +124,7 @@ def user_questionnaire(request, user_id, questionnaire_name):
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 @topics_views.topic_questionnaire_view
 def user_topics(request, user_id):
     # TODO: check that status of topics questionnaire for this user is FINISHED
@@ -132,33 +132,19 @@ def user_topics(request, user_id):
     return topics_views.show_final_answers(request, user)
 
 
-@sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
-@require_POST
-def change_group(request, user_id):
-    user = get_object_or_404(users.models.User, id=user_id)
-    form = forms.MoveIntoCheckingGroupForm(request.school, data=request.POST)
-
-    if form.is_valid():
-        group = get_object_or_404(models.CheckingGroup, school=request.school, id=form.cleaned_data.get('group_id'))
-        models.UserInCheckingGroup.move_user_into_group(user, group)
-
-    return redirect('school:entrance:enrolling_user', school_name=request.school.short_name, user_id=user.id)
-
-
 def _remove_old_checking_locks():
     models.CheckingLock.objects.filter(locked_until__lt=timezone.now()).delete()
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def check(request):
     _remove_old_checking_locks()
 
     checking_groups = request.school.entrance_checking_groups.all()
-    for group in checking_groups:
-        group.group_users = list(group.actual_users)
-        group.group_tasks = list(group.tasks.order_by('order'))
+    for checking_group in checking_groups:
+        checking_group.group_users = list(checking_group.group.users)
+        checking_group.group_tasks = list(checking_group.tasks.order_by('order'))
 
     return render(request, 'entrance/staff/check.html', {
         'checking_groups': checking_groups,
@@ -233,8 +219,6 @@ def check_user(request, user, group=None):
     entrance_exam = (
         models.EntranceExam.objects.filter(school=request.school).first())
 
-    move_into_checking_group_form = forms.MoveIntoCheckingGroupForm(request.school)
-
     checking_comments = user.entrance_checking_comments.filter(
         school=request.school
     ).order_by('created_at')
@@ -302,7 +286,6 @@ def check_user(request, user, group=None):
 
         'checking_comments': checking_comments,
         'add_checking_comment_form': add_checking_comment_form,
-        'move_into_checking_group_form': move_into_checking_group_form,
 
         'user_summary': UserSummary.summary_for_user(request.school, user),
         'clone_accounts': _find_clones(user)
@@ -310,19 +293,17 @@ def check_user(request, user, group=None):
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def check_group(request, group_name):
-    group = get_object_or_404(
+    checking_group = get_object_or_404(
         models.CheckingGroup,
         school=request.school,
         short_name=group_name
     )
     _remove_old_checking_locks()
 
-    tasks = list(group.tasks.order_by('order'))
-    group_user_ids = nested_query_list(
-        group.actual_users.values_list('user_id', flat=True)
-    )
+    tasks = list(checking_group.tasks.order_by('order'))
+    group_user_ids = nested_query_list(checking_group.group.user_ids)
     for task in tasks:
         task.solutions_count = users.models.User.objects.filter(
             id__in=group_user_ids,
@@ -339,22 +320,22 @@ def check_group(request, group_name):
         task.checks = list(task.checks.order_by('-created_at')[:20])
 
     return render(request, 'entrance/staff/check_group.html', {
-        'group': group,
+        'group': checking_group,
         'tasks': tasks,
     })
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def checking_group_users(request, group_name):
-    group = get_object_or_404(
+    checking_group = get_object_or_404(
         models.CheckingGroup,
         school=request.school,
         short_name=group_name,
     )
 
-    users = [u.user for u in group.actual_users.select_related('user__profile')]
-    tasks = list(group.tasks.order_by('order'))
+    users = checking_group.group.users.select_related('profile')
+    tasks = list(checking_group.tasks.order_by('order'))
     user_ids = [u.id for u in users]
     task_ids = [t.id for t in tasks]
 
@@ -379,7 +360,7 @@ def checking_group_users(request, group_name):
     }
 
     return render(request, 'entrance/staff/group_users.html', {
-        'group': group,
+        'group': checking_group,
         'users': users,
         'tasks': tasks,
         'solutions': solutions,
@@ -392,17 +373,16 @@ def checking_group_users(request, group_name):
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def checking_group_checks(request, group_name):
-    group = get_object_or_404(
+    checking_group = get_object_or_404(
         models.CheckingGroup,
         school=request.school,
         short_name=group_name,
     )
 
-    users = [u.user for u in
-             group.actual_users.select_related('user__profile')]
-    tasks = list(group.tasks.order_by('order'))
+    users = checking_group.group.users.select_related('profile')
+    tasks = list(checking_group.tasks.order_by('order'))
     user_ids = [u.id for u in users]
     task_ids = [t.id for t in tasks]
 
@@ -416,7 +396,7 @@ def checking_group_checks(request, group_name):
     )
 
     return render(request, 'entrance/staff/group_checks.html', {
-        'group': group,
+        'group': checking_group,
         'users': users,
         'tasks': tasks,
         'checks': checks,
@@ -424,19 +404,18 @@ def checking_group_checks(request, group_name):
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def task_checks(request, group_name, task_id):
-    group = get_object_or_404(
+    checking_group = get_object_or_404(
         models.CheckingGroup,
         school=request.school,
         short_name=group_name,
     )
     task = get_object_or_404(models.FileEntranceExamTask, id=task_id)
-    if not group.tasks.filter(id=task.id).exists():
+    if not checking_group.tasks.filter(id=task.id).exists():
         return HttpResponseNotFound()
 
-    users = [u.user for u in
-             group.actual_users.select_related('user__profile')]
+    users = checking_group.group.users.select_related('user__profile')
     user_ids = [u.id for u in users]
 
     checks = list(
@@ -449,7 +428,7 @@ def task_checks(request, group_name, task_id):
     )
 
     return render(request, 'entrance/staff/group_checks.html', {
-        'group': group,
+        'group': checking_group,
         'users': users,
         'task': task,
         'checks': checks,
@@ -457,9 +436,9 @@ def task_checks(request, group_name, task_id):
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def check_task(request, group_name, task_id):
-    group = get_object_or_404(
+    checking_group = get_object_or_404(
         models.CheckingGroup,
         school=request.school,
         short_name=group_name,
@@ -467,7 +446,7 @@ def check_task(request, group_name, task_id):
 
     _remove_old_checking_locks()
 
-    if not group.tasks.filter(id=task_id).exists():
+    if not checking_group.tasks.filter(id=task_id).exists():
         return redirect('school:entrance:check',
                         school_name=request.school.short_name,
                         )
@@ -500,7 +479,7 @@ def check_task(request, group_name, task_id):
         ).values_list('solution__user_id', flat=True))
 
         users_for_checking = (
-            group.actual_users
+            checking_group.group.users
             .exclude(user_id__in=locked_user_ids)
             .exclude(user_id__in=already_checked_user_ids)
             .filter(user_id__in=task_user_ids)
@@ -536,18 +515,18 @@ def check_task(request, group_name, task_id):
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def check_users_task(request, task_id, user_id, group_name=None):
     _remove_old_checking_locks()
 
     if group_name is not None:
-        group = get_object_or_404(
+        checking_group = get_object_or_404(
             models.CheckingGroup,
             school=request.school,
             short_name=group_name
         )
     else:
-        group = None
+        checking_group = None
 
     user = get_object_or_404(users.models.User, id=user_id)
     task = get_object_or_404(models.FileEntranceExamTask, id=task_id)
@@ -558,15 +537,15 @@ def check_users_task(request, task_id, user_id, group_name=None):
         forms.FileEntranceExamTasksMarkForm.COMMENT_ID_TEMPLATE % task.id
     )
 
-    if group is None:
-        # Find users which are in any group
-        group_user_ids = models.UserInCheckingGroup.objects.filter(
-            group__school=request.school,
-            is_actual=True
-        ).values_list('user_id', flat=True)
+    if checking_group is None:
+        group_user_ids = list({
+            user_id
+            for g in request.school.entrance_checking_groups
+            for user_id in g.group.user_ids
+        })
     else:
         # Select users from group
-        group_user_ids = group.actual_users.values_list('user_id', flat=True)
+        group_user_ids = checking_group.group.user_ids
 
     task.total_solutions_count = users.models.User.objects.filter(
         id__in=nested_query_list(group_user_ids),
@@ -608,7 +587,7 @@ def check_users_task(request, task_id, user_id, group_name=None):
             request, messages.INFO,
             'Этот пользователь не решал выбранную задачу'
         )
-        if group is None:
+        if checking_group is None:
             return redirect('school:entrance:enrolling_user',
                             school_name=request.school.short_name,
                             user_id=user.id)
@@ -647,7 +626,7 @@ def check_users_task(request, task_id, user_id, group_name=None):
                 'Баллы пользователю %s успешно сохранены' % (user.get_full_name(), )
             )
 
-            if group is None:
+            if checking_group is None:
                 return redirect('school:entrance:enrolling_user',
                                 school_name=request.school.short_name,
                                 user_id=user.id)
@@ -675,11 +654,10 @@ def check_users_task(request, task_id, user_id, group_name=None):
         user=user
     )
 
-    move_into_checking_group_form = forms.MoveIntoCheckingGroupForm(request.school)
     add_checking_comment_form = forms.AddCheckingCommentForm()
 
     return render(request, 'entrance/staff/check_users_task.html', {
-        'group': group,
+        'group': checking_group,
         'user_for_checking': user,
         'locked_by_me': locked_by_me,
         'task': task,
@@ -694,13 +672,12 @@ def check_users_task(request, task_id, user_id, group_name=None):
         'checking_comments': checking_comments,
         'add_checking_comment_form': add_checking_comment_form,
 
-        'move_into_checking_group_form': move_into_checking_group_form,
         'mark_form': mark_form
     })
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.admins)
+@groups.decorators.only_for_groups(entrance_groups.ADMINS)
 def enrolling_user(request, user_id):
     user = get_object_or_404(users.models.User, id=user_id)
     _remove_old_checking_locks()
@@ -709,7 +686,7 @@ def enrolling_user(request, user_id):
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.can_check)
+@groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def solution(request, solution_id):
     solution = get_object_or_404(models.EntranceExamTaskSolution, id=solution_id)
 
@@ -767,7 +744,7 @@ def _get_ejudge_task_accepted_solutions(school, solution_model):
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.admins)
+@groups.decorators.only_for_groups(entrance_groups.ADMINS)
 def initial_auto_reject(request):
     user_ids = list(helpers.get_enrolling_users_ids(request.school))
 
@@ -782,10 +759,11 @@ def initial_auto_reject(request):
         task__exam__school=request.school,
     ).values_list('user_id', flat=True))
 
-    already_in_groups_user_ids = set(models.UserInCheckingGroup.objects.filter(
-        group__school=request.school,
-        is_actual=True
-    ).values_list('user_id', flat=True))
+    already_in_groups_user_ids = {
+        user_id
+        for g in request.school.entrance_checking_groups
+        for user_id in g.group.user_ids
+    }
 
     user_ids = set(user_ids) - already_in_groups_user_ids
 
@@ -818,7 +796,7 @@ def initial_auto_reject(request):
 
 
 @sistema.staff.only_staff
-@groups.decorators.only_for_groups(entrance_groups.enrollment_type_reviewers)
+@groups.decorators.only_for_groups(entrance_groups.ENROLLMENT_TYPE_REVIEWERS)
 def review_enrollment_type_for_user(request, user_id):
     user = get_object_or_404(users.models.User, id=user_id)
     entrance_step = get_object_or_404(

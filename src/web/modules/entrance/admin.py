@@ -175,13 +175,6 @@ class CheckingGroupAdmin(admin.ModelAdmin):
     search_fields = ('school__name', 'name')
 
 
-@admin.register(models.UserInCheckingGroup)
-class UserInCheckingGroupAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'group', 'is_actual')
-    list_filter = ('group', 'is_actual')
-    autocomplete_fields = ('user', 'group')
-
-
 @admin.register(models.CheckingLock)
 class CheckingLockAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'task', 'locked_by', 'locked_until')

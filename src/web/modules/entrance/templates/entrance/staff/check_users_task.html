@@ -32,16 +32,6 @@
     </ol>
 {% endblock %}
 
-{% block topbar_right %}
-    <form method="POST" action="{% url 'school:entrance:change_group' request.school.short_name user_for_checking.id %}" class="form form-horizontal form-inline ib mr10">
-        {% csrf_token %}
-        <div class="form-group form-group-sm">
-            {{ move_into_checking_group_form|get_item:'group_id' }}
-            <button class="btn btn-sm btn-default ml10">Переложить</button>
-        </div>
-    </form>
-{% endblock %}
-
 {% block content %}
     <div class="mtn5 mb15 text-muted">
         Выданы задания уровня <span class="label label-sm label-{{ level_upgrades|yesno:'primary,success' }}">{{ base_entrance_level.name }}</span>
@@ -144,7 +134,7 @@
             {% if checks %}
                 <div class="panel">
                     <div class="panel-heading">
-                        <span class="panel-title">Предудыщие проверки</span>
+                        <span class="panel-title">Предыдущие проверки</span>
                     </div>
                     <div class="panel-body pt10">
                         {% for check in checks %}

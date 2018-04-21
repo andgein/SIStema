@@ -1,5 +1,5 @@
-# Specify here names for automatically-created groups in entrance module
+"""Names for automatically created groups in entrance module"""
 
-admins = 'entrance__admins'
-can_check = 'entrance__can_check'
-enrollment_type_reviewers = 'entrance.enrollment_type_reviewers'
+ADMINS = 'entrance__admins'
+CAN_CHECK = 'entrance__can_check'
+ENROLLMENT_TYPE_REVIEWERS = 'entrance.enrollment_type_reviewers'

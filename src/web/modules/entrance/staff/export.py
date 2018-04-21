@@ -478,17 +478,12 @@ class ExportCompleteEnrollingTable(django.views.View):
         ]
 
     def get_checking_groups_for_users(self, school, enrollees):
-        user_in_groups = (
-            models.UserInCheckingGroup.objects
-            .filter(user__in=enrollees,
-                    is_actual=True,
-                    group__school=school)
-            .order_by('group_id')
-            .select_related('group')
-        )
         groups_by_user_id = collections.defaultdict(list)
-        for user_in_group in user_in_groups:
-            groups_by_user_id[user_in_group.user_id].append(user_in_group.group)
+        for checking_group in school.entrance_checking_groups:
+            group_user_ids = checking_group.group.user_ids
+            for user_id in group_user_ids:
+                groups_by_user_id[user_id].append(checking_group)
+
         return [', '.join(group.name for group in groups_by_user_id[user.id])
                 for user in enrollees]
 

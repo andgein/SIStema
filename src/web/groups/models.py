@@ -164,6 +164,13 @@ class ManuallyFilledGroup(AbstractGroup):
     def _memberships(self):
         return self._group_memberships + self._user_memberships
 
+    def add_user(self, user, added_by=None):
+        UserInGroupMembership.objects.create(
+            group=self,
+            member=user,
+            added_by=added_by
+        )
+
 
 class GroupMembership(models.Model):
     group = models.ForeignKey(

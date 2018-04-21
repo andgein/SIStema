@@ -64,15 +64,6 @@ class EntranceRecommendationForm(forms.Form):
         self.fields['recommended_parallel'].choices = available_parallels
 
 
-class MoveIntoCheckingGroupForm(forms.Form):
-    def __init__(self, school, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        groups = models.CheckingGroup.objects.filter(school=school)
-        groups = [(g.id, g.name) for g in groups]
-        self.fields['group_id'] = forms.ChoiceField(widget=forms.Select(), choices=list(groups))
-
-
 class AddCheckingCommentForm(forms.Form):
     comment = forms.CharField(
         required=True,

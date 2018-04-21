@@ -6,29 +6,29 @@ class EntranceConfig(AppConfig):
     name = 'modules.entrance'
 
     sistema_groups = {
-        groups.admins: {
+        groups.ADMINS: {
             'name': 'Админы вступительной',
             'description': 'Группа администраторов вступительной работы',
         },
-        groups.can_check: {
+        groups.CAN_CHECK: {
             'name': 'Проверяющие вступительную',
             'description':
                 'Группа пользователей, которые могут проверять вступительную '
                 'работу: смотреть решения школьников, писать к ним комментарии '
                 'и ставить за них баллы',
-            'auto_members': [groups.admins],
+            'auto_members': [groups.ADMINS],
             'auto_access': {
-                groups.admins: 'admin',
+                groups.ADMINS: 'admin',
             }
         },
-        groups.enrollment_type_reviewers: {
+        groups.ENROLLMENT_TYPE_REVIEWERS: {
             'name': 'Модераторы способов поступления',
             'description':
                 'Группа пользователей, которые могут проверять и одобрять '
                 'выбранные школьниками способы поступления',
-            'auto_members': [groups.admins],
+            'auto_members': [groups.ADMINS],
             'auto_access': {
-                groups.admins: 'admin',
+                groups.ADMINS: 'admin',
             }
         }
     }

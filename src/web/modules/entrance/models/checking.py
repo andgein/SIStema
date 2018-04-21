@@ -1,5 +1,5 @@
 from constance import config
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.utils import timezone
 
 import schools.models
@@ -28,51 +28,62 @@ class CheckingGroup(models.Model):
         blank=True
     )
 
+    group = models.ForeignKey(
+        'groups.AbstractGroup',
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
     def __str__(self):
         return 'Группа проверки %s для %s' % (self.name, self.school)
 
-    @property
-    def actual_users(self):
-        return self.all_time_users.filter(is_actual=True)
+    # @property
+    # def actual_users(self):
+    #     return self.all_time_users.filter(is_actual=True)
 
     class Meta:
         unique_together = ('school', 'short_name')
 
+    def save(self, *args, **kwargs):
+        if self.school_id != self.group.school_id:
+            raise IntegrityError(
+                "Checking group should belong to the same school such as group")
 
-class UserInCheckingGroup(models.Model):
-    user = models.ForeignKey(
-        users.models.User,
-        related_name='+',
-        on_delete=models.CASCADE,
-    )
 
-    group = models.ForeignKey(
-        CheckingGroup,
-        related_name='all_time_users',
-        on_delete=models.CASCADE,
-    )
+# class UserInCheckingGroup(models.Model):
+#     user = models.ForeignKey(
+#         users.models.User,
+#         related_name='+',
+#         on_delete=models.CASCADE,
+#     )
+#
+#     group = models.ForeignKey(
+#         CheckingGroup,
+#         related_name='all_time_users',
+#         on_delete=models.CASCADE,
+#     )
+#
+#     is_actual = models.BooleanField(
+#         default=True,
+#         help_text='True для актуальных записей, False для исторических'
+#     )
+#
+#     created_at = models.DateTimeField(
+#         auto_now_add=True,
+#         db_index=True,
+#     )
+#
+#     def __str__(self):
+#         return '%s: пользователь %s' % (self.group, self.user)
 
-    is_actual = models.BooleanField(
-        default=True,
-        help_text='True для актуальных записей, False для исторических'
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        db_index=True,
-    )
-
-    def __str__(self):
-        return '%s: пользователь %s' % (self.group, self.user)
-
-    @classmethod
-    @transaction.atomic
-    def move_user_into_group(cls, user, group):
-        (cls.objects
-         .filter(group__school=group.school, user=user)
-         .update(is_actual=False)
-         )
-        cls.objects.create(user=user, group=group)
+    # @classmethod
+    # @transaction.atomic
+    # def move_user_into_group(cls, user, group):
+    #     (cls.objects
+    #      .filter(group__school=group.school, user=user)
+    #      .update(is_actual=False)
+    #      )
+    #     cls.objects.create(user=user, group=group)
 
 
 def get_locked_timeout():

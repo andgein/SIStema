@@ -15,12 +15,12 @@ class EntranceStaffInterface(sistema.staff.StaffInterface):
 
         self.is_entrance_admin = groups.is_user_in_group(
             request.user,
-            entrance_groups.admins,
+            entrance_groups.ADMINS,
             request.school
         )
         self.can_check = groups.is_user_in_group(
             request.user,
-            entrance_groups.can_check,
+            entrance_groups.CAN_CHECK,
             request.school
         )
 
