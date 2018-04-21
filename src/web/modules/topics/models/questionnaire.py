@@ -7,18 +7,17 @@ from django.apps import apps
 from django.conf import settings
 from django.core import validators
 from django.db import models, transaction, IntegrityError
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.forms import widgets
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from djchoices import choices
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
-import schools.models
-import sistema.helpers
 import modules.entrance.levels as entrance_levels
 import modules.entrance.models as entrance_models
-from . import levels
+import schools.models
+import sistema.helpers
 
 
 class TopicQuestionnaire(models.Model):
@@ -704,6 +703,41 @@ class ScaleInTopicIssue(models.Model):
     label_group = models.ForeignKey('ScaleLabelGroup', on_delete=models.CASCADE)
 
 
+class EntranceLevelRequirement(models.Model):
+    """
+    Каждое требование задаётся кортежом (tag, max_penalty).
+    Это значит, что сумма баллов школьника по всем шкалам всех тем с тегом tag
+    должна отличаться от максимальной не более чем на max_penalty.
+    """
+    questionnaire = models.ForeignKey(
+        'topics.TopicQuestionnaire',
+        on_delete=models.CASCADE,
+    )
+
+    # TODO(artemtab): make it independent from the entrance module
+    entrance_level = models.ForeignKey(
+        'entrance.EntranceLevel',
+        on_delete=models.CASCADE,
+    )
+
+    tag = models.ForeignKey(
+        'topics.Tag',
+        on_delete=models.CASCADE,
+    )
+
+    max_penalty = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = ('questionnaire', 'entrance_level', 'tag')
+
+    def __str__(self):
+        return 'EntranceLevelRequirement(level: {}, tag: {}, max_penalty: {})'.format(
+                    self.entrance_level.name, self.tag.title, self.max_penalty)
+
+    def satisfy(self, sum_marks, max_marks):
+        return max_marks - sum_marks <= self.max_penalty
+
+
 class TopicsEntranceLevelLimit(models.Model):
     """
     This model is used to cache entrance level inferred from the topics
@@ -763,7 +797,7 @@ class TopicsEntranceLevelLimit(models.Model):
             .prefetch_related('scale_in_topic__topic__tags'))
 
         requirements = (
-            levels.EntranceLevelRequirement.objects
+            EntranceLevelRequirement.objects
             .filter(questionnaire=questionnaire)
             .prefetch_related('entrance_level'))
         requirements_by_tag = sistema.helpers.group_by(

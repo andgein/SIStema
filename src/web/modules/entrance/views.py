@@ -16,8 +16,6 @@ from django.views.decorators.http import require_POST
 import frontend.icons
 import frontend.table
 import modules.ejudge.queue
-import modules.entrance.levels
-import modules.topics.models.levels
 import questionnaire.models
 import sistema.helpers
 import sistema.uploads

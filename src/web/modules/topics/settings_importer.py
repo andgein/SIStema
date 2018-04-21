@@ -1,17 +1,15 @@
 import importlib
-import importlib.util
 import importlib.machinery
+import importlib.util
+import itertools
 import os
 import os.path
 import sys
 
-import itertools
-
 from django.db import transaction
 
-from . import models
 import modules.entrance.models
-from modules.topics.models import levels
+from . import models
 
 r"""
 Example of running
@@ -256,7 +254,7 @@ class CitxxSettingsImporter(SettingsImporter):
             level.save()
 
             for tag, max_penalty in requirements:
-                levels.EntranceLevelRequirement(questionnaire=self.questionnaire,
+                models.EntranceLevelRequirement(questionnaire=self.questionnaire,
                                                 entrance_level=level,
                                                 tag=models.Tag.objects.filter(questionnaire=self.questionnaire,
                                                                               short_name=tag).get(),

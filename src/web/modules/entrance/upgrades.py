@@ -1,6 +1,5 @@
 import modules.entrance.levels
 import modules.topics.entrance.levels
-import modules.topics.models.levels
 from . import models
 
 # Quick fix to possibly survive high QPS
