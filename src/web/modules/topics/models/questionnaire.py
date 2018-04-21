@@ -11,6 +11,8 @@ from django.forms import widgets
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from djchoices import choices
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 import schools.models
 import sistema.helpers
@@ -733,8 +735,25 @@ class TopicsEntranceLevelLimit(models.Model):
         verbose_name_plural = _('topics entrance level limits')
         unique_together = ('questionnaire', 'user')
 
+    def __str__(self):
+        return '{} для {} в {}'.format(
+            self.level, self.user, self.questionnaire)
+
     @classmethod
     def get_limit(cls, *, user, questionnaire):
+        cached_limit = (
+            cls.objects
+            .filter(user=user, questionnaire=questionnaire)
+            .select_related('level')
+            .first())
+        if cached_limit is None:
+            level = cls._compute_level(user=user, questionnaire=questionnaire)
+            cached_limit = cls.objects.create(
+                user=user, questionnaire=questionnaire, level=level)
+        return entrance_levels.EntranceLevelLimit(cached_limit.level)
+
+    @classmethod
+    def _compute_level(cls, *, user, questionnaire):
         # TODO: check status, if not FINISHED, return self._find_minimal_level()
 
         user_marks = (
@@ -783,4 +802,12 @@ class TopicsEntranceLevelLimit(models.Model):
                 if level.order > maximum_satisfied_level.order:
                     maximum_satisfied_level = level
 
-        return entrance_levels.EntranceLevelLimit(maximum_satisfied_level)
+        return maximum_satisfied_level
+
+
+@receiver(post_save, sender=UserQuestionnaireStatus)
+def clear_entrance_level_cache(sender, instance, **kwargs):
+    TopicsEntranceLevelLimit.objects.filter(
+        user=instance.user,
+        questionnaire=instance.questionnaire,
+    ).delete()

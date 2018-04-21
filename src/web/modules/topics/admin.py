@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from . import models
 import modules.entrance.admin as entrance_admin
+from django.db.models.signals import post_save
 
 
 @admin.register(models.TopicQuestionnaire)
@@ -247,3 +248,15 @@ class TopicCheckingQuestionnaireQuestionAdmin(admin.ModelAdmin):
 class TopicCheckingSettingsAdmin(admin.ModelAdmin):
     list_display = ('id', 'questionnaire', 'max_questions')
     autocomplete_fields = ('questionnaire',)
+
+
+@admin.register(models.TopicsEntranceLevelLimit)
+class TopicsEntranceLevelLimitAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'level', 'questionnaire')
+    list_filter = ('questionnaire', 'level')
+    autocomplete_fields = ('user', 'level', 'questionnaire')
+    search_fields = (
+        'user__profile__first_name',
+        'user__profile__last_name',
+        'questionnaire__school__name',
+    )
