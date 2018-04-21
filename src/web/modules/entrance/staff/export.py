@@ -337,9 +337,9 @@ class ExportCompleteEnrollingTable(django.views.View):
             name='',
             subcolumns=[
                 PlainExcelColumn(
-                    name='Оценки 2016.Зима',
+                    name='Оценки 2017.Зима',
                     cell_width=7,
-                    data=self.get_marks_for_users('2016.winter', enrollees),
+                    data=self.get_marks_for_users('2017.winter', enrollees),
                 ),
                 PlainExcelColumn(
                     name='Оценки 2017',
