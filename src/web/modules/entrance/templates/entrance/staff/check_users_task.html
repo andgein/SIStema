@@ -6,6 +6,7 @@
 {% load math %}
 {% load markdown_deux_tags %}
 {% load groups %}
+{% load date %}
 
 {% block title %}{{ user_for_checking.get_full_name }}, «{{ task.title }}»{% endblock %}
 
@@ -45,10 +46,11 @@
             {% endfor %}
         {% endif %}
 
-        <div class="pull-right">
-            Проверено {{ task.checked_solutions_count }} из {{ task.total_solutions_count }} решени{{ task.total_solutions_count|russian_pluralize:'я,й,й' }} этой задачи
+        <div class="pull-right mb10">
+            Проверено <strong>{{ task.checked_solutions_count }} из {{ task.total_solutions_count }}</strong> решени{{ task.total_solutions_count|russian_pluralize:'я,й,й' }} этой задачи
             {% if group %}
-                (в&nbsp;группе)
+                <div class="hidden-md hidden-lg hidden-xl"></div>
+                в&nbsp;группе «{{ group.name }}»
             {% endif %}
             <div class="progress progress-bar-xxs mbn mt5 bg-danger">
                 {% with percents=task.checked_solutions_count|multiply:100|divide:task.total_solutions_count|to_int %}
@@ -134,7 +136,8 @@
             {% if checks %}
                 <div class="panel">
                     <div class="panel-heading">
-                        <span class="panel-title">Предыдущие проверки</span>
+                        <span class="panel-title">Предыдущие проверки этой задачи</span>
+                        {% include 'entrance/staff/_not_visible_to_enrollee.html' %}
                     </div>
                     <div class="panel-body pt10">
                         {% for check in checks %}
@@ -143,7 +146,7 @@
                                 <span class="label label-sm ml5 mr10 label-{% ifequal check.score task.max_score %}success{% else %}{% ifequal check.score 0 %}danger{% else %}warning{% endifequal %}{% endifequal %}">
                                     {{ check.score }} балл{{ check.score|russian_pluralize:',а,ов' }}
                                 </span>
-                                <span class="pull-right fs12 fw400 text-muted">{{ check.created_at }}</span>
+                                <span class="pull-right fs12 fw400 text-muted" title="{{ check.created_at }}">{{ check.created_at|without_year }}</span>
                             </h4>
 
                             {% if check.comment %}
@@ -160,7 +163,8 @@
 
             <div class="panel">
                 <div class="panel-heading">
-                    <span class="panel-title">Общие комментарии</span>
+                    <span class="panel-title">Общие комментарии по&nbsp;школьнику</span>
+                    {% include 'entrance/staff/_not_visible_to_enrollee.html' %}
                 </div>
                 <div class="panel-body pt5">
                     {% include 'entrance/staff/_checking_comments.html' with user=user_for_checking %}

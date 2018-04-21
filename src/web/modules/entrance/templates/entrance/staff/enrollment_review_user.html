@@ -174,7 +174,8 @@
 
             <div class="panel">
                 <div class="panel-heading">
-                    <span class="panel-title">Общие комментарии</span>
+                    <span class="panel-title">Общие комментарии по&nbsp;школьнику</span>
+                    {% include 'entrance/staff/_not_visible_to_enrollee.html' %}
                 </div>
                 <div class="panel-body pt5">
                     {% include 'entrance/staff/_checking_comments.html' with user=user_for_review %}
