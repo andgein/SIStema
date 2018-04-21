@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('entrance', '0075_checkinggroup_group'),
+        ('entrance', '0076_migrate_checking_groups'),
     ]
 
     operations = [
