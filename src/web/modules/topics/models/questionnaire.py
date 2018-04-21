@@ -6,6 +6,7 @@ from django.core import validators
 from django.db import models, transaction, IntegrityError
 from django.forms import widgets
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from djchoices import choices
 
 import schools.models

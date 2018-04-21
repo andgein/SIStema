@@ -1,4 +1,4 @@
-from modules.topics.entrance.levels import *
-from modules.topics.entrance.steps import *
 from .checking import *
+from .levels import *
 from .questionnaire import *
+from .steps import *

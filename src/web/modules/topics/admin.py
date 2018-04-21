@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 from . import models
-from .entrance import levels
 import modules.entrance.admin as entrance_admin
 
 
@@ -180,7 +179,7 @@ class ScaleInTopicIssueAdmin(admin.ModelAdmin):
     autocomplete_fields = ('topic_issue', 'label_group')
 
 
-@admin.register(levels.EntranceLevelRequirement)
+@admin.register(models.EntranceLevelRequirement)
 class EntranceLevelRequirementAdmin(admin.ModelAdmin):
     list_display = (
         'id',

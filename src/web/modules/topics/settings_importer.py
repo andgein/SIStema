@@ -11,7 +11,7 @@ from django.db import transaction
 
 from . import models
 import modules.entrance.models
-from .entrance import levels
+from modules.topics.models import levels
 
 r"""
 Example of running
