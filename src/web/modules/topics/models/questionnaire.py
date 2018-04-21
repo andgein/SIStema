@@ -788,7 +788,7 @@ class TopicsEntranceLevelLimit(models.Model):
 
     @classmethod
     def _compute_level(cls, *, user, questionnaire):
-        # TODO: check status, if not FINISHED, return self._find_minimal_level()
+        # TODO: don't put a limit if questionnaire status is not FINISHED
 
         user_marks = (
             UserMark.objects

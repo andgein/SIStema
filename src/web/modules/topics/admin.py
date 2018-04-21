@@ -1,8 +1,7 @@
 from django.contrib import admin
 
-from . import models
 import modules.entrance.admin as entrance_admin
-from django.db.models.signals import post_save
+from . import models
 
 
 @admin.register(models.TopicQuestionnaire)
