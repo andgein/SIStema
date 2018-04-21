@@ -1,4 +1,5 @@
 import modules.entrance.levels
+import modules.topics.entrance.levels
 import modules.topics.models.levels
 from . import models
 
@@ -47,7 +48,7 @@ def get_base_entrance_level(school, user):
     if override is not None:
         return override.entrance_level
 
-    limiters = [modules.topics.models.levels.TopicsEntranceLevelLimiter,
+    limiters = [modules.topics.entrance.levels.TopicsEntranceLevelLimiter,
                 modules.entrance.levels.AlreadyWasEntranceLevelLimiter,
                 modules.entrance.levels.AgeEntranceLevelLimiter,
                 modules.entrance.levels.EnrollmentTypeEntranceLevelLimiter,
@@ -61,7 +62,7 @@ def get_base_entrance_level(school, user):
 
 
 def get_topics_entrance_level(school, user):
-    limiter = modules.topics.models.levels.TopicsEntranceLevelLimiter(school)
+    limiter = modules.topics.entrance.levels.TopicsEntranceLevelLimiter(school)
     return limiter.get_limit(user).min_level
 
 
