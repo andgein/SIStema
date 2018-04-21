@@ -1,3 +1,6 @@
+import collections
+import operator
+
 import django.utils.timezone
 from django import forms
 from django.apps import apps
@@ -10,6 +13,10 @@ from django.utils.translation import gettext_lazy as _
 from djchoices import choices
 
 import schools.models
+import sistema.helpers
+import modules.entrance.levels as entrance_levels
+import modules.entrance.models as entrance_models
+from . import levels
 
 
 class TopicQuestionnaire(models.Model):
@@ -693,3 +700,87 @@ class ScaleInTopicIssue(models.Model):
 
     # TODO: may be store scale_in_topic, not label_group?
     label_group = models.ForeignKey('ScaleLabelGroup', on_delete=models.CASCADE)
+
+
+class TopicsEntranceLevelLimit(models.Model):
+    """
+    This model is used to cache entrance level inferred from the topics
+    questionnaire.
+    """
+    questionnaire = models.ForeignKey(
+        'TopicQuestionnaire',
+        on_delete=models.CASCADE,
+        verbose_name='тематическая анкета',
+        related_name='cached_level_limits',
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name='пользователь',
+        related_name='+',
+    )
+
+    level = models.ForeignKey(
+        'entrance.EntranceLevel',
+        on_delete=models.CASCADE,
+        verbose_name='уровень',
+        related_name='+',
+    )
+
+    class Meta:
+        verbose_name = _('topics entrance level limit')
+        verbose_name_plural = _('topics entrance level limits')
+        unique_together = ('questionnaire', 'user')
+
+    @classmethod
+    def get_limit(cls, *, user, questionnaire):
+        # TODO: check status, if not FINISHED, return self._find_minimal_level()
+
+        user_marks = (
+            UserMark.objects
+            .filter(user=user,
+                    scale_in_topic__topic__questionnaire=questionnaire)
+            .prefetch_related('scale_in_topic__topic__tags'))
+
+        requirements = (
+            levels.EntranceLevelRequirement.objects
+            .filter(questionnaire=questionnaire)
+            .prefetch_related('entrance_level'))
+        requirements_by_tag = sistema.helpers.group_by(
+            requirements, operator.attrgetter('tag_id'))
+        requirements_by_level = sistema.helpers.group_by(
+            requirements, operator.attrgetter('entrance_level'))
+        sum_marks_for_requirements = collections.defaultdict(int)
+        max_marks_for_requirements = collections.defaultdict(int)
+
+        for mark in user_marks:
+            scale_in_topic = mark.scale_in_topic
+            topic = scale_in_topic.topic
+            topic_tags = topic.tags.all()
+
+            for tag in topic_tags:
+                for requirement in requirements_by_tag[tag.id]:
+                    sum_marks_for_requirements[requirement.id] += mark.mark
+                    max_marks_for_requirements[requirement.id] += (
+                        scale_in_topic.scale.max_mark)
+
+        # Если всё плохо, самый просто уровень считаем выполненным — иначе
+        # нечего будет решать
+        maximum_satisfied_level = (
+            entrance_models.EntranceLevel.objects
+            .filter(school=questionnaire.school)
+            .order_by('order').first())
+        for level, requirements_for_level in requirements_by_level.items():
+            all_satisfied = True
+            for requirement in requirements_for_level:
+                all_satisfied = all_satisfied and requirement.satisfy(
+                    sum_marks_for_requirements[requirement.id],
+                    max_marks_for_requirements[requirement.id],
+                )
+
+            if all_satisfied:
+                if level.order > maximum_satisfied_level.order:
+                    maximum_satisfied_level = level
+
+        return entrance_levels.EntranceLevelLimit(maximum_satisfied_level)
