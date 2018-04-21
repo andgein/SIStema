@@ -56,7 +56,7 @@ class ExportCompleteEnrollingTable(django.views.View):
         cell_fmt = book.add_format({
             'text_wrap': True,
         })
-        plain_header = (request.GET.get('plain_header') == 'true')
+        plain_header = (request.GET.get('plain_header') != 'false')
         for column in columns:
             column.header_format = header_fmt
             column.cell_format = cell_fmt
@@ -479,7 +479,7 @@ class ExportCompleteEnrollingTable(django.views.View):
 
     def get_checking_groups_for_users(self, school, enrollees):
         groups_by_user_id = collections.defaultdict(list)
-        for checking_group in school.entrance_checking_groups:
+        for checking_group in school.entrance_checking_groups.all():
             group_user_ids = checking_group.group.user_ids
             for user_id in group_user_ids:
                 groups_by_user_id[user_id].append(checking_group)
@@ -579,7 +579,7 @@ class ExportCompleteEnrollingTable(django.views.View):
 
 
 class ExcelColumn:
-    def __init__(self, name='', plain_header=False):
+    def __init__(self, name='', plain_header=True):
         self.name = name
         self.plain_header = plain_header
 
