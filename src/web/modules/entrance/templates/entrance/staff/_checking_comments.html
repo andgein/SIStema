@@ -13,7 +13,8 @@
         </blockquote>
     </p>
 {% endfor %}
-<div class="admin-form">
+
+<div class="admin-form pt5">
     <form method="POST" action="{% url 'school:entrance:add_comment' request.school.short_name user.id %}">
         {% csrf_token %}
         {{ add_checking_comment_form }}

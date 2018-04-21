@@ -3,6 +3,8 @@
 {% load dict_tags %}
 {% load range %}
 {% load number_to_text %}
+{% load date %}
+{% load stringcase %}
 
 {% block title %}{{ user_for_checking.get_full_name }}{% endblock %}
 
@@ -122,7 +124,7 @@
                             </div>
                             <div class="fs10 mb10 text-muted">
                                 Уровни:
-                                {% for entrance_level in program_task.entrancelevel_set.all %}
+                                {% for entrance_level in program_task.entrance_levels.all %}
                                     <span class="">{{ entrance_level.name }}</span>{% if not forloop.last %}, {% endif %}
                                 {% endfor %}
                             </div>
@@ -200,7 +202,7 @@
                     </div>
                     {% if user_summary.entrance_reason_text %}
                         <div>
-                            <b>Основание для поступления:</b> {{ user_summary.entrance_reason_text }}
+                            <b>Основание для поступления:</b> {{ user_summary.entrance_reason_text|lowerfirst }}
                         </div>
                     {% endif %}
                     <div><b>Хочет в A-ML:</b> {{ user_summary.a_ml|yesno:"Да,Нет" }}</div>
@@ -209,7 +211,7 @@
                             <b>История:</b>
                             {% for status in user_summary.entrance_statuses %}
                                 <a href="{% url 'school:entrance:enrolling_user' status.school.short_name user_for_checking.id %}">{{ status.school.name }}</a>:
-                                {{ status.is_enrolled|yesno:"зачислен,не зачислен" }}(а){% if not forloop.last %},{% endif %}
+                                {{ status.is_enrolled|yesno:"<b>зачислен</b>,не зачислен"|safe }}(а){% if not forloop.last %},{% endif %}
                             {% endfor %}
                         </div>
                     {% endif %}
@@ -232,13 +234,18 @@
                                 {% endif %}
                             </span>
                             {% if file_task.last_solution %}
-                                <div class="fs12 text-muted">{{ file_task.last_solution.created_at }}</div>
-                                <div class="fs12 mv10">
+                                <div class="fs12 text-muted" title="{{ file_task.last_solution.created_at }}">
+                                    Загружено {{ file_task.last_solution.created_at|without_year }}
+                                    {% if file_task.checks %}
+                                        <div>Проверено:</div>
+                                    {% endif %}
+                                </div>
+                                <div class="fs12 mb10 ml20">
                                     {% for check in file_task.checks %}
                                         <div class="mb5">
                                             <b>{{ check.checked_by.get_full_name }}:</b>
                                             {{ check.score }} балл{{ check.score|russian_pluralize:',а,ов' }}{% if check.comment %}, <i>«{{ check.comment }}»</i>{% endif %}
-                                            <span class="fs11 text-muted pull-right">{{ check.created_at }}</span>
+                                            <span class="fs11 text-muted pull-right" title="{{ check.created_at }}">{{ check.created_at|without_year }}</span>
                                         </div>
                                     {% endfor %}
                                     <div class="mb5">

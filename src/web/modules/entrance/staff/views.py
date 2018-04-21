@@ -415,7 +415,7 @@ def task_checks(request, group_name, task_id):
     if not checking_group.tasks.filter(id=task.id).exists():
         return HttpResponseNotFound()
 
-    users = checking_group.group.users.select_related('user__profile')
+    users = checking_group.group.users.select_related('profile')
     user_ids = [u.id for u in users]
 
     checks = list(
@@ -540,7 +540,7 @@ def check_users_task(request, task_id, user_id, group_name=None):
     if checking_group is None:
         group_user_ids = list({
             user_id
-            for g in request.school.entrance_checking_groups
+            for g in request.school.entrance_checking_groups.all()
             for user_id in g.group.user_ids
         })
     else:
@@ -761,7 +761,7 @@ def initial_auto_reject(request):
 
     already_in_groups_user_ids = {
         user_id
-        for g in request.school.entrance_checking_groups
+        for g in request.school.entrance_checking_groups.all()
         for user_id in g.group.user_ids
     }
 
