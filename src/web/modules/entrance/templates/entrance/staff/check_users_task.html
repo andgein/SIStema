@@ -76,8 +76,20 @@
                     </h3>
                     <p>
                         <a href="{% url 'school:entrance:user_solution' request.school.short_name last_solution.id %}" title="Скачать решение">{{ last_solution.original_filename|default_if_none:'Решение' }}</a>,
-                        загружено {{ last_solution.created_at }}
+                        <span class="text-muted" title="{{ last_solution.created_at }}">загружено {{ last_solution.created_at|without_year }}</span>
                     </p>
+                    {% if solutions|length > 1 %}
+                        <div>
+                            <h3>Предыдущие попытки</h3>
+                            {% for solution in solutions|slice:"1:" %}
+                                <div>
+                                    {{ forloop.revcounter }}.
+                                    <a href="{% url 'school:entrance:user_solution' request.school.short_name solution.id %}" title="Скачать решение">{{ solution.original_filename|default_if_none:'Решение' }}</a>,
+                                    <span class="text-muted" title="{{ solution.created_at }}">загружено {{ solution.created_at|without_year }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
 
                     {% if locked_by_me %}
                         <h3>Оценить</h3>

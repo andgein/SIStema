@@ -237,6 +237,9 @@
                                 <div class="fs12 text-muted" title="{{ file_task.last_solution.created_at }}">
                                     Загружено {{ file_task.last_solution.created_at|without_year }}:
                                     <a href="{% url 'school:entrance:user_solution' request.school.short_name file_task.last_solution.id %}" title="Скачать решение школьника по задаче">{{ file_task.last_solution.original_filename }}</a>
+                                    {% if file_task.user_solutions|length > 1 %}
+                                        ({{ file_task.user_solutions|length }} попыт{{ file_task.user_solutions|length|russian_pluralize:"ка,ки,ок" }})
+                                    {% endif %}
                                     {% if file_task.checks %}
                                         <div>Проверено:</div>
                                     {% endif %}
