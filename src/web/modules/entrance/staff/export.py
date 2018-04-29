@@ -6,6 +6,7 @@ import xlsxwriter
 
 from django.db.models import Count
 from django.http.response import HttpResponse
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
 import django.views
@@ -128,13 +129,27 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=[user.profile.school_name for user in enrollees],
         ))
 
-        if self.question_exists(request.school, 'entrance_reason'):
+        enrollment_type_step = (
+            models.SelectEnrollmentTypeEntranceStep.objects
+            .filter(school=request.school)
+            .first())
+        if enrollment_type_step is not None:
+            columns.append(PlainExcelColumn(
+                name='Основание для поступления',
+                data=[
+                    self.get_enrollment_type_for_user(
+                        enrollment_type_step, user)
+                    for user in enrollees]
+            ))
+        elif self.question_exists(request.school, 'entrance_reason'):
             columns.append(PlainExcelColumn(
                 name='Основание для поступления',
                 data=self.get_choice_question_for_users(
                     request.school, enrollees, 'entrance_reason'),
             ))
 
+        # TODO(artemtab): create ScoolParticipant entries for all the users
+        #                 and use them instead
         if self.question_exists(request.school, 'previous_parallels'):
             columns.append(PlainExcelColumn(
                 name='История',
@@ -191,6 +206,23 @@ class ExportCompleteEnrollingTable(django.views.View):
             columns.append(PlainExcelColumn(
                 name='Языки ОК\'ов',
                 data=self.get_ok_languages_for_users(request.school, enrollees),
+            ))
+
+            columns.append(LinkExcelColumn(
+                name='ТА',
+                data=[
+                    upgrades.get_base_entrance_level(request.school, user).name
+                    for user in enrollees
+                ],
+                data_urls=[
+                    request.build_absolute_uri(
+                        reverse('school:entrance:user_topics', kwargs={
+                            'school_name': request.school.short_name,
+                            'user_id': user.id,
+                        })
+                    )
+                    for user in enrollees
+                ]
             ))
 
             columns.append(PlainExcelColumn(
@@ -266,6 +298,25 @@ class ExportCompleteEnrollingTable(django.views.View):
                 ]
                 columns.append(ExcelMultiColumn(name='Баллы',
                                                 subcolumns=subcolumns))
+
+            columns.append(LinkExcelColumn(
+                name='Авто',
+                cell_width=5,
+                data=[
+                    self.get_auto_parallel_for_user(request.school, user)
+                    for user in enrollees
+                ],
+                data_urls=[
+                    request.build_absolute_uri(reverse(
+                        'school:entrance:enrollment_type_review_user',
+                        kwargs={
+                            'school_name': request.school.short_name,
+                            'user_id': user.id,
+                        }
+                    ))
+                    for user in enrollees
+                ]
+            ))
 
         if self.question_exists(request.school, 'want_to_session'):
             columns.append(PlainExcelColumn(
@@ -376,6 +427,26 @@ class ExportCompleteEnrollingTable(django.views.View):
             ))
 
         return columns
+
+    def get_auto_parallel_for_user(self, school, user):
+        enrollment = (
+            models.SelectedEnrollmentType.objects
+            .filter(step__school_id=school.id, user_id=user.id)
+            .select_related('parallel')
+            .first())
+        if enrollment is None or enrollment.parallel is None:
+            return ''
+        return enrollment.parallel.name
+
+    def get_enrollment_type_for_user(self, step, user):
+        enrollment = (
+            models.SelectedEnrollmentType.objects
+            .filter(step_id=step.id, user_id=user.id)
+            .select_related('enrollment_type')
+            .first())
+        if enrollment is None:
+            return ''
+        return enrollment.enrollment_type.text
 
     def get_history_for_users(self, school, enrollees):
         previous_parallel_answers = (
