@@ -1,0 +1,6 @@
+.btn-group .btn-default.active {
+    /* Inherit values from .btn-success.active */
+    color: #ffffff;
+    background-color: #56c046;
+    border-color: rgba(0, 0, 0, 0.05);
+}

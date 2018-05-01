@@ -3,6 +3,7 @@
 {% load staticfiles %}
 
 {% block css %}
+    {{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static 'css/staff.css' %}" />
 {% endblock %}
 
