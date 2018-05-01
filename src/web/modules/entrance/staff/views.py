@@ -414,7 +414,7 @@ def checking_group_teachers(request, group_name):
     }
     average_scores = {
         t: {
-            task_id: sum(c.score for c in checks) / len(checks)
+            task_id: round(sum(c.score for c in checks) / len(checks), 2)
             for task_id, checks in teacher_task_checks[t].items()
         }
         for t in teachers
