@@ -318,7 +318,7 @@ def check_group(request, group_name):
         ).distinct().count()
         task.checks_count = task.checks.count()
 
-    total_solutions_count = sum(task.checked_solutions_count for task in tasks)
+    total_solutions_count = sum(task.solutions_count for task in tasks)
     total_checked_solutions_count = sum(task.checked_solutions_count for task in tasks)
     total_checks_count = sum(task.checks_count for task in tasks)
     total_teachers_count = sum(
