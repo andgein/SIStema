@@ -2,6 +2,7 @@
 
 {% load markdown_deux_tags %}
 {% load number_to_text %}
+{% load groups %}
 
 {% block title %}Проверка вступительной работы, {{ group.name }}{% endblock %}
 
@@ -15,6 +16,57 @@
 {% endblock %}
 
 {% block content %}
+    {% ifingroup 'entrance__admins' %}
+        <div class="row">
+            <div class="col-xs-12 col-sm-4 col-lg-2">
+                <div class="panel panel-tile text-center br-a br-grey">
+                    <div class="panel-body">
+                        <h1 class="fs30 mt5 mbn">{{ total_users_count }}</h1>
+                        <h6 class="text-warning">ШКОЛЬНИК{{ total_users_count|russian_pluralize:',А,ОВ' }}</h6>
+                    </div>
+                    <div class="panel-footer br-t p12">
+                        <a href="{% url 'school:entrance:checking_group_users' request.school.short_name group.short_name %}">Все школьники</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-4 col-lg-2">
+                <div class="panel panel-tile text-center br-a br-grey">
+                    <div class="panel-body">
+                        <h1 class="fs30 mt5 mbn">{{ total_solutions_count }}</h1>
+                        <h6 class="text-system">РЕШЕНИ{{ total_solutions_count|russian_pluralize:'Е,Я,Й' }}</h6>
+                    </div>
+                    <div class="panel-footer br-t p12">
+                        &nbsp;
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-4 col-lg-2">
+                <div class="panel panel-tile text-center br-a br-grey">
+                    <div class="panel-body">
+                        <h1 class="fs30 mt5 mbn">{{ total_checked_solutions_count }}</h1>
+                        <h6 class="text-success">РЕШЕНИ{{ total_checked_solutions_count|russian_pluralize:'Е,Я,Й' }} ПРОВЕРЕНО</h6>
+                    </div>
+                    <div class="panel-footer br-t p12">
+                        <a href="{% url 'school:entrance:checking_group_checks' request.school.short_name group.short_name %}">Все проверки</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-4 col-lg-2">
+                <div class="panel panel-tile text-center br-a br-grey">
+                    <div class="panel-body">
+                        <h1 class="fs30 mt5 mbn">{{ total_teachers_count }}</h1>
+                        <h6 class="text-alert">ПРОВЕРЯЮЩИ{{ total_teachers_count|russian_pluralize:'Й,Х,Х' }}</h6>
+                    </div>
+                    <div class="panel-footer br-t p12">
+                        <a href="{% url 'school:entrance:checking_group_teachers' request.school.short_name group.short_name %}">Статистика по&nbsp;проверяющим</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="mt5"/>
+    {% endifingroup %}
+
     <div class="row">
         {% for task in tasks %}
             <div class="col-xs-12 col-md-6 col-lg-4">

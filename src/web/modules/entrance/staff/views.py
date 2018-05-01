@@ -317,11 +317,28 @@ def check_group(request, group_name):
             'solution__user_id', flat=True
         ).distinct().count()
         task.checks_count = task.checks.count()
+
+    total_solutions_count = sum(task.checked_solutions_count for task in tasks)
+    total_checked_solutions_count = sum(task.checked_solutions_count for task in tasks)
+    total_checks_count = sum(task.checks_count for task in tasks)
+    total_teachers_count = sum(
+        task.checks.values_list('checked_by_id', flat=True).distinct().count()
+        for task in tasks
+    )
+    total_users_count = len(group_user_ids)
+
+    for task in tasks:
         task.checks = list(task.checks.order_by('-created_at')[:20])
 
     return render(request, 'entrance/staff/check_group.html', {
         'group': checking_group,
         'tasks': tasks,
+
+        'total_solutions_count': total_solutions_count,
+        'total_checks_count': total_checks_count,
+        'total_checked_solutions_count': total_checked_solutions_count,
+        'total_teachers_count': total_teachers_count,
+        'total_users_count': total_users_count,
     })
 
 

@@ -13,7 +13,7 @@
             <div class="panel-heading">
                 <div class="panel-title">
                     Проверенные решения
-                    {% if task %}по&nbsp;задаче «{{ task.title }}»{% else %}в&nbsp;группе{% endif %}
+                    в&nbsp;группе «{{ group.name }}»
                     <span class="label label-sm bg-info ml10">{{ checks|length }} провер{{ checks|length|russian_pluralize:'ка,ки,ок' }}</span>
                 </div>
             </div>
