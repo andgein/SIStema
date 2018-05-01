@@ -1,6 +1,7 @@
 {% extends 'staff_layout.html' %}
 
 {% load number_to_text %}
+{% load groups %}
 
 {% block title %}Проверка вступительной работы{% endblock %}
 
@@ -52,6 +53,9 @@
                     {% if group.group_users %}
                         <div class="panel-footer p15">
                             <a href="{% url 'school:entrance:checking_group_users' school_name=request.school.short_name group_name=group.short_name %}" class="btn btn-sm btn-default mr10">Школьники</a>
+                            {% ifingroup 'entrance__admins' %}
+                                <a href="{% url 'school:entrance:checking_group_teachers' school_name=request.school.short_name group_name=group.short_name %}" class="btn btn-sm btn-default mr10">Проверяющие</a>
+                            {% endifingroup %}
                             <a href="{% url 'school:entrance:checking_group_checks' school_name=request.school.short_name group_name=group.short_name %}" class="btn btn-sm btn-default">Проверенные решения</a>
                         </div>
                     {% endif %}
