@@ -1,0 +1,29 @@
+{% extends 'entrance/staff/checks_list.html' %}
+
+{% load number_to_text %}
+
+{% block title %}Проверка вступительной работы, {{ group.name }}, {{ teacher.get_full_name }}{% endblock %}
+
+{% block topbar_left %}
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            <a href="{% url 'school:entrance:check' request.school.short_name %}">Проверка вступительной работы</a>
+        </li>
+        <li class="crumb-link">
+            <a href="{% url 'school:entrance:check_group' request.school.short_name group.short_name %}">{{ group.name }}</a>
+        </li>
+        <li class="crumb-link">
+            <a href="{% url 'school:entrance:checking_group_teachers' request.school.short_name group.short_name %}">Проверяющие</a>
+        </li>
+        {% if task %}
+            <li class="crumb-link">
+                <a href="{% url 'school:entrance:teacher_checks' request.school.short_name group.short_name teacher.id %}">
+                    {{ teacher.get_full_name }}
+                </a>
+            </li>
+            <li class="crumb-trail">Задача «{{ task.title }}»</li>
+        {% else %}
+            <li class="crumb-trail">{{ teacher.get_full_name }}</li>
+        {% endif %}
+    </ol>
+{% endblock %}

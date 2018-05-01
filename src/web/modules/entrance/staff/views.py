@@ -502,6 +502,70 @@ def task_checks(request, group_name, task_id):
 
 
 @sistema.staff.only_staff
+@groups.decorators.only_for_groups(entrance_groups.ADMINS)
+def teacher_checks(request, group_name, teacher_id):
+    checking_group = get_object_or_404(
+        models.CheckingGroup,
+        school=request.school,
+        short_name=group_name,
+    )
+    teacher = get_object_or_404(users.models.User, pk=teacher_id)
+
+    group_users = checking_group.group.users.select_related('profile')
+    group_user_ids = [u.id for u in group_users]
+
+    checks = list(
+        models.CheckedSolution.objects.filter(
+            solution__user_id__in=group_user_ids,
+            checked_by=teacher
+        ).order_by('-created_at')
+         .select_related('solution__user')
+         .select_related('solution__task')
+    )
+
+    return render(request, 'entrance/staff/teacher_checks.html', {
+        'group': checking_group,
+        'teacher': teacher,
+        'checks': checks,
+    })
+
+
+@sistema.staff.only_staff
+@groups.decorators.only_for_groups(entrance_groups.ADMINS)
+def teacher_task_checks(request, group_name, teacher_id, task_id):
+    checking_group = get_object_or_404(
+        models.CheckingGroup,
+        school=request.school,
+        short_name=group_name,
+    )
+    teacher = get_object_or_404(users.models.User, pk=teacher_id)
+
+    task = get_object_or_404(models.FileEntranceExamTask, id=task_id)
+    if not checking_group.tasks.filter(id=task.id).exists():
+        return HttpResponseNotFound()
+
+    group_users = checking_group.group.users.select_related('profile')
+    group_user_ids = [u.id for u in group_users]
+
+    checks = list(
+        models.CheckedSolution.objects.filter(
+            solution__user_id__in=group_user_ids,
+            solution__task_id=task_id,
+            checked_by=teacher
+        ).order_by('-created_at')
+         .select_related('solution__user')
+         .select_related('solution__task')
+    )
+
+    return render(request, 'entrance/staff/teacher_checks.html', {
+        'group': checking_group,
+        'teacher': teacher,
+        'task': task,
+        'checks': checks,
+    })
+
+
+@sistema.staff.only_staff
 @groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def check_task(request, group_name, task_id):
     checking_group = get_object_or_404(
