@@ -19,6 +19,17 @@
             </div>
             <div class="panel-body">
 
+                {% if task or teacher %}
+                    <div class="mb10">
+                        {% if task %}
+                            <div class="label label-alert">Задача: {{ task.title }}</div>
+                        {% endif %}
+                        {% if teacher %}
+                            <div class="label label-system">Проверяющий: {{ teacher.get_full_name }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
                 <table class="table table-condensed">
                     <thead>
                     <tr>
@@ -29,7 +40,9 @@
                             <th>Задача</th>
                         {% endif %}
                         <th>Баллы</th>
-                        <th>Кем проверено</th>
+                        {% if not teacher %}
+                            <th>Кем проверено</th>
+                        {% endif %}
                         <th>Комментарий</th>
                         <th><span class="fa fa-download" title="Скачать решение"></span></th>
                     </tr>
@@ -45,12 +58,28 @@
                             </td>
                             <td>{{ check.solution.user.get_full_name }}</td>
                             {% if not task %}
-                                <td>{{ check.solution.task.title }}</td>
+                                <td>
+                                    {{ check.solution.task.title }}
+                                    {% if teacher %}
+                                        <a href="{% url 'school:entrance:teacher_task_checks' request.school.short_name group.short_name check.checked_by_id check.solution.task_id %}" title="Оставить только решения по этой задаче"><span class="fa fa-filter"></span></a>
+                                    {% else %}
+                                        <a href="{% url 'school:entrance:task_checks' request.school.short_name group.short_name check.solution.task_id %}" title="Оставить только решения по этой задаче"><span class="fa fa-filter"></span></a>
+                                    {% endif %}
+                                </td>
                             {% endif %}
                             <td class="{% ifequal check.score check.solution.task.max_score %}text-success{% else %}text-danger{% endifequal %}">
                                 {{ check.score }}
                             </td>
-                            <td>{{ check.checked_by.get_full_name }}</td>
+                            {% if not teacher %}
+                                <td>
+                                    {{ check.checked_by.get_full_name }}
+                                    {% if task %}
+                                        <a href="{% url 'school:entrance:teacher_task_checks' request.school.short_name group.short_name check.checked_by_id task.id %}" title="Оставить работы этого проверяющего"><span class="fa fa-filter"></span></a>
+                                    {% else %}
+                                        <a href="{% url 'school:entrance:teacher_checks' request.school.short_name group.short_name check.checked_by_id %}" title="Оставить работы этого проверяющего"><span class="fa fa-filter"></span></a>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
                             <td class="mw240"><i>{{ check.comment|truncatewords:10 }}</i></td>
                             <td>
                                 <a href="{% url 'school:entrance:user_solution' request.school.short_name check.solution.id %}" class="visible-on-row-hover" title="Скачать решение">
