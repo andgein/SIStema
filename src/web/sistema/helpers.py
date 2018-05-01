@@ -33,7 +33,7 @@ def respond_as_attachment(request, file_path, original_filename):
 
     # Disable htmlmin minifying for this response because htmlmin works only with UTF-8 files
     # and can raise exception if file is not valid. Some files returned via this file are
-    # user's uploaded files so we can't garantee that they are safe.
+    # user's uploaded files so we can't guarantee that they are safe.
     response.minify_response = False
 
     return response

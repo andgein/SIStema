@@ -34,6 +34,18 @@ def multiply(value, arg):
 
 
 @register.filter
+def add(value, arg):
+    """ Sum values """
+    return value + arg
+
+
+@register.filter
+def subtract(value, arg):
+    """ Subtract values """
+    return value - arg
+
+
+@register.filter
 def to_int(value):
     """
     Converting any value to int.

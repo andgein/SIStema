@@ -373,6 +373,72 @@ def checking_group_users(request, group_name):
 
 
 @sistema.staff.only_staff
+@groups.decorators.only_for_groups(entrance_groups.ADMINS)
+def checking_group_teachers(request, group_name):
+    checking_group = get_object_or_404(
+        models.CheckingGroup,
+        school=request.school,
+        short_name=group_name,
+    )
+
+    users = checking_group.group.users.select_related('profile')
+    tasks = list(checking_group.tasks.order_by('order'))
+    user_ids = [u.id for u in users]
+    task_ids = [t.id for t in tasks]
+
+    checks = list(models.CheckedSolution.objects.filter(
+        solution__user_id__in=user_ids,
+        solution__task_id__in=task_ids,
+    ).select_related('solution', 'checked_by'))
+    teacher_checks = group_by(checks, lambda c: c.checked_by)
+    teachers = teacher_checks.keys()
+    teacher_checks_count = {t: len(checks) for t, checks in teacher_checks.items()}
+    teacher_task_checks = {
+        t: group_by(checks, lambda c: c.solution.task_id)
+        for t, checks in teacher_checks.items()
+    }
+    teacher_solutions_count = {
+        t: len({c.solution_id for c in checks})
+        for t, checks in teacher_checks.items()
+    }
+    teacher_task_solutions = {
+        t: {
+            task_id: {c.solution_id for c in checks}
+            for task_id, checks in teacher_task_checks[t].items()
+        }
+        for t in teachers
+    }
+    teacher_tasks = {
+        t: sorted({c.solution.task for c in checks}, key=operator.attrgetter('order'))
+        for t, checks in teacher_checks.items()
+    }
+    average_scores = {
+        t: {
+            task_id: sum(c.score for c in checks) / len(checks)
+            for task_id, checks in teacher_task_checks[t].items()
+        }
+        for t in teachers
+    }
+
+    ordered_teachers = sorted(
+        teachers,
+        key=lambda t: teacher_checks_count[t],
+        reverse=True
+    )
+    return render(request, 'entrance/staff/group_teachers.html', {
+        'group': checking_group,
+        'teachers': ordered_teachers,
+        'teacher_checks': teacher_checks,
+        'teacher_checks_count': teacher_checks_count,
+        'teacher_solutions_count': teacher_solutions_count,
+        'teacher_tasks': teacher_tasks,
+        'teacher_task_checks': teacher_task_checks,
+        'teacher_task_solutions': teacher_task_solutions,
+        'average_scores': average_scores,
+    })
+
+
+@sistema.staff.only_staff
 @groups.decorators.only_for_groups(entrance_groups.CAN_CHECK)
 def checking_group_checks(request, group_name):
     checking_group = get_object_or_404(

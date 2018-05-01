@@ -1,0 +1,94 @@
+{% extends 'staff_layout.html' %}
+
+{% load number_to_text %}
+{% load dict_tags %}
+{% load math %}
+
+{% block title %}Проверка вступительной работы, {{ group.name }}, проверяющие{% endblock %}
+
+{% block topbar_left %}
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            <a href="{% url 'school:entrance:check' request.school.short_name %}">Проверка вступительной работы</a>
+        </li>
+        <li class="crumb-link">
+            <a href="{% url 'school:entrance:check_group' request.school.short_name group.short_name %}">{{ group.name }}</a>
+        </li>
+        <li class="crumb-trail">Проверяющие</li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+    {% if not teachers %}
+        <p class="text-muted">
+            Работы в&nbsp;этой группе ещё никто не&nbsp;проверял. <a href="javascript:history.go(-1)">Вернуться назад</a>.
+        </p>
+    {% else %}
+        <div class="panel">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    Проверяющие группы «{{ group.name }}»
+                    <span class="label label-sm bg-info ml10">{{ teachers|length }} человек{{ teachers|length|russian_pluralize:',а,' }}</span>
+                </div>
+            </div>
+            <div class="panel-body">
+
+                <table class="table table-condensed">
+                    <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Проверяющий</th>
+                        <th>Проверено</th>
+                        <th>Задача</th>
+                        <th>Проверено по&nbsp;задаче</th>
+                        <th>Средний балл</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for teacher in teachers %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ teacher.get_full_name }}</td>
+                            <td>
+                                {{ teacher_solutions_count|get_item:teacher }}
+                                решени{{ teacher_solutions_count|get_item:teacher|russian_pluralize:'е,я,й' }}
+
+                                {% ifnotequal teacher_checks_count|get_item:teacher teacher_solutions_count|get_item:teacher  %}
+                                    <span class="text-muted">
+                                        в&nbsp;{{ teacher_checks_count|get_item:teacher }} проверк{{ teacher_checks_count|get_item:teacher|russian_pluralize:'е,ах,ах' }}
+                                    </span>
+                                {% endifnotequal %}
+                            </td>
+
+                            {% for task in teacher_tasks|get_item:teacher %}
+                                {% if not forloop.first %}
+                                    {# Open new row and skip first 3 columns for each task except the first one #}
+                                    <tr>
+                                    <td colspan="3" class="br-t-n"></td>
+                                {% endif %}
+                                <td>{{ task.title }}</td>
+                                <td>
+                                    {{ teacher_task_solutions|get_item:teacher|get_item:task.id|length }}
+                                    решени{{ teacher_task_solutions|get_item:teacher|get_item:task.id|length|russian_pluralize:'е,я,й' }}
+
+                                    {% ifnotequal teacher_task_checks|get_item:teacher|get_item:task.id|length teacher_task_solutions|get_item:teacher|get_item:task.id|length  %}
+                                        <span class="text-muted">
+                                            в&nbsp;{{ teacher_task_checks|get_item:teacher|get_item:task.id|length }}
+                                            проверк{{ teacher_task_checks|get_item:teacher|get_item:task.id|length|russian_pluralize:'е,ах,ах' }}
+                                        </span>
+                                    {% endifnotequal %}
+                                </td>
+                                <td>
+                                    {{ average_scores|get_item:teacher|get_item:task.id }}
+                                </td>
+                                </tr>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
