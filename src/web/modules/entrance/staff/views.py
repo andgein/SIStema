@@ -422,7 +422,7 @@ def checking_group_teachers(request, group_name):
 
     ordered_teachers = sorted(
         teachers,
-        key=lambda t: teacher_checks_count[t],
+        key=lambda t: (teacher_solutions_count[t], teacher_checks_count[t]),
         reverse=True
     )
     return render(request, 'entrance/staff/group_teachers.html', {
