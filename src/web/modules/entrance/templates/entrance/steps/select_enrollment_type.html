@@ -76,8 +76,10 @@
                 {%  endif %}
             </div>
         {% endif %}
-        <div class="pt25">
-            <button type="submit" class="btn btn-danger">Изменить выбор</button>
-        </div>
+        {% if not entrance_block.step_is_closed %}
+            <div class="pt25">
+                <button type="submit" class="btn btn-danger">Изменить выбор</button>
+            </div>
+        {% endif %}
     </form>
 {% endblock %}
