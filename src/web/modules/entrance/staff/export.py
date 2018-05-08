@@ -254,7 +254,10 @@ class ExportCompleteEnrollingTable(django.views.View):
                     PlainExcelColumn(
                         name='{}: {}'.format(task.id, task.title),
                         cell_width=5,
-                        data=self.get_file_task_score_for_users(task, enrollees)
+                        data=self.get_file_task_score_for_users(
+                            task, enrollees),
+                        comments=self.get_file_task_comments_for_users(
+                            task, enrollees),
                     )
                     for task in file_tasks
                 ]
@@ -318,6 +321,27 @@ class ExportCompleteEnrollingTable(django.views.View):
                 ]
             ))
 
+        # 2018
+        if self.question_exists(request.school, 'want_to_session_2'):
+            answers = self.get_choice_question_for_users(
+                    request.school, enrollees, 'want_to_session_2')
+            answer_mapping = {
+                "Хочу в августовскую, но могу и в июльскую": ("Август", "Да"),
+                "Хочу в июльскую, но могу и в августовскую": ("Июль", "Да"),
+                "Только в августовскую («Лаагна», Эстония, с 31 июля по 20 августа)": ("Август", "Нет"),
+                "Только в июльскую («Берендеевы поляны», с 4 по 24 июля)": ("Июль", "Нет"),
+                "": ("", ""),
+            }
+            columns.append(PlainExcelColumn(
+                name='Смена',
+                data=[answer_mapping[answer][0] for answer in answers],
+            ))
+            columns.append(PlainExcelColumn(
+                name='Другая смена',
+                data=[answer_mapping[answer][1] for answer in answers],
+            ))
+
+        # 2016 & 2017
         if self.question_exists(request.school, 'want_to_session'):
             columns.append(PlainExcelColumn(
                 name='Смена',
@@ -598,6 +622,22 @@ class ExportCompleteEnrollingTable(django.views.View):
         }
         return [last_score_by_user_id.get(user.id, '') for user in enrollees]
 
+    def get_file_task_comments_for_users(self, task, enrollees):
+        checked_solutions = (
+            models.CheckedSolution.objects
+            .filter(solution__user__in=enrollees, solution__task=task)
+            .order_by('-created_at')
+            .select_related('solution__user')
+        )
+        comments_by_user_id = collections.defaultdict(list)
+        for solution in checked_solutions:
+            if solution.comment:
+                user_id = solution.solution.user_id
+                comments_by_user_id[user_id].append(
+                    '{}: {}'.format(solution.checked_by.get_full_name(),
+                                    solution.comment))
+        return ['\n\n'.join(comments_by_user_id[user.id]) for user in enrollees]
+
     def get_program_task_score_for_users(self, task, enrollees):
         OK = ejudge_models.CheckingResult.Result.OK
         solved_user_ids = set(
@@ -689,10 +729,12 @@ class ExcelColumn:
 class PlainExcelColumn(ExcelColumn):
     def __init__(self,
                  data=None,
+                 comments=None,
                  cell_width=15,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.data = [] if data is None else data
+        self.comments = [] if comments is None else comments
         self.cell_width = cell_width
 
     def write(self, sheet, irow, icol, header_height=None):
@@ -702,6 +744,9 @@ class PlainExcelColumn(ExcelColumn):
 
         for i, value in enumerate(self.data):
             sheet.write(irow + i, icol, value, self.cell_format)
+        for i, comment in enumerate(self.comments):
+            if comment:
+                sheet.write_comment(irow + i, icol, comment)
 
 
 class LinkExcelColumn(PlainExcelColumn):
