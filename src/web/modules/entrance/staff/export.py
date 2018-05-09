@@ -425,6 +425,11 @@ class ExportCompleteEnrollingTable(django.views.View):
         ))
 
         columns.append(PlainExcelColumn(
+            name='Комментарии из системы',
+            data=self.get_checking_comments_for_users(request.school, enrollees)
+        ))
+
+        columns.append(PlainExcelColumn(
             name='Комментарии 2017',
             cell_width=30,
             data=self.get_study_comments_for_users('2017', enrollees),
@@ -687,6 +692,17 @@ class ExportCompleteEnrollingTable(django.views.View):
             .filter(question__questionnaire__school=school)
         )
         return {str(var.id): var for var in variants}
+
+    def get_checking_comments_for_users(self, school, enrollees):
+        comments = (
+            models.CheckingComment.objects
+            .filter(school=school, user__in=enrollees)
+            .order_by('created_at'))
+        comments_by_user_id = collections.defaultdict(list)
+        for comment in comments:
+            comments_by_user_id[comment.user_id].append('{}: {}'.format(
+                comment.commented_by.get_full_name(), comment.comment))
+        return ['\n\n'.join(comments_by_user_id[user.id]) for user in enrollees]
 
 
 class ExcelColumn:
