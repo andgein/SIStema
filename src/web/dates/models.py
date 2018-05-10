@@ -116,9 +116,8 @@ class KeyDate(models.Model):
 
 class UserKeyDateException(models.Model):
     """
-    Exception for a key date for a specific user.
-
-    Only single exception is allowed per user for a given date.
+    Exception for a key date for a specific user. Only single exception is
+    allowed per user for a given date.
     """
 
     key_date = models.ForeignKey(
@@ -139,10 +138,46 @@ class UserKeyDateException(models.Model):
     )
 
     class Meta:
-        verbose_name = _('user key date exception')
-        verbose_name_plural = _('user key date exceptions')
+        verbose_name = _('key date exception for user')
+        verbose_name_plural = _('key date exceptions for users')
         unique_together = ('key_date', 'user')
 
     def __str__(self):
         return 'Перенос даты "{}" для {} на {}'.format(
             self.key_date, self.user, self.datetime)
+
+
+class GroupKeyDateException(models.Model):
+    """
+    Exception for a key date for a specific user. Only single exception is
+    allowed per group for a given date.
+
+    If user belongs to several groups and each of them has an exception, the
+    latest one will be used.
+    """
+
+    key_date = models.ForeignKey(
+        'KeyDate',
+        on_delete=models.CASCADE,
+        related_name='group_exceptions',
+    )
+
+    group = models.ForeignKey(
+        'groups.AbstractGroup',
+        on_delete=models.CASCADE,
+        related_name='key_date_exceptions',
+        help_text='Группа, для членов которой будет применено исключение',
+    )
+
+    datetime = models.DateTimeField(
+        verbose_name='Новое время',
+    )
+
+    class Meta:
+        verbose_name = _(' key date exception for group')
+        verbose_name_plural = _('key date exceptions for groups')
+        unique_together = ('key_date', 'group')
+
+    def __str__(self):
+        return 'Перенос даты "{}" для {} на {}'.format(
+            self.key_date, self.group, self.datetime)
