@@ -45,7 +45,7 @@ class KeyDate(models.Model):
         """
         Datetime for the specific user, considering exceptions.
         """
-        exception = self.exceptions.filter(user=user).first()
+        exception = self.user_exceptions.filter(user=user).first()
         if exception is not None:
             return exception.datetime
 
@@ -106,7 +106,7 @@ class KeyDate(models.Model):
         )
 
         if copy_exceptions:
-            for exception in self.exceptions.all():
+            for exception in self.user_exceptions.all():
                 exception.pk = None
                 exception.key_date = new_key_date
                 exception.save()
@@ -114,15 +114,17 @@ class KeyDate(models.Model):
         return new_key_date
 
 
-class KeyDateException(models.Model):
+class UserKeyDateException(models.Model):
     """
-    Key date exceptions for an individual user
+    Exception for a key date for a specific user.
+
+    Only single exception is allowed per user for a given date.
     """
 
     key_date = models.ForeignKey(
         'KeyDate',
         on_delete=models.CASCADE,
-        related_name='exceptions',
+        related_name='user_exceptions',
     )
 
     user = models.ForeignKey(
@@ -137,8 +139,8 @@ class KeyDateException(models.Model):
     )
 
     class Meta:
-        verbose_name = _('key date exception')
-        verbose_name_plural = _('key date exceptions')
+        verbose_name = _('user key date exception')
+        verbose_name_plural = _('user key date exceptions')
         unique_together = ('key_date', 'user')
 
     def __str__(self):

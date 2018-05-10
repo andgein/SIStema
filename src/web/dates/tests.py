@@ -40,7 +40,7 @@ class KeyDateTestCase(django.test.TestCase):
             school=self.school_1,
         )
 
-        models.KeyDateException.objects.create(
+        models.UserKeyDateException.objects.create(
             key_date=self.key_date,
             user=self.user_with_exception,
             datetime=datetime.datetime(2018, 1, 2, 0, 0, tzinfo=TIMEZONE)
@@ -124,7 +124,7 @@ class KeyDateTestCase(django.test.TestCase):
 
         einstein = users.models.User.objects.create_user(
             'einstein', 'einstein@example.org', 'password')
-        models.KeyDateException.objects.create(
+        models.UserKeyDateException.objects.create(
             key_date=src_date,
             user=einstein,
             datetime=datetime.datetime(1879, 3, 14, tzinfo=TIMEZONE)
@@ -133,7 +133,7 @@ class KeyDateTestCase(django.test.TestCase):
         feynman = users.models.User.objects.create_user(
             'feynman', 'feynman@example.org', 'password')
         feynman_birthday = datetime.datetime(1918, 5, 11, tzinfo=TIMEZONE)
-        models.KeyDateException.objects.create(
+        models.UserKeyDateException.objects.create(
             key_date=src_date,
             user=feynman,
             datetime=feynman_birthday,
@@ -143,7 +143,7 @@ class KeyDateTestCase(django.test.TestCase):
             short_name='that-moment',
             copy_exceptions=True,
         )
-        self.assertEqual(src_date.exceptions.count(), 2)
-        self.assertEqual(new_date.exceptions.count(), 2)
-        exception = new_date.exceptions.get(user=feynman)
+        self.assertEqual(src_date.user_exceptions.count(), 2)
+        self.assertEqual(new_date.user_exceptions.count(), 2)
+        exception = new_date.user_exceptions.get(user=feynman)
         self.assertEqual(exception.datetime, feynman_birthday)

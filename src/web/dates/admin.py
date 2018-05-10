@@ -3,8 +3,8 @@ from django.contrib import admin
 from dates import models
 
 
-class KeyDateExceptionInline(admin.StackedInline):
-    model = models.KeyDateException
+class UserKeyDateExceptionInline(admin.StackedInline):
+    model = models.UserKeyDateException
     extra = 0
     autocomplete_fields = ('user',)
 
@@ -18,5 +18,5 @@ class KeyDateAdmin(admin.ModelAdmin):
         'name',
     )
     list_filter = ('school',)
-    inlines = (KeyDateExceptionInline,)
+    inlines = (UserKeyDateExceptionInline,)
     search_fields = ('=id', 'name', 'school__name', 'datetime')
