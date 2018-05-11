@@ -78,6 +78,7 @@ class KeyDate(models.Model):
     # Needed, because we want to handle None.
     KEEP_VALUE = object()
 
+    # TODO(artemtab): support copying group exceptions
     def clone(self,
               *,
               school=KEEP_VALUE,
@@ -98,8 +99,8 @@ class KeyDate(models.Model):
             source key date's name.
         :param datetime: The datetime for the new key date. By default is equal
             to the source key date's datetime.
-        :param copy_exceptions: If true exceptions will be copied to the new key
-            date.
+        :param copy_exceptions: If true user exceptions will be copied to the
+            new key date.
         :return: The fresh copy of the key date.
         """
         if self.pk is None:
