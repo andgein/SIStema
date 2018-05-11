@@ -3,6 +3,12 @@ from django.contrib import admin
 from dates import models
 
 
+class GroupKeyDateExceptionInline(admin.StackedInline):
+    model = models.GroupKeyDateException
+    extra = 0
+    autocomplete_fields = ('group',)
+
+
 class UserKeyDateExceptionInline(admin.StackedInline):
     model = models.UserKeyDateException
     extra = 0
@@ -18,5 +24,5 @@ class KeyDateAdmin(admin.ModelAdmin):
         'name',
     )
     list_filter = ('school',)
-    inlines = (UserKeyDateExceptionInline,)
+    inlines = (GroupKeyDateExceptionInline, UserKeyDateExceptionInline)
     search_fields = ('=id', 'name', 'school__name', 'datetime')
