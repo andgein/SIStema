@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -5,7 +7,13 @@ from django.utils.translation import ugettext_lazy as _
 
 class KeyDate(models.Model):
     """
-    Represents any key date in SIStema. Supports exceptions for specific users.
+    Represents any key date in SIStema.
+
+    Supports exceptions for specific users and groups:
+    - If user has a personal exception, then it will be used. All the group
+      exceptions are ignored.
+    - If user is a member of several groups each having an exception, then the
+      latest one will be used.
     """
 
     school = models.ForeignKey(
@@ -45,9 +53,18 @@ class KeyDate(models.Model):
         """
         Datetime for the specific user, considering exceptions.
         """
-        exception = self.user_exceptions.filter(user=user).first()
-        if exception is not None:
-            return exception.datetime
+        user_exception = self.user_exceptions.filter(user=user).first()
+        if user_exception is not None:
+            return user_exception.datetime
+
+        latest_datetime = None
+        for group_exception in self.group_exceptions.all():
+            if group_exception.group.is_user_in_group(user):
+                if (latest_datetime is None or
+                        latest_datetime < group_exception.datetime):
+                    latest_datetime = group_exception.datetime
+        if latest_datetime is not None:
+            return latest_datetime
 
         return self.datetime
 

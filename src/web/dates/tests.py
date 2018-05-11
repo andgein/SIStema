@@ -8,6 +8,7 @@ import unittest
 import django.test
 from django.db import IntegrityError
 
+import groups.models
 import users.models
 from dates import models
 from schools.models import School
@@ -28,11 +29,6 @@ class KeyDateTestCase(django.test.TestCase):
             short_name='school-2',
         )
 
-        self.user_without_exception = users.models.User.objects.create_user(
-            'test', 'test@test.com', 'password')
-        self.user_with_exception = users.models.User.objects.create_user(
-            'test2', 'test2@test.com', 'password')
-
         self.key_date = models.KeyDate.objects.create(
             name='New Year',
             short_name='new-year',
@@ -40,10 +36,39 @@ class KeyDateTestCase(django.test.TestCase):
             school=self.school_1,
         )
 
+        self.user_without_exception = users.models.User.objects.create_user(
+            'test', 'test@test.com', 'password')
+
+        self.user_with_exception = users.models.User.objects.create_user(
+            'test2', 'test2@test.com', 'password')
         models.UserKeyDateException.objects.create(
             key_date=self.key_date,
             user=self.user_with_exception,
+            datetime=datetime.datetime(2018, 1, 3, 0, 0, tzinfo=TIMEZONE)
+        )
+
+        self.group_with_early_exception = (
+            groups.models.ManuallyFilledGroup.objects
+            .create(
+                short_name='group_with_early_exception',
+                name='Users with early exception',
+            ))
+        models.GroupKeyDateException.objects.create(
+            key_date=self.key_date,
+            group=self.group_with_early_exception,
             datetime=datetime.datetime(2018, 1, 2, 0, 0, tzinfo=TIMEZONE)
+        )
+
+        self.group_with_late_exception = (
+            groups.models.ManuallyFilledGroup.objects
+            .create(
+                short_name='group_with_late_exception',
+                name='Users with late exception',
+            ))
+        models.GroupKeyDateException.objects.create(
+            key_date=self.key_date,
+            group=self.group_with_late_exception,
+            datetime=datetime.datetime(2018, 1, 4, 0, 0, tzinfo=TIMEZONE)
         )
 
     @unittest.mock.patch(
@@ -70,14 +95,42 @@ class KeyDateTestCase(django.test.TestCase):
 
     @unittest.mock.patch(
         'django.utils.timezone.now',
-        new=lambda: datetime.datetime(2018, 1, 1, 23, 59, tzinfo=TIMEZONE)
+        new=lambda: datetime.datetime(2018, 1, 2, 23, 59, tzinfo=TIMEZONE)
     )
-    def test_key_date_exception_works(self):
-        """The case when exception prolongs a key date is handled correctly"""
+    def test_user_key_date_exception_works(self):
+        """User exception overrides a key date for the user"""
 
         self.assertFalse(
             self.key_date.passed_for_user(self.user_with_exception)
         )
+
+    @unittest.mock.patch(
+        'django.utils.timezone.now',
+        new=lambda: datetime.datetime(2018, 1, 3, 0, 1, tzinfo=TIMEZONE)
+    )
+    def test_user_key_date_exception_prevails_group_exceptions(self):
+        """Group exceptions are ignored if there is a user exception"""
+        self.group_with_early_exception.add_user(self.user_with_exception)
+        self.group_with_late_exception.add_user(self.user_with_exception)
+
+        self.assertTrue(
+            self.key_date.passed_for_user(self.user_with_exception)
+        )
+
+    @unittest.mock.patch(
+        'django.utils.timezone.now',
+        new=lambda: datetime.datetime(2018, 1, 3, 23, 59, tzinfo=TIMEZONE)
+    )
+    def test_group_key_date_exception_latest_is_used(self):
+        """Latest group exception is used if there are several"""
+        self.group_with_early_exception.add_user(self.user_without_exception)
+        self.group_with_late_exception.add_user(self.user_without_exception)
+
+        self.assertFalse(
+            self.key_date.passed_for_user(self.user_without_exception)
+        )
+
+    # Cloning
 
     def test_clone_fail_if_school_and_short_name_not_unique(self):
         """Clone fails if new key date's school and short_name are not set"""
