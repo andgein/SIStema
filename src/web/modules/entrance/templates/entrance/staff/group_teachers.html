@@ -1,5 +1,18 @@
 {% extends 'staff_layout.html' %}
 
+{% comment %}
+List of group's checking teachers with statistics.
+
+Arguments:
+group - checking group to show the list for
+teachers - list of User instances: teachers who checked submissions in this group
+tasks - {task_id: task} dict
+teacher_solutions_count - {teacher_id: checked_solutions_count} defaultdict
+teacher_tasks - {teacher_id: [task_ids, ...]} defaultdict
+teacher_task_solutions_count - {teacher_id: {task_id: checked_solutions_count}} defaultdict
+average_scores - {teacher_id: {task_id: average_score}} defaultdict
+{% endcomment %}
+
 {% load number_to_text %}
 {% load dict_tags %}
 {% load math %}
@@ -51,41 +64,30 @@
                             <td>{{ teacher.get_full_name }}</td>
                             <td>
                                 <a href="{% url 'school:entrance:teacher_checks' request.school.short_name group.short_name teacher.id %}">
-                                    {{ teacher_solutions_count|get_item:teacher }}
-                                    решени{{ teacher_solutions_count|get_item:teacher|russian_pluralize:'е,я,й' }}
-
-                                    {% ifnotequal teacher_checks_count|get_item:teacher teacher_solutions_count|get_item:teacher  %}
-                                        <span class="text-muted">
-                                            в&nbsp;{{ teacher_checks_count|get_item:teacher }} проверк{{ teacher_checks_count|get_item:teacher|russian_pluralize:'е,ах,ах' }}
-                                        </span>
-                                    {% endifnotequal %}
+                                    {{ teacher_solutions_count|get_item:teacher.id }}
+                                    решени{{ teacher_solutions_count|get_item:teacher.id|russian_pluralize:'е,я,й' }}
                                 </a>
                             </td>
 
-                            {% for task in teacher_tasks|get_item:teacher %}
-                                {% if not forloop.first %}
-                                    {# Open new row and skip first 3 columns for each task except the first one #}
-                                    <tr>
-                                    <td colspan="3" class="br-t-n"></td>
-                                {% endif %}
-                                <td>{{ task.title }}</td>
-                                <td>
-                                    <a href="{% url 'school:entrance:teacher_task_checks' request.school.short_name group.short_name teacher.id task.id %}">
-                                        {{ teacher_task_solutions|get_item:teacher|get_item:task.id|length }}
-                                        решени{{ teacher_task_solutions|get_item:teacher|get_item:task.id|length|russian_pluralize:'е,я,й' }}
-
-                                        {% ifnotequal teacher_task_checks|get_item:teacher|get_item:task.id|length teacher_task_solutions|get_item:teacher|get_item:task.id|length  %}
-                                            <span class="text-muted">
-                                                в&nbsp;{{ teacher_task_checks|get_item:teacher|get_item:task.id|length }}
-                                                проверк{{ teacher_task_checks|get_item:teacher|get_item:task.id|length|russian_pluralize:'е,ах,ах' }}
-                                            </span>
-                                        {% endifnotequal %}
-                                    </a>
-                                </td>
-                                <td>
-                                    {{ average_scores|get_item:teacher|get_item:task.id }}
-                                </td>
-                                </tr>
+                            {% for task_id in teacher_tasks|get_item:teacher.id %}
+                                {% with task=tasks|get_item:task_id %}
+                                    {% if not forloop.first %}
+                                        {# Open new row and skip first 3 columns for each task except the first one #}
+                                        <tr>
+                                        <td colspan="3" class="br-t-n"></td>
+                                    {% endif %}
+                                    <td>{{ task.title }}</td>
+                                    <td>
+                                        <a href="{% url 'school:entrance:teacher_task_checks' request.school.short_name group.short_name teacher.id task.id %}">
+                                            {{ teacher_task_solutions_count|get_item:teacher.id|get_item:task.id }}
+                                            решени{{ teacher_task_solutions_count|get_item:teacher.id|get_item:task.id|russian_pluralize:'е,я,й' }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {{ average_scores|get_item:teacher.id|get_item:task.id }}
+                                    </td>
+                                    </tr>
+                                {% endwith %}
                             {% endfor %}
                         </tr>
                     {% endfor %}

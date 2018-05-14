@@ -1,11 +1,12 @@
-import collections
 import operator
 import random
 
+import collections
 import django.urls
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Count, Sum, FloatField
+from django.db.models.functions import Cast
 from django.http.response import HttpResponseNotFound, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -16,6 +17,7 @@ from django.views.decorators.http import require_POST
 import frontend.icons
 import frontend.table
 import groups.decorators
+import modules.entrance.groups as entrance_groups
 import modules.topics.views as topics_views
 import questionnaire.models
 import questionnaire.views
@@ -27,8 +29,7 @@ from modules.ejudge import models as ejudge_models
 from modules.entrance import models
 from modules.entrance import upgrades
 from modules.entrance.staff import forms
-import modules.entrance.groups as entrance_groups
-from sistema.helpers import group_by, respond_as_attachment, nested_query_list
+from sistema.helpers import group_by, respond_as_attachment, nested_query_list, list_to_dict
 from users import search_utils
 from .. import helpers
 
@@ -398,59 +399,66 @@ def checking_group_teachers(request, group_name):
         short_name=group_name,
     )
 
-    users = checking_group.group.users.select_related('profile')
-    tasks = list(checking_group.tasks.order_by('order'))
-    user_ids = [u.id for u in users]
-    task_ids = [t.id for t in tasks]
+    user_ids = list(checking_group.group.user_ids)
+    tasks = list_to_dict(
+        checking_group.tasks.order_by('order'),
+        lambda task: task.id,
+        lambda task: task
+    )
+    task_ids = list(tasks.keys())
 
-    checks = list(models.CheckedSolution.objects.filter(
+    checks = models.CheckedSolution.objects.filter(
         solution__user_id__in=user_ids,
         solution__task_id__in=task_ids,
-    ).select_related('solution', 'checked_by'))
-    teacher_checks = group_by(checks, lambda c: c.checked_by)
-    teachers = teacher_checks.keys()
-    teacher_checks_count = {t: len(checks) for t, checks in teacher_checks.items()}
-    teacher_task_checks = {
-        t: group_by(checks, lambda c: c.solution.task_id)
-        for t, checks in teacher_checks.items()
-    }
-    teacher_solutions_count = {
-        t: len({c.solution_id for c in checks})
-        for t, checks in teacher_checks.items()
-    }
-    teacher_task_solutions = {
-        t: {
-            task_id: {c.solution_id for c in checks}
-            for task_id, checks in teacher_task_checks[t].items()
-        }
-        for t in teachers
-    }
-    teacher_tasks = {
-        t: sorted({c.solution.task for c in checks}, key=operator.attrgetter('order'))
-        for t, checks in teacher_checks.items()
-    }
-    average_scores = {
-        t: {
-            task_id: round(sum(c.score for c in checks) / len(checks), 2)
-            for task_id, checks in teacher_task_checks[t].items()
-        }
-        for t in teachers
-    }
+    ).select_related('solution', 'checked_by')
+    checks_grouped_by_teacher = checks.values('checked_by_id')
+    checks_grouped_by_task_and_teacher = (
+        checks.values('solution__task_id', 'checked_by_id')
+    )
 
+    teacher_solutions_count = list_to_dict(
+        checks_grouped_by_teacher.annotate(count=Count('solution_id', distinct=True)),
+        operator.itemgetter('checked_by_id'),
+        operator.itemgetter('count'),
+    )
+    teacher_task_solutions_count = list_to_dict(
+        checks_grouped_by_task_and_teacher.annotate(count=Count('solution_id', distinct=True)),
+        operator.itemgetter('checked_by_id'),
+        operator.itemgetter('solution__task_id'),
+        operator.itemgetter('count'),
+    )
+    average_scores = list_to_dict(
+        checks_grouped_by_task_and_teacher.annotate(
+            average_score=Cast(Sum('score'), FloatField()) / Cast(Count('score'), FloatField())
+        ),
+        operator.itemgetter('checked_by_id'),
+        operator.itemgetter('solution__task_id'),
+        operator.itemgetter('average_score'),
+    )
+    teacher_tasks = group_by(
+        checks_grouped_by_task_and_teacher.distinct(),
+        operator.itemgetter('checked_by_id'),
+        extract_value_function=operator.itemgetter('solution__task_id')
+    )
+
+    teacher_ids = nested_query_list(
+        checks.order_by('checked_by_id')
+              .values_list('checked_by_id', flat=True)
+              .distinct()
+    )
+    teachers = users.models.User.objects.filter(id__in=teacher_ids)
     ordered_teachers = sorted(
         teachers,
-        key=lambda t: (teacher_solutions_count[t], teacher_checks_count[t]),
+        key=lambda t: teacher_solutions_count[t.id],
         reverse=True
     )
     return render(request, 'entrance/staff/group_teachers.html', {
         'group': checking_group,
+        'tasks': tasks,
         'teachers': ordered_teachers,
-        'teacher_checks': teacher_checks,
-        'teacher_checks_count': teacher_checks_count,
         'teacher_solutions_count': teacher_solutions_count,
         'teacher_tasks': teacher_tasks,
-        'teacher_task_checks': teacher_task_checks,
-        'teacher_task_solutions': teacher_task_solutions,
+        'teacher_task_solutions_count': teacher_task_solutions_count,
         'average_scores': average_scores,
     })
 
@@ -464,9 +472,8 @@ def checking_group_checks(request, group_name):
         short_name=group_name,
     )
 
-    users = checking_group.group.users.select_related('profile')
     tasks = list(checking_group.tasks.order_by('order'))
-    user_ids = [u.id for u in users]
+    user_ids = nested_query_list(checking_group.group.user_ids)
     task_ids = [t.id for t in tasks]
 
     checks = list(
@@ -474,8 +481,8 @@ def checking_group_checks(request, group_name):
             solution__user_id__in=user_ids,
             solution__task_id__in=task_ids,
         ).order_by('-created_at')
-         .select_related('solution__user')
-         .select_related('solution__task')
+            .select_related('solution__user')
+            .select_related('solution__task')
     )
 
     return render(request, 'entrance/staff/group_checks.html', {
@@ -498,16 +505,15 @@ def task_checks(request, group_name, task_id):
     if not checking_group.tasks.filter(id=task.id).exists():
         return HttpResponseNotFound()
 
-    users = checking_group.group.users.select_related('profile')
-    user_ids = [u.id for u in users]
+    group_user_ids = nested_query_list(checking_group.group.user_ids)
 
-    checks = list(
+    checks = (
         models.CheckedSolution.objects.filter(
-            solution__user_id__in=user_ids,
+            solution__user_id__in=group_user_ids,
             solution__task_id=task_id,
         ).order_by('-created_at')
-         .select_related('solution__user')
-         .select_related('solution__task')
+            .select_related('solution__user')
+            .select_related('solution__task')
     )
 
     return render(request, 'entrance/staff/group_checks.html', {
@@ -528,16 +534,15 @@ def teacher_checks(request, group_name, teacher_id):
     )
     teacher = get_object_or_404(users.models.User, pk=teacher_id)
 
-    group_users = checking_group.group.users.select_related('profile')
-    group_user_ids = [u.id for u in group_users]
+    group_user_ids = nested_query_list(checking_group.group.user_ids)
 
-    checks = list(
+    checks = (
         models.CheckedSolution.objects.filter(
             solution__user_id__in=group_user_ids,
             checked_by=teacher
         ).order_by('-created_at')
-         .select_related('solution__user')
-         .select_related('solution__task')
+            .select_related('solution__user')
+            .select_related('solution__task')
     )
 
     return render(request, 'entrance/staff/teacher_checks.html', {
@@ -561,17 +566,16 @@ def teacher_task_checks(request, group_name, teacher_id, task_id):
     if not checking_group.tasks.filter(id=task.id).exists():
         return HttpResponseNotFound()
 
-    group_users = checking_group.group.users.select_related('profile')
-    group_user_ids = [u.id for u in group_users]
+    group_user_ids = nested_query_list(checking_group.group.user_ids)
 
-    checks = list(
+    checks = (
         models.CheckedSolution.objects.filter(
             solution__user_id__in=group_user_ids,
             solution__task_id=task_id,
             checked_by=teacher
         ).order_by('-created_at')
-         .select_related('solution__user')
-         .select_related('solution__task')
+            .select_related('solution__user')
+            .select_related('solution__task')
     )
 
     return render(request, 'entrance/staff/teacher_checks.html', {
@@ -617,8 +621,8 @@ def check_task(request, group_name, task_id):
     with transaction.atomic():
         locked_user_ids = set(
             models.CheckingLock.objects
-            .filter(task=task)
-            .values_list('user_id', flat=True)
+                .filter(task=task)
+                .values_list('user_id', flat=True)
         )
         task_user_ids = set(task.solutions.values_list('user_id', flat=True))
         already_checked_user_ids = set(models.CheckedSolution.objects.filter(
@@ -627,9 +631,9 @@ def check_task(request, group_name, task_id):
 
         users_for_checking = (
             checking_group.group.users
-            .exclude(id__in=locked_user_ids)
-            .exclude(id__in=already_checked_user_ids)
-            .filter(id__in=task_user_ids)
+                .exclude(id__in=locked_user_ids)
+                .exclude(id__in=already_checked_user_ids)
+                .filter(id__in=task_user_ids)
         )
 
         users_count = users_for_checking.count()
@@ -637,7 +641,7 @@ def check_task(request, group_name, task_id):
         if users_count == 0:
             messages.add_message(
                 request, messages.INFO,
-                'Все решения задачи «%s» проверены' % (task.title, )
+                'Все решения задачи «%s» проверены' % (task.title,)
             )
             return redirect('school:entrance:check_group',
                             school_name=request.school.short_name,
@@ -770,7 +774,7 @@ def check_users_task(request, task_id, user_id, group_name=None):
 
             messages.add_message(
                 request, messages.INFO,
-                'Баллы пользователю %s успешно сохранены' % (user.get_full_name(), )
+                'Баллы пользователю %s успешно сохранены' % (user.get_full_name(),)
             )
 
             if checking_group is None:
@@ -986,7 +990,7 @@ def review_enrollment_type_for_user(request, user_id):
     # TODO(artemtab): better ordering, now it's not exactly chronological
     participations = (
         user.school_participations
-        .order_by('-school__year', '-school__name'))
+            .order_by('-school__year', '-school__name'))
 
     return render(request, 'entrance/staff/enrollment_review_user.html', {
         'user_for_review': user,

@@ -1,5 +1,19 @@
 {% extends 'staff_layout.html' %}
 
+{% comment %}
+List of solution checks. Supports showing checks by specific teacher or for
+specific task.
+
+Arguments:
+checks - sequence of CheckedSolution instances to show. It's better to prefetch
+    ExtranctExamTaskSolution object (check.solution field) for each of them
+group - checking group to show the list for
+task - the task all the checks belong to. Pass only if showing list of checks
+    for a specific task.
+teacher - the teacher all the checks are made by. Pass only if showing list of
+    checks made by a specific teacher.
+{% endcomment %}
+
 {% load number_to_text %}
 {% load dict_tags %}
 
