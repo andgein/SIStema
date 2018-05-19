@@ -697,7 +697,7 @@ class EntranceStatus(models.Model):
         self.approved_at = datetime.datetime.now()
         self.save()
 
-    def remove_approvement(self):
+    def remove_approving(self):
         self.is_approved = False
         self.approved_at = None
         self.save()

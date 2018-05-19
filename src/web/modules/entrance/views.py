@@ -495,7 +495,7 @@ def reset_session_and_parallel(request, step_id):
 
     with transaction.atomic():
         entrance_status.sessions_and_parallels.update(selected_by_user=False)
-        entrance_status.remove_approvement()
+        entrance_status.remove_approving()
     return redirect('school:user', request.school.short_name)
 
 
