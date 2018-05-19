@@ -16,7 +16,6 @@ from django.views.decorators.http import require_POST
 import frontend.icons
 import frontend.table
 import modules.ejudge.queue
-import questionnaire.models
 import sistema.helpers
 import sistema.uploads
 import users.models
@@ -33,8 +32,7 @@ def get_entrance_level_and_tasks(school, user):
 
 
 class EntrancedUsersTable(frontend.table.Table):
-    index = frontend.table.IndexColumn(
-        verbose_name='')
+    index = frontend.table.IndexColumn(verbose_name='')
 
     name = frontend.table.Column(
         accessor='get_full_name',
@@ -74,11 +72,6 @@ class EntrancedUsersTable(frontend.table.Table):
         pagination = False
 
     def __init__(self, school, *args, **kwargs):
-        enrolled_questionnaire = (
-            questionnaire.models.Questionnaire.objects
-            .filter(short_name='enrolled', school=school)
-            .first())
-
         qs = users.models.User.objects.filter(
             entrance_statuses__school=school,
             entrance_statuses__status=models.EntranceStatus.Status.ENROLLED,
@@ -98,10 +91,6 @@ class EntrancedUsersTable(frontend.table.Table):
             Prefetch(
                 'absence_reasons',
                 models.AbstractAbsenceReason.objects.filter(school=school)),
-            Prefetch(
-                'questionnaire_answers',
-                questionnaire.models.QuestionnaireAnswer.objects.filter(
-                    questionnaire=enrolled_questionnaire)),
         )
 
         super().__init__(
@@ -149,14 +138,14 @@ class EntrancedUsersTable(frontend.table.Table):
     def render_enrolled_status(self, record):
         absence_reasons = record.absence_reasons.all()
         absence_reason = absence_reasons[0] if absence_reasons else None
-        if absence_reason is None:
-            # TODO: check for participation confirmation. Another invisible
-            #       step?
-            if record.questionnaire_answers.all():
-                return ''
-            else:
-                return 'Участие не подтверждено'
-        return str(absence_reason)
+        if absence_reason is not None:
+            return str(absence_reason)
+
+        entrance_status = record.entrance_statuses.all()[0]
+        if not entrance_status.is_approved:
+            return 'Участие не подтверждено'
+
+        return ''
 
 
 @login_required
