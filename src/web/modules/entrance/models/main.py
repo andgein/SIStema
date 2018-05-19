@@ -665,22 +665,7 @@ class EntranceStatus(models.Model):
 
     status = models.IntegerField(
         choices=Status.choices,
-        validators=[Status.validator])
-
-    session = models.ForeignKey(
-        'schools.Session',
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        default=None,
-    )
-
-    parallel = models.ForeignKey(
-        'schools.Parallel',
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        default=None,
+        validators=[Status.validator]
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -725,3 +710,80 @@ class EntranceStatus(models.Model):
 
 # For using in templates
 EntranceStatus.do_not_call_in_templates = True
+
+
+class EnrolledToSessionAndParallel(models.Model):
+    entrance_status = models.ForeignKey(
+        EntranceStatus,
+        on_delete=models.CASCADE,
+        related_name='sessions_and_parallels',
+        blank=False,
+    )
+
+    session = models.ForeignKey(
+        'schools.Session',
+        on_delete=models.CASCADE,
+        related_name='+',
+        blank=True,
+        null=True,
+        default=None,
+    )
+
+    parallel = models.ForeignKey(
+        'schools.Parallel',
+        on_delete=models.CASCADE,
+        related_name='+',
+        blank=True,
+        null=True,
+        default=None,
+    )
+
+    selected_by_user = models.BooleanField(
+        help_text='Пользователь может выбрать одну из предложенных ему параллелей и смен',
+        default=False,
+        db_index=True
+    )
+
+    def save(self, *args, **kwargs):
+        if self.session is None and self.parallel is None:
+            raise ValueError(
+                '%s: session and parallel can not be None at the same time' %
+                self.__class__.__name__
+            )
+        if self.session.school_id != self.entrance_status.school_id:
+            raise ValueError(
+                '%s: session should belong to the same school as entrance status (%s != %s)' % (
+                    self.__class__.__name__,
+                    self.session.school,
+                    self.entrance_status.school,
+                )
+            )
+        if self.parallel.school_id != self.entrance_status.school_id:
+            raise ValueError(
+                '%s: parallel should belong to the same school as entrance status (%s != %s)' % (
+                    self.__class__.__name__,
+                    self.parallel.school,
+                    self.entrance_status.school,
+                )
+            )
+        if self.parallel.sessions.filter(id=self.session_id).count() == 0:
+            raise ValueError(
+                '%s: parallel %s doesn\'t belong to session %s' % (
+                    self.__class__.__name__,
+                    self.parallel,
+                    self.session,
+                )
+            )
+        super().save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ('entrance_status', 'session', 'parallel')
+
+    def __str__(self):
+        return '%s, параллель %s' % (self.session.get_full_name(), self.parallel.name)
+
+    @transaction.atomic
+    def select_this_option(self):
+        self.entrance_status.sessions_and_parallels.update(selected_by_user=False)
+        self.selected_by_user = True
+        self.save()

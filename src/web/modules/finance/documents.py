@@ -20,7 +20,7 @@ class DocumentGenerator:
             self.payment_questionnaire = questionnaire.models.Questionnaire.objects.filter(
                 school=self.school,
                 short_name__in=['parent', 'details']
-            ).first()            
+            ).first()
 
         self.payment_questions = questionnaire.models.AbstractQuestionnaireQuestion.objects.filter(
             questionnaire=self.payment_questionnaire
@@ -63,14 +63,14 @@ class DocumentGenerator:
             for a in user_payment_questionnaire
         }
 
-        entrance_status = EntranceStatus.objects.filter(
-            school=self.school,
-            user=user,
-        ).first()
+        entrance_status = EntranceStatus.get_visible_status(self.school, user)
         if entrance_status is None or entrance_status.status != EntranceStatus.Status.ENROLLED:
             raise ValueError('User has not enrolled')
 
-        session = entrance_status.session
+        session_and_parallel = entrance_status.sessions_and_parallels.filter(selected_by_user=True).first()
+        if session_and_parallel is None:
+            raise ValueError('User did not select session for him')
+        session = session_and_parallel.session
 
         price = models.PaymentAmount.get_amount_for_user(self.school, user)
 

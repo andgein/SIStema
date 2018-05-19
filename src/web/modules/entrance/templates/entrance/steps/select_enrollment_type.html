@@ -12,7 +12,7 @@
 
 {% block not_passed_after_text %}
     {% if entrance_block.selected %}
-        <form method="POST" action="{% url 'school:entrance:steps:reset' request.school.short_name entrance_block.step.id %}" class="admin-form">
+        <form method="POST" action="{% url 'school:entrance:steps:reset_enrollment_type' request.school.short_name entrance_block.step.id %}" class="admin-form">
     {% else %}
         <form method="POST" action="{% url 'school:entrance:steps:set_enrollment_type' request.school.short_name entrance_block.step.id %}" class="admin-form">
     {% endif %}
@@ -61,7 +61,7 @@
 {% endblock %}
 
 {% block passed_after_text %}
-    <form method="POST" action="{% url 'school:entrance:steps:reset' request.school.short_name entrance_block.step.id %}" class="admin-form">
+    <form method="POST" action="{% url 'school:entrance:steps:reset_enrollment_type' request.school.short_name entrance_block.step.id %}" class="admin-form">
         {{ entrance_block.form }}
         {% csrf_token %}
         {% if entrance_block.passed_moderation %}

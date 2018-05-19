@@ -3,6 +3,7 @@ from django.template.loader import render_to_string
 from htmlmin.minify import html_minify
 
 import home.models
+from sistema.helpers import nested_query_list
 
 __all__ = ['EntranceStepsHomePageBlock']
 
@@ -50,16 +51,21 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
 
         steps = self.school.entrance_steps.all()
 
-        enrolled_to_session = None
-        enrolled_to_parallel = None
+        enrolled_to_session_ids = []
+        enrolled_to_parallel_ids = []
 
         status = entrance_models.EntranceStatus.get_visible_status(
             self.school,
             user
         )
         if status is not None and status.is_enrolled:
-            enrolled_to_session = status.session
-            enrolled_to_parallel = status.parallel
+            sessions_and_parallels = status.sessions_and_parallels
+            enrolled_to_session_ids = nested_query_list(
+                sessions_and_parallels.values_list('session_id', flat=True)
+            )
+            enrolled_to_parallel_ids = nested_query_list(
+                sessions_and_parallels.values_list('parallel_id', flat=True)
+            )
         else:
             # If user is not enrolled, filter out all steps
             # marked as 'visible_only_for_enrolled'
@@ -68,8 +74,8 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
         # Filter only steps for session and parallel which user has been enrolled in
         # (or steps with no defined session and parallel)
         steps = steps.filter(
-            Q(session__isnull=True) | Q(session=enrolled_to_session))
+            Q(session__isnull=True) | Q(session_id__in=enrolled_to_session_ids))
         steps = steps.filter(
-            Q(parallel__isnull=True) | Q(parallel=enrolled_to_parallel))
+            Q(parallel__isnull=True) | Q(parallel_id__in=enrolled_to_parallel_ids))
 
         return steps.order_by('order')

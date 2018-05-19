@@ -111,3 +111,26 @@ class SelectEnrollmentTypeForm(forms.Form):
             coerce=int,
             disabled=disabled,
         )
+
+
+class SelectSessionAndParallelForm(forms.Form):
+    def __init__(self, sessions_and_parallels, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        choices = []
+        for session_and_parallel in sessions_and_parallels:
+            full_parallel_name = '%s. Параллель %s' % (
+                session_and_parallel.session.get_full_name(),
+                session_and_parallel.parallel.name
+            )
+            choices.append((session_and_parallel.pk, full_parallel_name))
+
+        self.fields['session_and_parallel'] = forms.TypedChoiceField(
+            choices=choices,
+            required=True,
+            label='',
+            widget=frontend.forms.SistemaRadioSelect(attrs={
+                'theme': 'primary',
+            }),
+            coerce=int,
+        )

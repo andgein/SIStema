@@ -1,13 +1,19 @@
 {% extends 'entrance/steps/base.html' %}
 
-{% block title %}Результаты поступления{% endblock %}
+{% block title %}
+    {% if entrance_block.title %}
+        {{ entrance_block.title }}
+    {% else %}
+        Результаты поступления
+    {% endif %}
+{% endblock %}
 
 {% block done_icon %}{% endblock %}
 
 {% block not_passed_text %}
     {% if entrance_block.entrance_status %}
         {% if entrance_block.entrance_status.absence_reason %}
-            <div class="entrance-status alert alert-micro alert-border-left alert-danger">
+            <div class="entrance-status alert br0 pv10 alert-border-left alert-danger">
                 {% with reason=entrance_block.entrance_status.absence_reason %}
                     {% if reason.public_comment %}
                         {{ reason.public_comment|urlize|linebreaks }}
@@ -17,7 +23,7 @@
                 {% endwith %}
             </div>
         {% else %}
-            <div class="entrance-status alert alert-micro alert-border-left {{ entrance_block.entrance_status.is_in_reserve_list|yesno:'alert-warning,alert-danger' }}">
+            <div class="entrance-status alert br0 pv10 alert-border-left {{ entrance_block.entrance_status.is_in_reserve_list|yesno:'alert-warning,alert-danger' }}">
                 {{ entrance_block.entrance_status.message|urlize|linebreaks }}
             </div>
         {% endif %}
@@ -26,8 +32,39 @@
 
 {% block passed_text %}
     {% if entrance_block.entrance_status %}
-        <div class="entrance-status alert alert-micro alert-border-left alert-success">
+        <div class="entrance-status alert br0 pv10 alert-border-left alert-success">
             {{ entrance_block.entrance_status.message|urlize|linebreaks }}
         </div>
+        {% if entrance_block.select_session_and_parallel_form %}
+            <form method="POST" action="{% url 'school:entrance:steps:select_session_and_parallel' request.school.short_name entrance_block.step.id %}" class="admin-form">
+                {% csrf_token %}
+                <p class="mt20">
+                    <strong>Вы поступили сразу в&nbsp;несколько параллелей.</strong>
+                    Вы можете выбрать смену и параллель, в&nbsp;которую хотите поехать.
+                </p>
+                <div class="mt20 mb10">
+                    {{ entrance_block.select_session_and_parallel_form }}
+                </div>
+                <div class="pt10">
+                    <button type="submit" class="btn btn-primary">
+                        Выбрать параллель
+                    </button>
+                </div>
+            </form>
+        {% endif %}
+        {% if entrance_block.has_multiple_variants and entrance_block.has_selected_variant %}
+            <form method="POST" action="{% url 'school:entrance:steps:reset_session_and_parallel' request.school.short_name entrance_block.step.id %}" class="admin-form">
+                {% csrf_token %}
+                <p class="mt20">
+                    <strong>Вы поступили сразу в&nbsp;несколько параллелей.</strong>
+                    Вы можете выбрать смену и параллель, в&nbsp;которую хотите поехать.
+                </p>
+                <div class="">
+                    <button type="submit" class="btn btn-primary">
+                        Изменить выбор параллели
+                    </button>
+                </div>
+            </form>
+        {% endif %}
     {% endif %}
 {% endblock %}

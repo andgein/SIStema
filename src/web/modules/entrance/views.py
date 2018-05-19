@@ -5,7 +5,7 @@ import ipware.ip
 import ipware.ip
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Min
 from django.http.response import (HttpResponseNotFound,
                                   JsonResponse,
                                   HttpResponseForbidden)
@@ -83,9 +83,12 @@ class EntrancedUsersTable(frontend.table.Table):
             entrance_statuses__school=school,
             entrance_statuses__status=models.EntranceStatus.Status.ENROLLED,
             entrance_statuses__is_status_visible=True,
+        ).annotate(
+            min_session=Min('entrance_statuses__sessions_and_parallels__session__name'),
+            min_parallel=Min('entrance_statuses__sessions_and_parallels__parallel__name')
         ).order_by(
-            'entrance_statuses__session__name',
-            'entrance_statuses__parallel__name',
+            'min_session',
+            'min_parallel',
             'profile__last_name',
             'profile__first_name',
         ).select_related('profile').prefetch_related(
@@ -118,12 +121,30 @@ class EntrancedUsersTable(frontend.table.Table):
     def render_session(self, value):
         # TODO: will it be filtered?
         status = value.all()[0]
-        return status.session.name if status.session else ''
+        sessions_and_parallels = status.sessions_and_parallels.all()
+        selected_session = sessions_and_parallels.filter(selected_by_user=True).first()
+        if selected_session is not None:
+            return selected_session.session.name if selected_session.session else ''
+        return ', '.join(
+            sessions_and_parallels
+                .filter(session__isnull=False)
+                .order_by('session_id')
+                .values_list('session__name', flat=True)
+        )
 
     def render_parallel(self, value):
         # TODO: will it be filtered?
         status = value.all()[0]
-        return status.parallel.name if status.parallel else ''
+        sessions_and_parallels = status.sessions_and_parallels.all()
+        selected_parallel = sessions_and_parallels.filter(selected_by_user=True).first()
+        if selected_parallel is not None:
+            return selected_parallel.parallel.name if selected_parallel.parallel else ''
+        return ', '.join(
+            sessions_and_parallels
+                .filter(parallel__isnull=False)
+                .order_by('parallel_id')
+                .values_list('parallel__name', flat=True)
+        )
 
     def render_enrolled_status(self, record):
         absence_reasons = record.absence_reasons.all()
@@ -435,7 +456,7 @@ def set_enrollment_type(request, step_id):
 
 @require_POST
 @login_required
-def reset_step(request, step_id):
+def reset_enrollment_type(request, step_id):
     step = get_object_or_404(
         models.SelectEnrollmentTypeEntranceStep,
         id=step_id, school=request.school
@@ -445,4 +466,38 @@ def reset_step(request, step_id):
         step=step
     ).delete()
 
+    return redirect('school:user', request.school.short_name)
+
+
+@require_POST
+@login_required
+def select_session_and_parallel(request, step_id):
+    get_object_or_404(models.ResultsEntranceStep, id=step_id, school=request.school)
+    entrance_status = models.EntranceStatus.get_visible_status(request.school, request.user)
+    if not entrance_status.is_enrolled:
+        return HttpResponseNotFound()
+    form = forms.SelectSessionAndParallelForm(
+        entrance_status.sessions_and_parallels.all(),
+        data=request.POST
+    )
+    if form.is_valid():
+        selected = models.EnrolledToSessionAndParallel.objects.get(
+            pk=form.cleaned_data['session_and_parallel']
+        )
+        selected.select_this_option()
+    else:
+        # TODO (andgein): show error if form is not valid
+        raise ValueError('Errors: ' + ', '.join(map(str, form.errors)))
+    return redirect('school:user', request.school.short_name)
+
+
+@require_POST
+@login_required
+def reset_session_and_parallel(request, step_id):
+    get_object_or_404(models.ResultsEntranceStep, id=step_id, school=request.school)
+    entrance_status = models.EntranceStatus.get_visible_status(request.school, request.user)
+    if not entrance_status.is_enrolled:
+        return HttpResponseNotFound()
+
+    entrance_status.sessions_and_parallels.update(selected_by_user=False)
     return redirect('school:user', request.school.short_name)
