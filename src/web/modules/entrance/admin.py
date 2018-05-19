@@ -491,3 +491,8 @@ class ParallelScoreEntranceUserMetricAdmin(PolymorphicChildModelAdmin):
 @admin.register(models.EntranceStatusGroup)
 class EntranceStatusGroupAdmin(groups.admin.AbstractGroupChildAdmin):
     base_model = models.EntranceStatusGroup
+
+
+@admin.register(models.EnrollmentApprovingStatusGroup)
+class EnrollmentApprovingStatusGroupAdmin(groups.admin.AbstractGroupChildAdmin):
+    base_model = models.EnrollmentApprovingStatusGroup
