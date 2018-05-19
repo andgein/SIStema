@@ -1,3 +1,4 @@
+import datetime
 import re
 
 import django.utils.timezone
@@ -672,6 +673,17 @@ class EntranceStatus(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
 
+    is_approved = models.BooleanField(
+        help_text='Подтверждено ли участие пользователем. Имеет смысл, только если статус = «Поступил»',
+        default=False
+    )
+
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        default=None
+    )
+
     @property
     def is_enrolled(self):
         return self.status == self.Status.ENROLLED
@@ -679,6 +691,16 @@ class EntranceStatus(models.Model):
     @property
     def is_in_reserve_list(self):
         return self.status == self.Status.IN_RESERVE_LIST
+
+    def approve(self):
+        self.is_approved = True
+        self.approved_at = datetime.datetime.now()
+        self.save()
+
+    def remove_approvement(self):
+        self.is_approved = False
+        self.approved_at = None
+        self.save()
 
     @classmethod
     def create_or_update(cls, school, user, status, **kwargs):

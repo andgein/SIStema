@@ -34,13 +34,19 @@
     {% if entrance_block.entrance_status %}
         <div class="entrance-status alert br0 pv10 alert-border-left alert-success">
             {{ entrance_block.entrance_status.message|urlize|linebreaks }}
+            {% if entrance_block.entrance_status.is_approved %}
+                <p>
+                    Вы подтвердили своё участие.
+                </p>
+            {% endif %}
         </div>
-        {% if entrance_block.select_session_and_parallel_form %}
+        {% if entrance_block.should_choose %}
             <form method="POST" action="{% url 'school:entrance:steps:select_session_and_parallel' request.school.short_name entrance_block.step.id %}" class="admin-form">
                 {% csrf_token %}
                 <p class="mt20">
                     <strong>Вы поступили сразу в&nbsp;несколько параллелей.</strong>
-                    Вы можете выбрать смену и параллель, в&nbsp;которую хотите поехать.
+                    Вы можете выбрать смену и параллель, в&nbsp;которую хотите поехать,
+                    или <a href="#" class="internal-page-link" data-toggle="modal" data-target="#absence_modal">отказаться от&nbsp;поездки</a>.
                 </p>
                 <div class="mt20 mb10">
                     {{ entrance_block.select_session_and_parallel_form }}
@@ -52,12 +58,14 @@
                 </div>
             </form>
         {% endif %}
-        {% if entrance_block.has_multiple_variants and entrance_block.has_selected_variant %}
+
+        {% if entrance_block.can_reset %}
             <form method="POST" action="{% url 'school:entrance:steps:reset_session_and_parallel' request.school.short_name entrance_block.step.id %}" class="admin-form">
                 {% csrf_token %}
                 <p class="mt20">
                     <strong>Вы поступили сразу в&nbsp;несколько параллелей.</strong>
-                    Вы можете выбрать смену и параллель, в&nbsp;которую хотите поехать.
+                    Вы можете выбрать смену и параллель, в&nbsp;которую хотите поехать,
+                    или <a href="#" class="internal-page-link" data-toggle="modal" data-target="#absence_modal">отказаться от&nbsp;поездки</a>.
                 </p>
                 <div class="">
                     <button type="submit" class="btn btn-primary">
@@ -66,5 +74,55 @@
                 </div>
             </form>
         {% endif %}
+
+        {% if entrance_block.should_approve %}
+            <form method="POST" action="{% url 'school:entrance:steps:approve_enrollment' request.school.short_name entrance_block.step.id %}" class="admin-form">
+                {% csrf_token %}
+                <p class="pt20">
+                    Вы должны подтвердить своё участие в&nbsp;{{ entrance_block.step.school.name }}
+                    или <a href="#" class="internal-page-link" data-toggle="modal" data-target="#absence_modal">отказаться от&nbsp;поездки</a>.
+                </p>
+                <div class="pt10">
+                    <button type="submit" class="btn btn-primary">
+                        Подтвердить участие
+                    </button>
+                </div>
+            </form>
+        {% endif %}
+
+        {% if not entrance_block.should_choose and not entrance_block.can_reset and not entrance_block.should_approve %}
+            <div class="pt10">
+                Вы можете
+                <a href="#" class="internal-page-link" data-toggle="modal" data-target="#absence_modal">отказаться от&nbsp;поездки</a>.
+            </div>
+        {% endif %}
+
+        <div class="modal fade" id="absence_modal" tabindex="-1" role="dialog" aria-labelledby="absence_modal__title" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="absence_modal__title">Подтверждение отказа от поездки</h4>
+                    </div>
+                    <div class="modal-body">
+                        <h2 class="mtn">
+                            Отказ от&nbsp;участия в&nbsp;{{ entrance_block.step.school.name }}
+                        </h2>
+                        <p>
+                            <strong>Обратите внимание:</strong>
+                            это необратимое действие. Если вы откажетесь от&nbsp;поездки, вы не&nbsp;сможете приехать к&nbsp;нам в&nbsp;этом году.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                         <form method="POST" action="{% url 'school:entrance:steps:absence' request.school.short_name entrance_block.step.id %}" class="admin-form">
+                             {% csrf_token %}
+                             <button type="submit" class="btn btn-danger absence-button">
+                                 Отказаться от поездки
+                             </button>
+                         </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% endif %}
 {% endblock %}

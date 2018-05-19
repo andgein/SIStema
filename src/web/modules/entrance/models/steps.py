@@ -4,7 +4,6 @@ import operator
 from django.db import models, transaction, IntegrityError
 from django.conf import settings
 from polymorphic import models as polymorphic_models
-from django.utils import timezone
 
 import questionnaire.models
 import schools.models
@@ -495,13 +494,19 @@ class ResultsEntranceStep(AbstractEntranceStep):
                 block.title = 'Вы приняты в ' + self.school.name
 
             sessions_and_parallels = entrance_status.sessions_and_parallels.all()
-            has_multiple_variants = len(sessions_and_parallels) > 1
             selected_variant = sessions_and_parallels.filter(selected_by_user=True).first()
 
-            block.has_multiple_variants = has_multiple_variants
+            block.has_multiple_variants = len(sessions_and_parallels) > 1
             block.has_selected_variant = selected_variant is not None
-            if block.has_multiple_variants and not block.has_selected_variant:
-                block.select_session_and_parallel_form = forms.SelectSessionAndParallelForm(sessions_and_parallels)
+
+            block.should_choose = block.has_multiple_variants and not block.has_selected_variant
+            block.can_reset = block.has_multiple_variants and block.has_selected_variant and (
+                self.available_to_time is None or not self.available_to_time.passed_for_user(user)
+            )
+            block.should_approve = not block.has_multiple_variants and not block.has_selected_variant
+            block.is_simple_approved = not block.has_multiple_variants and block.has_selected_variant
+
+            block.select_session_and_parallel_form = forms.SelectSessionAndParallelForm(sessions_and_parallels)
 
         block.entrance_status = entrance_status
         return block

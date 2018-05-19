@@ -484,7 +484,9 @@ def select_session_and_parallel(request, step_id):
         selected = models.EnrolledToSessionAndParallel.objects.get(
             pk=form.cleaned_data['session_and_parallel']
         )
-        selected.select_this_option()
+        with transaction.atomic():
+            selected.select_this_option()
+            entrance_status.approve()
     else:
         # TODO (andgein): show error if form is not valid
         raise ValueError('Errors: ' + ', '.join(map(str, form.errors)))
@@ -494,10 +496,48 @@ def select_session_and_parallel(request, step_id):
 @require_POST
 @login_required
 def reset_session_and_parallel(request, step_id):
+    step = get_object_or_404(models.ResultsEntranceStep, id=step_id, school=request.school)
+    entrance_status = models.EntranceStatus.get_visible_status(request.school, request.user)
+    if not entrance_status.is_enrolled:
+        return HttpResponseNotFound()
+
+    if step.available_to_time and step.available_to_time.passed_for_user(request.user):
+        return redirect('school:user', request.school.short_name)
+
+    with transaction.atomic():
+        entrance_status.sessions_and_parallels.update(selected_by_user=False)
+        entrance_status.remove_approvement()
+    return redirect('school:user', request.school.short_name)
+
+
+@require_POST
+@login_required
+def approve_enrollment(request, step_id):
     get_object_or_404(models.ResultsEntranceStep, id=step_id, school=request.school)
     entrance_status = models.EntranceStatus.get_visible_status(request.school, request.user)
     if not entrance_status.is_enrolled:
         return HttpResponseNotFound()
 
-    entrance_status.sessions_and_parallels.update(selected_by_user=False)
+    if entrance_status.sessions_and_parallels.count() != 1:
+        return HttpResponseNotFound()
+
+    with transaction.atomic():
+        entrance_status.sessions_and_parallels.update(selected_by_user=True)
+        entrance_status.approve()
+    return redirect('school:user', request.school.short_name)
+
+
+@require_POST
+@login_required
+def absence(request, step_id):
+    get_object_or_404(models.ResultsEntranceStep, id=step_id, school=request.school)
+    entrance_status = models.EntranceStatus.get_visible_status(request.school, request.user)
+    if not entrance_status.is_enrolled:
+        return HttpResponseNotFound()
+
+    models.RejectionAbsenceReason.objects.create(
+        school=request.school,
+        user=request.user,
+        created_by=request.user,
+    )
     return redirect('school:user', request.school.short_name)

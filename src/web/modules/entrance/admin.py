@@ -237,6 +237,7 @@ class EntranceStatusAdmin(admin.ModelAdmin):
         'get_parallels',
         'created_at',
         'updated_at',
+        'is_approved',
     )
     list_filter = (
         ('school', admin.RelatedOnlyFieldListFilter),
@@ -244,6 +245,7 @@ class EntranceStatusAdmin(admin.ModelAdmin):
         'sessions_and_parallels__session',
         'sessions_and_parallels__parallel',
         ('created_by', admin.RelatedOnlyFieldListFilter),
+        'is_approved',
     )
     autocomplete_fields = ('user', 'created_by')
     search_fields = (
