@@ -60,6 +60,14 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
         )
         if status is not None and status.is_enrolled:
             sessions_and_parallels = status.sessions_and_parallels
+
+            # If user have selected session and parallel already,
+            # then left only this items
+            if sessions_and_parallels.filter(selected_by_user=True).exists():
+                sessions_and_parallels = sessions_and_parallels.filter(
+                    selected_by_user=True
+                )
+
             enrolled_to_session_ids = nested_query_list(
                 sessions_and_parallels.values_list('session_id', flat=True)
             )

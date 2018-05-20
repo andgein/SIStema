@@ -82,7 +82,7 @@ class DocumentType(models.Model):
             )
             if (entrance_status is not None and
                entrance_status.is_enrolled and
-               entrance_status.sessions_and_parallels.filter(session_id=self.session.id).count() == 0):
+               not entrance_status.sessions_and_parallels.filter(session_id=self.session.id).exists()):
                 return False
 
         # Document is need for user if there is no generation conditions for it

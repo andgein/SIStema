@@ -109,31 +109,31 @@ class EntrancedUsersTable(frontend.table.Table):
 
     def render_session(self, value):
         # TODO: will it be filtered?
-        status = value.all()[0]
+        status = value.get()
         sessions_and_parallels = status.sessions_and_parallels.all()
         selected_session = sessions_and_parallels.filter(selected_by_user=True).first()
         if selected_session is not None:
             return selected_session.session.name if selected_session.session else ''
-        return ', '.join(
+        return ', '.join(set(
             sessions_and_parallels
                 .filter(session__isnull=False)
                 .order_by('session_id')
                 .values_list('session__name', flat=True)
-        )
+        ))
 
     def render_parallel(self, value):
         # TODO: will it be filtered?
-        status = value.all()[0]
+        status = value.get()
         sessions_and_parallels = status.sessions_and_parallels.all()
         selected_parallel = sessions_and_parallels.filter(selected_by_user=True).first()
         if selected_parallel is not None:
             return selected_parallel.parallel.name if selected_parallel.parallel else ''
-        return ', '.join(
+        return ', '.join(set(
             sessions_and_parallels
                 .filter(parallel__isnull=False)
                 .order_by('parallel_id')
                 .values_list('parallel__name', flat=True)
-        )
+        ))
 
     def render_enrolled_status(self, record):
         absence_reasons = record.absence_reasons.all()
@@ -141,7 +141,7 @@ class EntrancedUsersTable(frontend.table.Table):
         if absence_reason is not None:
             return str(absence_reason)
 
-        entrance_status = record.entrance_statuses.all()[0]
+        entrance_status = record.entrance_statuses.get()
         if not entrance_status.is_approved:
             return 'Участие не подтверждено'
 
@@ -518,7 +518,7 @@ def approve_enrollment(request, step_id):
 
 @require_POST
 @login_required
-def absence(request, step_id):
+def reject_participation(request, step_id):
     get_object_or_404(models.ResultsEntranceStep, id=step_id, school=request.school)
     entrance_status = models.EntranceStatus.get_visible_status(request.school, request.user)
     if not entrance_status.is_enrolled:

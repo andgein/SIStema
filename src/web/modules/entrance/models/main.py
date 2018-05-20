@@ -596,7 +596,7 @@ class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
     @classmethod
     def for_user_in_school(cls, user, school):
         """
-        Returns absence reason for specified user
+        Returns reject_participation reason for specified user
         or None if user has not declined.
         """
         return cls.objects.filter(user=user, school=school).first()
@@ -694,7 +694,7 @@ class EntranceStatus(models.Model):
 
     def approve(self):
         self.is_approved = True
-        self.approved_at = datetime.datetime.now()
+        self.approved_at = django.utils.timezone.now()
         self.save()
 
     def remove_approving(self):
@@ -739,7 +739,6 @@ class EnrolledToSessionAndParallel(models.Model):
         EntranceStatus,
         on_delete=models.CASCADE,
         related_name='sessions_and_parallels',
-        blank=False,
     )
 
     session = models.ForeignKey(
@@ -768,12 +767,12 @@ class EnrolledToSessionAndParallel(models.Model):
 
     def save(self, *args, **kwargs):
         if self.session is None and self.parallel is None:
-            raise ValueError(
+            raise IntegrityError(
                 '%s: session and parallel can not be None at the same time' %
                 self.__class__.__name__
             )
         if self.session.school_id != self.entrance_status.school_id:
-            raise ValueError(
+            raise IntegrityError(
                 '%s: session should belong to the same school as entrance status (%s != %s)' % (
                     self.__class__.__name__,
                     self.session.school,
@@ -781,7 +780,7 @@ class EnrolledToSessionAndParallel(models.Model):
                 )
             )
         if self.parallel.school_id != self.entrance_status.school_id:
-            raise ValueError(
+            raise IntegrityError(
                 '%s: parallel should belong to the same school as entrance status (%s != %s)' % (
                     self.__class__.__name__,
                     self.parallel.school,
@@ -789,7 +788,7 @@ class EnrolledToSessionAndParallel(models.Model):
                 )
             )
         if self.parallel.sessions.filter(id=self.session_id).count() == 0:
-            raise ValueError(
+            raise IntegrityError(
                 '%s: parallel %s doesn\'t belong to session %s' % (
                     self.__class__.__name__,
                     self.parallel,

@@ -28,7 +28,7 @@ class EntranceStatusGroup(groups.models.AbstractGroup):
 class EnrollmentApprovingStatusGroup(groups.models.AbstractGroup):
     is_approved = models.BooleanField(
         help_text='Поместить в группу тех, кто подтвердил участие, или тех, кто не подтвердил? '
-                  'Отказавщиеся от участия в любом случае не попадают в группу'
+                  'Отказавшиеся от участия в любом случае не попадают в группу'
     )
 
     def is_user_in_group(self, user):

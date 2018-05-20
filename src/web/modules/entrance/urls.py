@@ -23,7 +23,7 @@ urlpatterns = [
         url(r'^select_session_and_parallel/$', views.select_session_and_parallel, name='select_session_and_parallel'),
         url(r'^reset_session_and_parallel/$', views.reset_session_and_parallel, name='reset_session_and_parallel'),
         url(r'^approve_enrollment/$', views.approve_enrollment, name='approve_enrollment'),
-        url(r'^absence/$', views.absence, name='absence'),
+        url(r'^reject_participation/$', views.reject_participation, name='reject_participation'),
     ], 'steps'), namespace='steps')),
 
     # Submodules

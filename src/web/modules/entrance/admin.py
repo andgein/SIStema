@@ -257,20 +257,20 @@ class EntranceStatusAdmin(admin.ModelAdmin):
     inlines = (EnrolledSessionAndParallelAdmin, )
 
     def get_sessions(self, obj):
-        return ', '.join(
+        return ', '.join(set(
             obj.sessions_and_parallels
                .filter(session__isnull=False)
                .values_list('session__name', flat=True)
-        )
+        ))
 
     get_sessions.short_description = 'Session'
 
     def get_parallels(self, obj):
-        return ', '.join(
+        return ', '.join(set(
             obj.sessions_and_parallels
                .filter(parallel__isnull=False)
                .values_list('parallel__name', flat=True)
-        )
+        ))
 
     get_parallels.short_description = 'Parallel'
 
