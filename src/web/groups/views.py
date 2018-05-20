@@ -10,8 +10,8 @@ class UsersFromGroupAutocomplete(dal.autocomplete.Select2QuerySetView):
         self.group_id = None
         super().__init__(model=users.models.User, **kwargs)
 
-    def dispatch(self, request, *args, **kwargs):
-        self.group_id = kwargs.pop('group_id')
+    def dispatch(self, request, group_id, *args, **kwargs):
+        self.group_id = group_id
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
