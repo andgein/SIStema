@@ -1,5 +1,8 @@
 from django import forms
+from django.urls import reverse
 
+import frontend.forms
+import users.models
 
 class QuestionnaireForm(forms.Form):
     def __init__(self, initial=None, *args, **kwargs):
@@ -32,6 +35,24 @@ class TypedMultipleChoiceFieldForChoiceQuestion(ChoiceQuestionField, forms.Typed
 
 class TypedChoiceFieldForChoiceQuestion(ChoiceQuestionField, forms.TypedChoiceField):
     pass
+
+
+class ChooseUsersFromGroupField(forms.ModelMultipleChoiceField):
+    def __init__(self, group, *, placeholder='', **kwargs):
+        super().__init__(
+            queryset=group.users,
+            widget=frontend.forms.ModelAutocompleteMultipleSelect2(
+                url=reverse(
+                    'groups:users-from-group-autocomplete',
+                    kwargs={'group_id': group.id}),
+                attrs={
+                    'data-placeholder': placeholder,
+                },
+            ),
+            **kwargs)
+
+    def label_from_instance(self, obj):
+        return '{} {}'.format(obj.profile.last_name, obj.profile.first_name)
 
 
 class QuestionnaireTypingDynamicsForm(forms.Form):

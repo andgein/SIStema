@@ -417,6 +417,32 @@ class DateQuestionnaireQuestion(AbstractQuestionnaireQuestion):
         )
 
 
+class UserListQuestionnaireQuestion(AbstractQuestionnaireQuestion):
+    block_name = 'user_list_question'
+
+    group = models.ForeignKey(
+        'groups.AbstractGroup',
+        on_delete=models.CASCADE,
+        related_name='+',
+        help_text="Группа, пользователей которой можно выбирать",
+    )
+
+    placeholder = models.TextField(
+        blank=True,
+        help_text='Подсказка, показываемая в поле для ввода; пример',
+    )
+
+    def get_form_field(self, attrs=None):
+        return forms.ChooseUsersFromGroupField(
+            group=self.group,
+            required=self.is_required,
+            disabled=self.is_disabled,
+            label=self.text,
+            help_text=self.help_text,
+            placeholder=self.placeholder,
+        )
+
+
 class Questionnaire(models.Model):
     title = models.CharField(max_length=100, help_text='Название анкеты')
 

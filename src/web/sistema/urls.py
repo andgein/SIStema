@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^questionnaire/', include('questionnaire.urls')),
     url(r'^frontend/', include('frontend.urls', namespace='frontend')),
+    url(r'^groups/', include('groups.urls', namespace='groups')),
     url(r'^poldnev/', include('modules.poldnev.urls', namespace='poldnev')),
     url(r'^study-results/', include('modules.study_results.urls',
                                     namespace='study_results')),

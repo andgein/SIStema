@@ -208,7 +208,6 @@ class AutocompleteSelect2WidgetMixin(object):
             'autocomplete_light/jquery.init.js',
             'autocomplete_light/autocomplete.init.js',
             'vendor/plugins/select2/select2.full.min.js',
-            'autocomplete_light/forward.js',
             'autocomplete_light/select2.js',
         )
 
@@ -219,6 +218,12 @@ class ModelAutocompleteSelect2(QuerySetSelectMixin,
                                AutocompleteSelect2WidgetMixin,
                                forms.Select):
     """Select widget for QuerySet choices and Select2."""
+
+
+class ModelAutocompleteMultipleSelect2(QuerySetSelectMixin,
+                                       AutocompleteSelect2WidgetMixin,
+                                       forms.SelectMultiple):
+    """Multiple select widget for QuerySet choices and Select2."""
 
 
 def add_classes_to_label(f, classes=''):

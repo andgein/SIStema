@@ -3,6 +3,7 @@ import datetime
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import QuerySet
 from django.shortcuts import render, get_object_or_404, redirect
 
 from . import forms
@@ -24,6 +25,8 @@ def save_questionnaire_answers(user, questionnaire, form):
                 settings.SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT)]
         elif answer is None:  # For not-filled dates i.e.
             answer_list = []
+        elif isinstance(answer, QuerySet):
+            answer_list = answer.values_list('pk', flat=True)
         else:
             answer_list = [answer]
 
@@ -63,6 +66,11 @@ def _get_user_questionnaire_answers(user, questionnaire):
                 answer.answer,
                 settings.SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT
             ).date()
+        elif isinstance(questions[answer.question_short_name],
+                        models.UserListQuestionnaireQuestion):
+            if answer.question_short_name not in result:
+                result[answer.question_short_name] = []
+            result[answer.question_short_name].append(answer.answer)
         else:
             result[answer.question_short_name] = answer.answer
 

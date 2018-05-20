@@ -111,7 +111,8 @@ class AbstractGroup(polymorphic.models.PolymorphicModel):
             if user_access > group_access.access_type:
                 break
 
-            if group_access.group.is_user_in_group(user):
+            # TODO(artemtab): make proper polymorphic select_related
+            if group_access.group.get_real_instance().is_user_in_group(user):
                 return group_access.access_type
 
         return user_access

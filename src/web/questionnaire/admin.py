@@ -66,6 +66,7 @@ class AbstractQuestionnaireQuestionAdmin(
 @admin.register(models.TextQuestionnaireQuestion)
 @admin.register(models.YesNoQuestionnaireQuestion)
 @admin.register(models.DateQuestionnaireQuestion)
+@admin.register(models.UserListQuestionnaireQuestion)
 class AbstractQuestionnaireBlockChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractQuestionnaireBlock
     inlines = (QuestionnaireBlockShowConditionInline,)
