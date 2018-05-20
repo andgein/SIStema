@@ -596,7 +596,7 @@ class AbstractAbsenceReason(polymorphic.models.PolymorphicModel):
     @classmethod
     def for_user_in_school(cls, user, school):
         """
-        Returns reject_participation reason for specified user
+        Returns absence reason for specified user
         or None if user has not declined.
         """
         return cls.objects.filter(user=user, school=school).first()

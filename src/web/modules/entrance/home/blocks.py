@@ -58,15 +58,10 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
             self.school,
             user
         )
-        if status is not None and status.is_enrolled:
-            sessions_and_parallels = status.sessions_and_parallels
-
-            # If user have selected session and parallel already,
-            # then left only this items
-            if sessions_and_parallels.filter(selected_by_user=True).exists():
-                sessions_and_parallels = sessions_and_parallels.filter(
-                    selected_by_user=True
-                )
+        if status is not None and status.is_enrolled and status.is_approved:
+            sessions_and_parallels = status.sessions_and_parallels.filter(
+                selected_by_user=True
+            )
 
             enrolled_to_session_ids = nested_query_list(
                 sessions_and_parallels.values_list('session_id', flat=True)
@@ -74,7 +69,7 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
             enrolled_to_parallel_ids = nested_query_list(
                 sessions_and_parallels.values_list('parallel_id', flat=True)
             )
-        else:
+        elif status is None or not status.is_enrolled:
             # If user is not enrolled, filter out all steps
             # marked as 'visible_only_for_enrolled'
             steps = steps.filter(Q(visible_only_for_enrolled=False))

@@ -408,7 +408,7 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
 
 class ResultsEntranceStep(AbstractEntranceStep):
     """
-    Entrance step for show results (enrolled, not enrolled) and reject_participation reason
+    Entrance step for show results (enrolled, not enrolled) and absence reason
     if exists (not confirmed, rejected, ...).
     """
     template_file = 'results.html'
