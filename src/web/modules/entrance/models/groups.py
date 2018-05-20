@@ -61,7 +61,7 @@ class EnrollmentApprovingStatusGroup(groups.models.AbstractGroup):
 class EnrolledUsersGroup(groups.models.AbstractGroup):
     """
         Group for enrolled (maybe to some specific session or parallel) users.
-        Users who rejected their participation have not been included in this group.
+        Users who rejected their participation are not included in this group.
     """
     session = models.ForeignKey(
         'schools.Session',
@@ -109,23 +109,19 @@ class EnrolledUsersGroup(groups.models.AbstractGroup):
         if status is None or not status.is_enrolled:
             return False
 
-        sessions_and_parallels = status.sessions_and_parallels.all()
+        qs = status.sessions_and_parallels.all()
         if status.is_approved:
-            sessions_and_parallels = sessions_and_parallels.filter(selected_by_user=True)
+            qs = qs.filter(selected_by_user=True)
 
-        if (self.session is not None and self.parallel is None and
-            not sessions_and_parallels.filter(session=self.session).exists()):
+        if self.session is not None:
+            qs = qs.filter(session=self.session)
+        if self.parallel is not None:
+            qs = qs.filter(parallel=self.parallel)
+
+        if not qs.exists():
             return False
 
-        if (self.parallel is not None and self.session is None and
-            not sessions_and_parallels.filter(parallel=self.parallel).exists()):
-            return False
-
-        if (self.session is not None and self.parallel is not None and
-            not sessions_and_parallels.filter(session=self.session, parallel=self.parallel).exists()):
-            return False
-
-        # User have not including in group if exists absence reason for him
+        # User is not included in the group if there is an absence reason for him
         if AbstractAbsenceReason.objects.filter(school=self.school, user=user).exists():
             return False
 
