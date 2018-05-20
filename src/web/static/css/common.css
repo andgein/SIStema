@@ -141,6 +141,24 @@ tr:hover .visible-on-row-hover {
     padding: 2px 5px;
 }
 
+.admin-form .select2-container--default .select2-selection--multiple {
+    background-color: white;
+    border-radius: 5px;
+    height: 40px;
+    padding: 2px 5px;
+}
+
+.admin-form .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #f0f4f5;
+}
+
+.admin-form .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    font-weight: normal;
+    margin-right: 5px;
+    font-size: 16px;
+    line-height: 16px;
+}
+
 /* Placeholders */
 .form-control:-moz-placeholder  { color: #bbb; opacity: 1; text-overflow:ellipsis; }
 .form-control::-moz-placeholder  { color: #bbb; opacity: 1; text-overflow:ellipsis; }
