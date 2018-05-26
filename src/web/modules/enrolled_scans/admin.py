@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.utils import html
+from django.utils.safestring import mark_safe
 
 from polymorphic.admin import (StackedPolymorphicInline,
                                PolymorphicInlineSupportMixin)
@@ -14,19 +16,34 @@ class EnrolledScanRequirementConditionInline(StackedPolymorphicInline):
         model = models.QuestionnaireVariantEnrolledScanRequirementCondition
         autocomplete_fields = ('variant',)
 
+    class GroupEnrolledScanRequirementConditionInline(
+            StackedPolymorphicInline.Child
+    ):
+        model = models.GroupEnrolledScanRequirementCondition
+        autocomplete_fields = ('group',)
+
     model = models.EnrolledScanRequirementCondition
     child_inlines = (
         QuestionnaireVariantEnrolledScanRequirementConditionInline,
+        GroupEnrolledScanRequirementConditionInline,
     )
 
 
 @admin.register(models.EnrolledScanRequirement)
 class EnrolledScanRequirementAdmin(PolymorphicInlineSupportMixin,
                                    admin.ModelAdmin):
-    list_display = ('id', 'school', 'name')
+    list_display = ('id', 'school', 'name', 'get_conditions')
     list_filter = ('school', )
     inlines = (EnrolledScanRequirementConditionInline,)
     search_fields = ('school__name', 'name')
+
+    def get_conditions(self, requirement):
+        result = ''
+        for condition in requirement.conditions.all():
+            result += '<p>{}</p>'.format(html.escape(str(condition)))
+        return mark_safe(result)
+
+    get_conditions.short_description = 'Conditions'
 
 
 @admin.register(models.EnrolledScan)

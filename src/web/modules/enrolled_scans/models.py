@@ -77,8 +77,12 @@ class QuestionnaireVariantEnrolledScanRequirementCondition(EnrolledScanRequireme
         questionnaire.models.ChoiceQuestionnaireQuestionVariant,
         on_delete=models.CASCADE,
         related_name='+',
-        help_text='Вариант, который должен быть отмечен',
+        help_text='Вариант, который должен быть отмечен, чтобы пользователя '
+                  'попросили загрузить документ',
     )
+
+    def __str__(self):
+        return 'Выбравшие ответ %s' % (self.variant, )
 
     def is_satisfied(self, user):
         return questionnaire.models.QuestionnaireAnswer.objects.filter(
@@ -87,3 +91,19 @@ class QuestionnaireVariantEnrolledScanRequirementCondition(EnrolledScanRequireme
             user=user,
             answer=self.variant.id
         ).exists()
+
+
+class GroupEnrolledScanRequirementCondition(EnrolledScanRequirementCondition):
+    group = models.ForeignKey(
+        'groups.AbstractGroup',
+        on_delete=models.CASCADE,
+        related_name='+',
+        help_text='Группа, участников которой надо попросить загрузить документ'
+    )
+
+    def is_satisfied(self, user):
+        return self.group.is_user_in_group(user)
+
+    def __str__(self):
+        return 'Участники %s' % (self.group, )
+
