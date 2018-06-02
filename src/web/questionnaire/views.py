@@ -94,7 +94,7 @@ def questionnaire_for_user(request, user, questionnaire_name):
                                           school__isnull=True,
                                           short_name=questionnaire_name)
 
-    form_class = questionnaire.get_form_class()
+    form_class = questionnaire.get_form_class(user)
 
     # There are no closed questionnaires for staff users
     is_closed = (questionnaire.is_closed_for_user(user) and
@@ -143,7 +143,9 @@ def questionnaire_for_user(request, user, questionnaire_name):
     return render(request, 'questionnaire/questionnaire.html', {
         'questionnaire': questionnaire,
         # Need for dict() because a bug: https://code.djangoproject.com/ticket/16335
-        'show_conditions': dict(questionnaire.show_conditions),
+        'variant_checked_show_conditions': dict(
+            questionnaire.variant_checked_show_conditions
+        ),
         'form': form,
         'typing_dynamics_form': typing_dynamics_form,
         'already_filled': already_filled,

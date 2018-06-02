@@ -18,7 +18,7 @@
     <script type="text/javascript" src="{% static 'questionnaire/js/typing-dynamics.js' %}"></script>
     <script type="text/javascript">
         $(document).ready(function() {
-            {% for block_id, options in show_conditions.items %}
+            {% for block_id, options in variant_checked_show_conditions.items %}
                 $('#questionnaire__block__{{ options.0.block.short_name }}').showOnlyIfOptionChecked(
                     {% for option in options %}
                         {% if not forloop.first %}.add({% endif %}

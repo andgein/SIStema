@@ -2,7 +2,7 @@ from django import forms
 from django.urls import reverse
 
 import frontend.forms
-import users.models
+
 
 class QuestionnaireForm(forms.Form):
     def __init__(self, initial=None, *args, **kwargs):

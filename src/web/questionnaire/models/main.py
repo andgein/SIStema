@@ -85,6 +85,25 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
         new_instance.save()
         return new_instance
 
+    def is_visible_to_user(self, user):
+        """
+        Returns True if block is visible for the user (on the server-side).
+        For now there is only one server-side show conditions:
+        it's `GroupMemberShowCondition`
+        :param user: User
+        :return: True is block is visible, False otherwise
+        """
+        group_member_conditions = (
+            self.show_conditions_questionnaireblockgroupmembershowcondition.all()
+        )
+        if len(group_member_conditions) == 0:
+            return True
+
+        for condition in group_member_conditions:
+            if condition.is_satisfied(user):
+                return True
+        return False
+
     def copy_dependencies_to_instance(self, other_block):
         """
         Copies dependencies between blocks. This method is called
@@ -123,6 +142,13 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
         raise NotImplementedError(
             "%s doesn't implement block_name property " %
             self.__class__.__name__
+        )
+
+    @cached_property
+    def show_conditions(self):
+        return (
+            self.show_conditions_questionnaireblockgroupmembershowcondition.all() +
+            self.show_conditions_questionnaireblockvariantcheckedshowcondition.all()
         )
 
 
@@ -518,37 +544,52 @@ class Questionnaire(models.Model):
                 self.close_time.passed_for_user(user))
 
     @cached_property
+    def _blocks_with_server_side_show_conditions(self):
+        return (
+            self.blocks.prefetch_related('show_conditions_questionnaireblockgroupmembershowcondition')
+        )
+
+    @cached_property
     def ordered_blocks(self):
-        return self.blocks.order_by('order')
+        return self._blocks_with_server_side_show_conditions.order_by('order')
 
     @cached_property
     def ordered_top_level_blocks(self):
-        return self.blocks.filter(is_top_level=True).order_by('order')
+        return (
+            self._blocks_with_server_side_show_conditions
+                .filter(is_top_level=True).order_by('order')
+        )
 
     @cached_property
     def questions(self):
-        return self.blocks.instance_of(AbstractQuestionnaireQuestion)
+        return (
+            self._blocks_with_server_side_show_conditions
+                .instance_of(AbstractQuestionnaireQuestion)
+        )
 
     @cached_property
     def ordered_questions(self):
         return self.questions.order_by('order')
 
     @cached_property
-    def show_conditions(self):
-        conditions = (QuestionnaireBlockShowCondition.objects
+    def variant_checked_show_conditions(self):
+        conditions = (QuestionnaireBlockVariantCheckedShowCondition.objects
                       .filter(block__questionnaire=self))
         return group_by(conditions, operator.attrgetter('block_id'))
 
-    def get_form_class(self, attrs=None):
+    def get_form_class(self, user, attrs=None):
         if attrs is None:
             attrs = {}
 
         fields = {
-            'prefix': self.get_prefix(),
+            'prefix': self.get_fields_common_prefix(),
         }
 
         is_first = True
         for question in self.ordered_questions:
+            if not question.is_visible_to_user(user):
+                continue
+
             question_attrs = copy.copy(attrs)
             if is_first:
                 if self.enable_autofocus:
@@ -563,7 +604,7 @@ class Questionnaire(models.Model):
                           fields)
         return form_class
 
-    def get_prefix(self):
+    def get_fields_common_prefix(self):
         return 'questionnaire_' + self.short_name
 
     def get_absolute_url(self):
@@ -662,11 +703,12 @@ class Questionnaire(models.Model):
 
     def _copy_block_show_conditions_to_questionnaire(self, to_questionnaire):
         """
-        Copy all the `QuestionnaireBlockShowCondition` objects to the specified
-        questionnaire.
+        Copy all inheritors of the `AbstractQuestionnaireBlockShowCondition` objects
+        to the specified questionnaire.
 
         Conditions are skipped if the target questionnaire doesn't have a block
-        with the same `short_name` or a variant with the same `order`.
+        with the same `short_name` or in some other cases (see documentation for
+        copy_condition_to_questionnaire() methods in inherited classes).
 
         :param to_questionnaire: The questionnaire to copy the conditions to.
         :return: (<number of copied conditions>, <number of skipped conditions>)
@@ -674,7 +716,7 @@ class Questionnaire(models.Model):
         copied_count = 0
         skipped_count = 0
         for block in self.blocks.all():
-            for condition in block.show_conditions.all():
+            for condition in block.show_conditions:
                 new_condition = (
                     condition.copy_condition_to_questionnaire(to_questionnaire))
                 if new_condition is None:
@@ -762,23 +804,40 @@ class UserQuestionnaireStatus(models.Model):
             self.status, self.questionnaire, self.user)
 
 
-class QuestionnaireBlockShowCondition(models.Model):
+class AbstractQuestionnaireBlockShowCondition(models.Model):
     # If there is at least one conditions for `block`,
     # it will be visible only if one `need_to_be_checked` is checked
     block = models.ForeignKey(
         AbstractQuestionnaireBlock,
         on_delete=models.CASCADE,
-        related_name='show_conditions',
+        related_name='show_conditions_%(class)s',
     )
 
+    class Meta:
+        abstract = True
+
+    def copy_condition_to_questionnaire(self, to_questionnaire):
+        """
+        Implement this method to copy block show condition to the
+        specified questionnaire. Shouldn't be used outside questionnaire.models.
+        """
+        raise NotImplementedError(
+            '%s doesn\'t have copy_condition_to_questionnaire() method' % (
+                self.__class__.__name__,
+            )
+        )
+
+
+class QuestionnaireBlockVariantCheckedShowCondition(AbstractQuestionnaireBlockShowCondition):
     need_to_be_checked = models.ForeignKey(
         ChoiceQuestionnaireQuestionVariant,
         on_delete=models.CASCADE,
         related_name='+',
+        help_text='Вариант, который должен быть отмечен'
     )
 
     def __str__(self):
-        return 'Show %s only if %s' % (self.block, self.need_to_be_checked)
+        return 'Show %s only if %s is checked' % (self.block, self.need_to_be_checked)
 
     def copy_condition_to_questionnaire(self, to_questionnaire):
         """
@@ -789,8 +848,8 @@ class QuestionnaireBlockShowCondition(models.Model):
         a variant with the same `order`. Otherwise the copy is not created.
 
         :param to_questionnaire: The questionnaire to copy the condition to.
-        :return: The new `QuestionnaireBlockShowCondition` on success or `None`
-            on failre.
+        :return: The new `QuestionnaireBlockVariantCheckedShowCondition` on success
+            or `None` on failure.
         """
         target_block = (
             to_questionnaire.blocks
@@ -810,9 +869,70 @@ class QuestionnaireBlockShowCondition(models.Model):
         if target_variant is None:
             return None
 
-        return QuestionnaireBlockShowCondition.objects.create(
+        return QuestionnaireBlockVariantCheckedShowCondition.objects.create(
             block=target_block,
             need_to_be_checked=target_variant,
+        )
+
+
+class QuestionnaireBlockGroupMemberShowCondition(AbstractQuestionnaireBlockShowCondition):
+    """
+    Maybe it will be a good idea to extract ServerSideShowCondition as
+    a polymorphic parent.
+    """
+    need_to_be_member = models.ForeignKey(
+        'groups.AbstractGroup',
+        on_delete=models.CASCADE,
+        related_name='+',
+        help_text='Группа, участником которой должен быть пользователь'
+    )
+
+    def is_satisfied(self, user):
+        return self.need_to_be_member.is_user_in_group(user)
+
+    def __str__(self):
+        return 'Show %s only if user is a member of %s' % (self.block, self.need_to_be_member)
+
+    def copy_condition_to_questionnaire(self, to_questionnaire):
+        """
+        Copy block show condition to the specified questionnaire. Shouldn't be
+        used outside questionnaire.models.
+
+        Target questionnaire should have a block with the same `short_name`.
+        Otherwise the copy is not created.
+
+        Also if `need_to_be_member` group is school-related group then
+        target questionnaire's school should have a group with the same `short_name`.
+        Otherwise the copy is not created.
+
+        :param to_questionnaire: The questionnaire to copy the condition to.
+        :return: The new `QuestionnaireBlockGroupMemberShowCondition` on success
+            or `None` on failure.
+        """
+        if self.need_to_be_member.school is None:
+            target_group = self.need_to_be_member
+        else:
+            if to_questionnaire.school is None:
+                return None
+
+            target_group = groups.models.AbstractGroup.objects.filter(
+                school=to_questionnaire.school,
+                short_name=self.need_to_be_member.short_name
+            ).first()
+            if target_group is None:
+                return None
+
+        target_block = (
+            to_questionnaire.blocks
+                .filter(short_name=self.block.short_name)
+                .first()
+        )
+        if target_block is None:
+            return None
+
+        return QuestionnaireBlockGroupMemberShowCondition.objects.create(
+            block=target_block,
+            need_to_be_member=target_group
         )
 
 

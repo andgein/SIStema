@@ -15,6 +15,10 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     autocomplete_fields = ('close_time', 'must_fill')
     search_fields = ('=id', 'school__name', 'short_name', 'title')
 
+    list_filter = (
+        ('school', admin.RelatedOnlyFieldListFilter),
+    )
+
 
 @admin.register(models.AbstractQuestionnaireBlock)
 class AbstractQuestionnaireBlockAdmin(
@@ -47,10 +51,16 @@ class AbstractQuestionnaireBlockAdmin(
     get_text.short_description = 'Text'
 
 
-class QuestionnaireBlockShowConditionInline(admin.StackedInline):
-    model = models.QuestionnaireBlockShowCondition
+class QuestionnaireBlockVariantCheckedShowConditionInline(admin.StackedInline):
+    model = models.QuestionnaireBlockVariantCheckedShowCondition
     extra = 1
     autocomplete_fields = ('need_to_be_checked',)
+
+
+class QuestionnaireBlockGroupMemberShowConditionInline(admin.StackedInline):
+    model = models.QuestionnaireBlockGroupMemberShowCondition
+    extra = 1
+    autocomplete_fields = ('need_to_be_member',)
 
 
 @admin.register(models.AbstractQuestionnaireQuestion)
@@ -69,7 +79,10 @@ class AbstractQuestionnaireQuestionAdmin(
 @admin.register(models.UserListQuestionnaireQuestion)
 class AbstractQuestionnaireBlockChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractQuestionnaireBlock
-    inlines = (QuestionnaireBlockShowConditionInline,)
+    inlines = (
+        QuestionnaireBlockVariantCheckedShowConditionInline,
+        QuestionnaireBlockGroupMemberShowConditionInline,
+    )
     autocomplete_fields = AbstractQuestionnaireBlockAdmin.autocomplete_fields
     search_fields = AbstractQuestionnaireBlockAdmin.search_fields
 
@@ -98,8 +111,9 @@ class ChoiceQuestionnaireQuestionVariantInline(admin.TabularInline):
 @admin.register(models.ChoiceQuestionnaireQuestion)
 class ChoiceQuestionnaireQuestionQuestionChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractQuestionnaireBlock
-    inlines = (QuestionnaireBlockShowConditionInline,
-               ChoiceQuestionnaireQuestionVariantInline,)
+    inlines = AbstractQuestionnaireBlockChildAdmin.inlines + (
+        ChoiceQuestionnaireQuestionVariantInline,
+)
 
 
 @admin.register(models.ChoiceQuestionnaireQuestionVariant)
@@ -143,13 +157,6 @@ class QuestionnaireAnswerAdmin(admin.ModelAdmin):
         'user__profile__first_name',
         'user__profile__last_name',
     )
-
-
-@admin.register(models.QuestionnaireBlockShowCondition)
-class QuestionnaireBlockShowConditionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'block', 'need_to_be_checked')
-    list_filter = ('block__questionnaire',)
-    autocomplete_fields = ('block', 'need_to_be_checked')
 
 
 @admin.register(models.UsersFilledQuestionnaireGroup)
