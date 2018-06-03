@@ -54,13 +54,13 @@ class AbstractQuestionnaireBlockAdmin(
 class QuestionnaireBlockVariantCheckedShowConditionInline(admin.StackedInline):
     model = models.QuestionnaireBlockVariantCheckedShowCondition
     extra = 1
-    autocomplete_fields = ('need_to_be_checked',)
+    autocomplete_fields = ('variant',)
 
 
 class QuestionnaireBlockGroupMemberShowConditionInline(admin.StackedInline):
     model = models.QuestionnaireBlockGroupMemberShowCondition
     extra = 1
-    autocomplete_fields = ('need_to_be_member',)
+    autocomplete_fields = ('group',)
 
 
 @admin.register(models.AbstractQuestionnaireQuestion)

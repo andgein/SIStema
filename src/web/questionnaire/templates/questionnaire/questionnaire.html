@@ -22,7 +22,7 @@
                 $('#questionnaire__block__{{ options.0.block.short_name }}').showOnlyIfOptionChecked(
                     {% for option in options %}
                         {% if not forloop.first %}.add({% endif %}
-                        $('input[value={{ option.need_to_be_checked.id }}]', '#questionnaire__block__{{ option.need_to_be_checked.question.short_name }}')
+                        $('input[value={{ option.variant.id }}]', '#questionnaire__block__{{ option.variant.question.short_name }}')
                         {% if not forloop.first %}){% endif %}
                     {% endfor %}
                 );

@@ -87,16 +87,16 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
 
     def is_visible_to_user(self, user):
         """
-        Returns True if block is visible for the user (on the server-side).
-        For now there is only one server-side show conditions:
-        it's `GroupMemberShowCondition`
+        Return true if block is visible to the user. Includes only server-side conditions,
+        which don't change on client side during editing.
+        For now there is only one server-side show condition - `GroupMemberShowCondition`
         :param user: User
-        :return: True is block is visible, False otherwise
+        :return: True if block is visible, False otherwise
         """
         group_member_conditions = (
             self.show_conditions_questionnaireblockgroupmembershowcondition.all()
         )
-        if len(group_member_conditions) == 0:
+        if not group_member_conditions.exists():
             return True
 
         for condition in group_member_conditions:
@@ -805,8 +805,6 @@ class UserQuestionnaireStatus(models.Model):
 
 
 class AbstractQuestionnaireBlockShowCondition(models.Model):
-    # If there is at least one conditions for `block`,
-    # it will be visible only if one `need_to_be_checked` is checked
     block = models.ForeignKey(
         AbstractQuestionnaireBlock,
         on_delete=models.CASCADE,
@@ -829,7 +827,11 @@ class AbstractQuestionnaireBlockShowCondition(models.Model):
 
 
 class QuestionnaireBlockVariantCheckedShowCondition(AbstractQuestionnaireBlockShowCondition):
-    need_to_be_checked = models.ForeignKey(
+    """
+    If there is at least one `QuestionnaireBlockVariantCheckedShowCondition`
+    for `block`, it will be visible only if one `variant` is checked
+    """
+    variant = models.ForeignKey(
         ChoiceQuestionnaireQuestionVariant,
         on_delete=models.CASCADE,
         related_name='+',
@@ -837,7 +839,7 @@ class QuestionnaireBlockVariantCheckedShowCondition(AbstractQuestionnaireBlockSh
     )
 
     def __str__(self):
-        return 'Show %s only if %s is checked' % (self.block, self.need_to_be_checked)
+        return 'Show %s only if %s is checked' % (self.block, self.variant)
 
     def copy_condition_to_questionnaire(self, to_questionnaire):
         """
@@ -858,29 +860,27 @@ class QuestionnaireBlockVariantCheckedShowCondition(AbstractQuestionnaireBlockSh
         if target_block is None:
             return None
 
-        source_variant_block = self.need_to_be_checked.question
+        source_variant_block = self.variant.question
         target_variant = (
             ChoiceQuestionnaireQuestionVariant.objects
                 .filter(
                     question__questionnaire=to_questionnaire,
                     question__short_name=source_variant_block.short_name,
-                    order=self.need_to_be_checked.order)
+                    order=self.variant.order)
                 .first())
         if target_variant is None:
             return None
 
-        return QuestionnaireBlockVariantCheckedShowCondition.objects.create(
+        return self.__class__.objects.create(
             block=target_block,
-            need_to_be_checked=target_variant,
+            variant=target_variant,
         )
 
 
 class QuestionnaireBlockGroupMemberShowCondition(AbstractQuestionnaireBlockShowCondition):
-    """
-    Maybe it will be a good idea to extract ServerSideShowCondition as
-    a polymorphic parent.
-    """
-    need_to_be_member = models.ForeignKey(
+    # TODO: Maybe it will be a good idea to extract ServerSideShowCondition as
+    # a polymorphic parent.
+    group = models.ForeignKey(
         'groups.AbstractGroup',
         on_delete=models.CASCADE,
         related_name='+',
@@ -888,10 +888,10 @@ class QuestionnaireBlockGroupMemberShowCondition(AbstractQuestionnaireBlockShowC
     )
 
     def is_satisfied(self, user):
-        return self.need_to_be_member.is_user_in_group(user)
+        return self.group.is_user_in_group(user)
 
     def __str__(self):
-        return 'Show %s only if user is a member of %s' % (self.block, self.need_to_be_member)
+        return 'Show %s only if user is a member of %s' % (self.block, self.group)
 
     def copy_condition_to_questionnaire(self, to_questionnaire):
         """
@@ -901,7 +901,7 @@ class QuestionnaireBlockGroupMemberShowCondition(AbstractQuestionnaireBlockShowC
         Target questionnaire should have a block with the same `short_name`.
         Otherwise the copy is not created.
 
-        Also if `need_to_be_member` group is school-related group then
+        Also if `group` is school-related group then
         target questionnaire's school should have a group with the same `short_name`.
         Otherwise the copy is not created.
 
@@ -909,15 +909,15 @@ class QuestionnaireBlockGroupMemberShowCondition(AbstractQuestionnaireBlockShowC
         :return: The new `QuestionnaireBlockGroupMemberShowCondition` on success
             or `None` on failure.
         """
-        if self.need_to_be_member.school is None:
-            target_group = self.need_to_be_member
+        if self.group.school is None:
+            target_group = self.group
         else:
             if to_questionnaire.school is None:
                 return None
 
             target_group = groups.models.AbstractGroup.objects.filter(
                 school=to_questionnaire.school,
-                short_name=self.need_to_be_member.short_name
+                short_name=self.group.short_name
             ).first()
             if target_group is None:
                 return None
@@ -930,9 +930,9 @@ class QuestionnaireBlockGroupMemberShowCondition(AbstractQuestionnaireBlockShowC
         if target_block is None:
             return None
 
-        return QuestionnaireBlockGroupMemberShowCondition.objects.create(
+        return self.__class__.objects.create(
             block=target_block,
-            need_to_be_member=target_group
+            group=target_group
         )
 
 
