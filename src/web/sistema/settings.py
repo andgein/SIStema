@@ -73,6 +73,7 @@ INSTALLED_APPS = (
     'wiki.plugins.links',
     'wiki.plugins.macros',
     'wiki.plugins.notifications',
+    'wiki_extensions',
 
     # Sistema core
     'sistema.apps.SistemaConfig',
@@ -225,6 +226,8 @@ def WIKI_CAN_READ(article, user):
 # urls. It needs to be disabled because any address conflicts with
 # /<school_short_name>/... pattern as school_short_name can be equal to "wiki".
 WIKI_CHECK_SLUG_URL_AVAILABLE = False
+
+WIKI_EDITOR = 'wiki_extensions.editors.simple_mde.SimpleMDE'
 
 
 DATE_INPUT_FORMATS = (
