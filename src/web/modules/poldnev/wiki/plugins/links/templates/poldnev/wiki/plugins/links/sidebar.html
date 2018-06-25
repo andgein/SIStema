@@ -1,0 +1,35 @@
+{% load i18n sekizai_tags static %}
+
+<h4>Человек на poldnev.ru</h4>
+
+<p>
+  Начните вводить имя:
+</p>
+
+<div class="input-group">
+  <input type="text" class="poldnev_person_query form-control" id="wiki_poldnev_person_query" value="" placeholder="Поиск..." />
+  <span class="input-group-btn">
+    <button type="button" class="btn btn-default" onclick="poldnevWikiInsertLink()">
+      {% trans "Insert" %}
+    </button>
+  </span>
+</div>
+
+<hr />
+
+{% addtoblock "js" %}<script type="text/javascript" src="{% static "wiki/js/typeahead.min.js" %}"></script>{% endaddtoblock %}
+
+{% addtoblock "js" %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.poldnev_person_query').typeahead({
+                remote: "{% url 'wiki:poldnev_person_link_data' path=urlpath.path article_id=article.id %}?query=%QUERY",
+                dataType: String
+            });
+        });
+
+        function poldnevWikiInsertLink() {
+            $('#id_content').insertAtCaret($('#wiki_poldnev_person_query').val());
+        }
+    </script>
+{% endaddtoblock %}

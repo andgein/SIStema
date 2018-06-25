@@ -101,6 +101,7 @@ INSTALLED_APPS = (
     'modules.exam_scorer_2016',
     'modules.finance',
     'modules.poldnev',
+    'modules.poldnev.wiki.plugins.links.apps.LinksConfig',
     'modules.smartq',
     'modules.study_results.apps.StudyResultsConfig',
     'modules.topics',
