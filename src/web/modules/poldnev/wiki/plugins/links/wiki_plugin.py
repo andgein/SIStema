@@ -30,14 +30,5 @@ class LinksPlugin(wiki.core.plugins.base.BasePlugin):
                'form_class': None,
                'get_form_kwargs': (lambda a: {})}
 
-    # wikipath_config = [
-        # ('base_url', reverse_lazy('wiki:get', kwargs={'path': ''})),
-        # ('default_level', settings.LOOKUP_LEVEL),
-    # ]
-
-    # markdown_extensions = [
-    #     urlize_makeExtension(),
-    #     WikiPathExtension(wikipath_config)]
-
 
 registry.register(LinksPlugin)
