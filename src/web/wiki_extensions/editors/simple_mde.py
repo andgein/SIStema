@@ -18,17 +18,11 @@ class SimpleMDEWidget(forms.Widget):
         super().__init__(default_attrs)
 
 
-class SimpleMDEAdminWidget(SimpleMDEWidget):
-    """A simplified more fail-safe widget for the backend"""
-
-    # template_name = "wiki/forms/markitup-admin.html"
-
-
 class SimpleMDE(wiki.editors.base.BaseEditor):
     editor_id = 'simplemde'
 
     def get_admin_widget(self, instance=None):
-        return SimpleMDEAdminWidget()
+        return SimpleMDEWidget()
 
     def get_widget(self, instance=None):
         return SimpleMDEWidget()
