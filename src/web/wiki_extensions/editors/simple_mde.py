@@ -22,22 +22,12 @@ class SimpleMDE(wiki.editors.base.BaseEditor):
     editor_id = 'simplemde'
 
     def get_admin_widget(self, instance=None):
+        del instance  # Unused
         return SimpleMDEWidget()
 
     def get_widget(self, instance=None):
+        del instance  # Unused
         return SimpleMDEWidget()
-
-    class AdminMedia:
-        css = {
-            'all': (
-                "wiki_extensions/simplemde/simplemde.min.css",
-                "wiki_extensions/simplemde/simplemde.wiki.css",
-            )
-        }
-        js = (
-            "wiki_extensions/simplemde/simplemde.min.js",
-            "wiki_extensions/simplemde/simplemde.wiki.init.js",
-        )
 
     class Media:
         css = {
@@ -50,3 +40,5 @@ class SimpleMDE(wiki.editors.base.BaseEditor):
             "wiki_extensions/simplemde/simplemde.min.js",
             "wiki_extensions/simplemde/simplemde.wiki.init.js",
         )
+
+    AdminMedia = Media
