@@ -4,12 +4,9 @@ This plugin provides UI for inserting links to poldnev.ru
 Currently only person links are supported.
 """
 
-from django.urls import path, reverse_lazy
-from wiki.core.plugins import registry
 import wiki.core.plugins.base
-from wiki.plugins.links import settings
-from wiki.plugins.links.mdx.djangowikilinks import WikiPathExtension
-from wiki.plugins.links.mdx.urlize import makeExtension as urlize_makeExtension
+from django.urls import path
+from wiki.core.plugins import registry
 
 from . import views
 
