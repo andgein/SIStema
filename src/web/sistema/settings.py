@@ -120,6 +120,7 @@ MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
 
     'schools.middleware.SchoolMiddleware',
+    'sistema.middleware.WikiWorkaroundMiddleware',
     'users.middleware.UserProfileMiddleware',
 )
 
