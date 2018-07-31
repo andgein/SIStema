@@ -5,26 +5,31 @@
 {% block wiki_site_title %} — Вики ЛКШ{% endblock %}
 
 {% block wiki_header_branding %}
-<a class="navbar-brand" href="/">ЛКШ</a>
+    <a class="navbar-brand" href="/">ЛКШ</a>
 {% endblock %}
 
 {% block wiki_header_navlinks %}
-<ul class="nav navbar-nav">
-    <li class="active"><a href="{% url 'wiki:root' %}">Вики</a></li>
-</ul>
-{% addtoblock "js" %}
-    <!-- KaTeX (via CDN) -->
-    <link rel="stylesheet" href="{% static 'css/wiki/katex.min.css' %}">
-    <script src="{% static 'js/wiki/katex.min.js' %}"></script>
-    <script src="{% static 'js/wiki/auto-render.min.js' %}"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            renderMathInElement(document.body, {
-                delimiters: [
-                    {left: "$$", right: "$$", display: true},
-                    {left: "$", right: "$", display: false}
-            ]});
-        });
-    </script>
-{% endaddtoblock %}
+    {% addtoblock "css" %}
+        <link rel="stylesheet" href="{% static 'css/wiki/katex.min.css' %}">
+    {% endaddtoblock %}
+
+    {% addtoblock "js" %}
+        <script src="{% static 'js/wiki/katex.min.js' %}"></script>
+        <script src="{% static 'js/wiki/auto-render.min.js' %}"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                {# TODO(artemtab): restrict only to article #}
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false}
+                    ]
+                });
+            });
+        </script>
+    {% endaddtoblock %}
+
+    <ul class="nav navbar-nav">
+        <li class="active"><a href="{% url 'wiki:root' %}">Вики</a></li>
+    </ul>
 {% endblock %}
