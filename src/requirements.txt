@@ -7,7 +7,7 @@ bleach==2.1.2
 boto==2.48.0
 cached-property==1.4.2
 defusedxml==0.5.0
-Django==2.0.3
+Django==2.1.2
 # VK authentication is broken on 0.35.0, installing from git until the next
 # version is released
 # TODO(artemtab): upgrade to the next release as soon as it's available
