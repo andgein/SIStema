@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Q
 
 import groups.models
+import users.models
 from .main import EntranceStatus, AbstractAbsenceReason
 
 
@@ -175,3 +176,30 @@ class EnrolledUsersGroup(groups.models.AbstractGroup):
         ).values_list('user_id', flat=True)
 
         return set(enrolled_user_ids) - set(absence_user_ids)
+
+
+class UsersParticipatedInSchoolGroup(groups.models.AbstractGroup):
+    """Autofilled group with school participants."""
+
+    school_to_check_participation = models.ForeignKey(
+        "schools.School",
+        help_text='В группу автоматически попадут все пользователи, '
+                  'принимавшие участие в этой школе',
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    @property
+    def user_ids(self):
+        return (self.school_to_check_participation.participants
+                .values_list('user__id', flat=True))
+
+    @property
+    def users(self):
+        return users.models.User.objects.filter(
+            school_participations__school=self.school_to_check_participation)
+
+    def is_user_in_group(self, user):
+        return (user.school_participations
+                .filter(school=self.school_to_check_participation)
+                .exists())

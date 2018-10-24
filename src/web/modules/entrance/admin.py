@@ -420,6 +420,11 @@ class UserParticipatedInSchoolEntranceStepChildAdmin(EntranceStepChildAdmin):
     inlines = (UserParticipatedInSchoolEntranceStepExceptionInline,)
 
 
+@admin.register(models.UserIsMemberOfGroupEntranceStep)
+class UserIsMemberOfGroupEntranceStepChildAdmin(EntranceStepChildAdmin):
+    pass
+
+
 @admin.register(models.SelectedEnrollmentType)
 class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
     list_display = (
@@ -505,3 +510,8 @@ class EnrolledUsersGroupAdmin(groups.admin.AbstractGroupChildAdmin):
         groups.admin.AbstractGroupChildAdmin.autocomplete_fields +
         ('session', 'parallel')
     )
+
+
+@admin.register(models.UsersParticipatedInSchoolGroup)
+class SchoolGroupAdmin(groups.admin.AbstractGroupChildAdmin):
+    base_model = models.UsersParticipatedInSchoolGroup
