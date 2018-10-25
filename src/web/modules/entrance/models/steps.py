@@ -630,7 +630,7 @@ class UserIsMemberOfGroupEntranceStep(AbstractEntranceStep,
     """
     Step considered as passed only if a user is a member of the specified group.
 
-    Visible only if not passed.
+    Visible only if user is not a member of the group.
     """
 
     template_file = 'user_is_member_of_group.html'
@@ -640,7 +640,7 @@ class UserIsMemberOfGroupEntranceStep(AbstractEntranceStep,
         on_delete=models.CASCADE,
         related_name='+',
         help_text='Шаг будет считаться пройденным только если пользователь '
-                  'состоит в группе',
+                  'состоит в группе. Пройденный шаг невидим.)',
     )
 
     def __str__(self):
@@ -648,7 +648,7 @@ class UserIsMemberOfGroupEntranceStep(AbstractEntranceStep,
             .format(self.group.name, self.school)
 
     def is_visible(self, user):
-        return not self.is_passed(user)
+        return not self.group.is_user_in_group(user)
 
     def is_passed(self, user):
         return self.group.is_user_in_group(user)

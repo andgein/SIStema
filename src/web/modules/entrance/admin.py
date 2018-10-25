@@ -377,6 +377,7 @@ class EntranceStepsAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
 @admin.register(models.ResultsEntranceStep)
 @admin.register(models.MakeUserParticipatingEntranceStep)
 @admin.register(models.MarkdownEntranceStep)
+@admin.register(models.UsersParticipatedInSchoolGroup)
 class EntranceStepChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractEntranceStep
     autocomplete_fields = EntranceStepsAdmin.autocomplete_fields
@@ -510,8 +511,3 @@ class EnrolledUsersGroupAdmin(groups.admin.AbstractGroupChildAdmin):
         groups.admin.AbstractGroupChildAdmin.autocomplete_fields +
         ('session', 'parallel')
     )
-
-
-@admin.register(models.UsersParticipatedInSchoolGroup)
-class SchoolGroupAdmin(groups.admin.AbstractGroupChildAdmin):
-    base_model = models.UsersParticipatedInSchoolGroup
