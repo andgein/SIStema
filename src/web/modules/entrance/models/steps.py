@@ -640,7 +640,7 @@ class UserIsMemberOfGroupEntranceStep(AbstractEntranceStep,
         on_delete=models.CASCADE,
         related_name='+',
         help_text='Шаг будет считаться пройденным только если пользователь '
-                  'состоит в группе. Пройденный шаг невидим.)',
+                  'состоит в группе. Пройденный шаг невидим.',
     )
 
     def __str__(self):
