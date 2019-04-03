@@ -741,14 +741,21 @@ class Questionnaire(models.Model):
         if new_close_time == self.KEEP_VALUE:
             new_close_time = self.close_time if school_unchanged else None
 
-        # Copy
-        new_questionnaire = Questionnaire.objects.get(pk=self.pk)
-        new_questionnaire.pk = None
-        new_questionnaire.school = new_school
-        new_questionnaire.short_name = new_short_name
-        new_questionnaire.session = new_session
-        new_questionnaire.close_time = new_close_time
-        new_questionnaire.save()
+        # Check if questionnaire with pair (school, short_name) already exists
+        new_questionnaire = Questionnaire.objects.get(
+            school=new_school,
+            short_name=new_short_name,
+        )
+        
+        if new_questionnaire is None:
+            # If questionnaire doens't exists, create a copy
+            new_questionnaire = Questionnaire.objects.get(pk=self.pk)
+            new_questionnaire.pk = None
+            new_questionnaire.school = new_school
+            new_questionnaire.short_name = new_short_name
+            new_questionnaire.session = new_session
+            new_questionnaire.close_time = new_close_time
+            new_questionnaire.save()
 
         self._copy_blocks_to_questionnaire(new_questionnaire)
         self._copy_block_dependencies(new_questionnaire)
