@@ -1,6 +1,4 @@
-from sqlite3 import IntegrityError
-
-from django.db import models
+from django.db import models, IntegrityError
 from django.db.models import Q
 
 import groups.models
