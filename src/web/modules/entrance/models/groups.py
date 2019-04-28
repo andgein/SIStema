@@ -203,3 +203,36 @@ class UsersParticipatedInSchoolGroup(groups.models.AbstractGroup):
         return (user.school_participations
                 .filter(school=self.school_to_check_participation)
                 .exists())
+
+
+class SelectedEnrollmentTypeGroup(groups.models.AbstractGroup):
+    """ Autofilled group with users selected some enrollmment type """
+
+    enrollment_type = models.ForeignKey(
+        "entrance.EnrollmentType",
+        on_delete=models.CASCADE,
+        related_name='+'
+    )
+
+    only_approved = models.BooleanField(
+        help_text="Добавлять в группу только тех, кому одобрили (автоматически или вручную) этот способ поступления",
+        default=True,
+    )
+
+    @property
+    def user_ids(self):
+        qs = self.enrollment_type.selections
+        if self.only_approved:
+            qs = qs.filter(is_moderated=True, is_approved=True)
+        return qs.values_list('user_id', flat=True)
+
+    def save(self, *args, **kwargs):
+        if self.enrollment_type.step.school_id != self.school_id:
+            raise IntegrityError('%s: enrollment type should belong to the same school, but %s != %s' % (
+                self.__class__.__name__,
+                self.enrollment_type.step.school,
+                self.school
+            ))
+        super().save(*args, **kwargs)
+
+
