@@ -213,7 +213,8 @@ class SelectedEnrollmentTypeGroup(groups.models.AbstractGroup):
     )
 
     only_approved = models.BooleanField(
-        help_text="Добавлять в группу только тех, кому одобрили (автоматически или вручную) этот способ поступления",
+        help_text='Добавлять в группу только тех, кому одобрили (автоматически или вручную) '
+                  'этот способ поступления',
         default=True,
     )
 
@@ -226,11 +227,13 @@ class SelectedEnrollmentTypeGroup(groups.models.AbstractGroup):
 
     def save(self, *args, **kwargs):
         if self.enrollment_type.step.school_id != self.school_id:
-            raise IntegrityError('%s: enrollment type should belong to the same school, but %s != %s' % (
-                self.__class__.__name__,
-                self.enrollment_type.step.school,
-                self.school
-            ))
+            raise IntegrityError(
+                '%s: enrollment type should belong to the same school, but %s != %s' % (
+                    self.__class__.__name__,
+                    self.enrollment_type.step.school,
+                    self.school
+                )
+            )
         super().save(*args, **kwargs)
 
 
