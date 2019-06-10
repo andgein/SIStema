@@ -7,7 +7,7 @@
         Для вас не&nbsp;установлена стоимость участия. Пожалуйста, напишите нам
         на&nbsp;<a href="mailto:{{ settings.SISTEMA_CONTACT_US_EMAIL }}?subject=Не указана стоимость участия">{{ settings.SISTEMA_CONTACT_US_EMAIL }}</a>.
     {% else %}
-        Стоимость участия с&nbsp;учётом скидок составляет <b>{{ entrance_block.payment_amount }} {{ entrance_block.payment_amount|money_russian_pluralize:entrance_block.payment_currency }}</b>.
+        Стоимость участия с&nbsp;учётом скидок составляет <b>{{ entrance_block.payment_amount|money_russian_pluralize:entrance_block.payment_currency }}</b>.
     {% endif %}
 </p>
 {% if entrance_block.payment_amount != None %}
@@ -20,7 +20,7 @@
                 {% else %}
                     {{ discount.type_name|lowerfirst }}
                 {% endif %}
-                в размере {{ discount.amount }} {{ discount.amount|money_russian_pluralize:entrance_block.payment_currency }}{% if not forloop.last %},{% endif %}
+                в размере {{ discount.amount|money_russian_pluralize:entrance_block.payment_currency }}{% if not forloop.last %},{% endif %}
             {% endfor %}
             {% if entrance_block.actual_discounts.count > 1 %}
                 <p>

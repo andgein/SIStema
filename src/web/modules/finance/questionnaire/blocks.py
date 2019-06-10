@@ -18,9 +18,8 @@ class PaymentInfoQuestionnaireBlock(questionnaire.models.MarkdownQuestionnaireBl
         if payment_amount is None:
             new_text = ''
         else:
-            new_text = self.markdown.replace('{{ payment_amount }}', str(payment_amount))
-            new_text = new_text.replace(
-                '{{ payment_currency }}', money_russian_pluralize(payment_amount, payment_currency)
+            new_text = self.markdown.replace(
+                '{{ payment_amount }}', money_russian_pluralize(payment_amount, payment_currency)
             )
 
         return questionnaire.models.MarkdownQuestionnaireBlock(markdown=new_text)
