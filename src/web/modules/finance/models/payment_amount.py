@@ -36,7 +36,7 @@ class PaymentAmount(models.Model):
         """
         amount_object = cls.objects.filter(school=school, user=user).first()
         if amount_object is None:
-            return None
+            return None, None
         amount = amount_object.amount
 
         discounts = (Discount.objects
