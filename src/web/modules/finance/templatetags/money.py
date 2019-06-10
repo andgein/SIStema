@@ -16,4 +16,4 @@ def money_russian_pluralize(amount, currency):
         Currency.EUR: ('евро', 'евро', 'евро'),
         Currency.USD: ('доллар', 'доллара', 'долларов'),
     }
-    return amount + ' ' + russian_pluralize(amount, forms[currency])
+    return str(amount) + ' ' + russian_pluralize(amount, forms[currency])
