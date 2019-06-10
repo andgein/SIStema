@@ -72,7 +72,7 @@ class DocumentGenerator:
             raise ValueError('User did not select session for him')
         session = session_and_parallel.session
 
-        price = models.PaymentAmount.get_amount_for_user(self.school, user)
+        price, currency = models.PaymentAmount.get_amount_for_user(self.school, user)
 
         g = generator.TemplateGenerator(document_type.template)
         return g.generate({
@@ -84,5 +84,6 @@ class DocumentGenerator:
                 'created_at': datetime.date.today()
             },
             'payment': user_payment_questionnaire,
-            'price': price
+            'price': price,
+            'currency': currency
         })

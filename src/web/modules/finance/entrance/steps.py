@@ -14,8 +14,8 @@ class FillPaymentInfoEntranceStep(steps.FillQuestionnaireEntranceStep):
     def build(self, user):
         block = super().build(user)
         if block is not None:
-            block.payment_amount = finance_models.PaymentAmount.get_amount_for_user(
-                self.school, user
+            block.payment_amount, block.payment_currency = (
+                finance_models.PaymentAmount.get_amount_for_user(self.school, user)
             )
             block.user_discounts = finance_models.Discount.objects.filter(
                 school=self.school, user=user

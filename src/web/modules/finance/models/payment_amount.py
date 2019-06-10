@@ -3,6 +3,7 @@
 from django.db import models
 
 from .discount import Discount
+from .currency import Currency
 
 import schools.models
 import users.models
@@ -23,15 +24,20 @@ class PaymentAmount(models.Model):
 
     amount = models.PositiveIntegerField(help_text='Сумма к оплате')
 
+    currency = models.PositiveIntegerField(choices=Currency.choices, validators=[Currency.validator])
+
     class Meta:
         unique_together = ('school', 'user')
 
     @classmethod
     def get_amount_for_user(cls, school, user):
-        amount = cls.objects.filter(school=school, user=user).first()
-        if amount is None:
+        """
+        Returns (amount, currency)
+        """
+        amount_object = cls.objects.filter(school=school, user=user).first()
+        if amount_object is None:
             return None
-        amount = amount.amount
+        amount = amount_object.amount
 
         discounts = (Discount.objects
                              .filter(school=school, user=user)
@@ -43,4 +49,4 @@ class PaymentAmount(models.Model):
         if amount < 0:
             amount = 0
 
-        return amount
+        return amount, amount_object.currency
