@@ -9,7 +9,7 @@ from modules.finance import models
 
 @admin.register(models.PaymentAmount)
 class PaymentAmountAdmin(admin.ModelAdmin):
-    list_display = ('id', 'school', 'user', 'amount')
+    list_display = ('id', 'school', 'user', 'amount', 'currency')
     list_filter = ('school',)
     search_fields = (
         'user__profile__first_name',
