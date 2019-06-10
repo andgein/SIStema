@@ -1,7 +1,7 @@
 from django.template import Library
 
 from modules.finance.models.currency import Currency
-from sistema.templatetags.number_to_text import russian_pluralize
+from sistema.templatetags.number_to_text import pluralize
 
 register = Library()
 
@@ -16,4 +16,4 @@ def money_russian_pluralize(amount, currency):
         Currency.EUR: ('евро', 'евро', 'евро'),
         Currency.USD: ('доллар', 'доллара', 'долларов'),
     }
-    return str(amount) + ' ' + russian_pluralize(amount, forms[currency])
+    return str(amount) + ' ' + pluralize(amount, *forms[currency])
