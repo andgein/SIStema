@@ -678,6 +678,7 @@ class Questionnaire(models.Model):
             answer_type = str
 
             if isinstance(question, ChoiceQuestionnaireQuestion):
+                answer_value = int(answer_value)
                 if substitute_choice_variants:
                     answer_value = variants[answer_value].text
                 if question.is_multiple:
