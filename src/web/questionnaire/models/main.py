@@ -1,10 +1,12 @@
 import copy
+import datetime
 import operator
 
 import django.forms
 import django.utils.timezone
 import djchoices
 import polymorphic.models
+from django.conf import settings
 from cached_property import cached_property
 from django.core import validators
 from django.urls import reverse
@@ -399,6 +401,12 @@ class ChoiceQuestionnaireQuestion(AbstractQuestionnaireQuestion):
             help_text=self.help_text,
         )
 
+    def get_variant_text(self, variant_id):
+        variant = self.variants.filter(id=variant_id).first()
+        if variant is None:
+            return None
+        return variant.text
+
 
 class YesNoQuestionnaireQuestion(AbstractQuestionnaireQuestion):
     block_name = 'yesno_question'
@@ -641,6 +649,56 @@ class Questionnaire(models.Model):
     def get_filled_users(self, only_who_must_fill=False):
         filled_user_ids = self.get_filled_user_ids(only_who_must_fill)
         return users.models.User.objects.filter(id__in=filled_user_ids)
+
+    def get_user_answers(self, user, substitute_choice_variants=False):
+        """
+        Returns dict with user answers
+        :param substitute_choice_variants: if True, questions of type ChoiceQuestionnaireQuestion
+        will return ['value 1', 'value 2'] instead of [1, 2]
+        :return: dict of {question.short_name: answer}
+        """
+        questions = {q.short_name: q for q in self.questions}
+        answers = self.answers.filter(user=user)
+
+        variants = list(
+            ChoiceQuestionnaireQuestionVariant.objects.filter(
+                question__questionnaire=self
+            )
+        )
+        variants = {v.id: v for v in variants}
+
+        result = {}
+        for answer in answers:
+            # Question could be deleted from the time when user answered it
+            if answer.question_short_name not in questions:
+                continue
+
+            question = questions[answer.question_short_name]
+            answer_value = answer.answer
+            answer_type = str
+
+            if isinstance(question, ChoiceQuestionnaireQuestion):
+                if substitute_choice_variants:
+                    answer_value = variants[answer_value].text
+                if question.is_multiple:
+                    answer_type = list
+            elif isinstance(question, DateQuestionnaireQuestion):
+                answer_value = datetime.datetime.strptime(
+                    answer_value,
+                    settings.SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT
+                ).date()
+                answer_type = datetime.date
+            elif isinstance(question, UserListQuestionnaireQuestion):
+                answer_type = list
+
+            if answer_type is list:
+                if question.short_name not in result:
+                    result[question.short_name] = []
+                result[question.short_name].append(answer_value)
+            else:
+                result[question.short_name] = answer_value
+
+        return result
 
     # A unique object used as the default argument value in the clone method.
     # Needed, because we want to handle None.

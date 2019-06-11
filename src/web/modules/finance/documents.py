@@ -1,10 +1,10 @@
-from . import models
-import generator.models
-import schools.models
-import questionnaire.models
-from modules.entrance.models import EntranceStatus
-from generator import generator
 import datetime
+
+import generator.models
+import questionnaire.models
+from generator import generator
+from modules.entrance.models import EntranceStatus
+from . import models
 
 
 class DocumentGenerator:
@@ -22,46 +22,19 @@ class DocumentGenerator:
                 short_name__in=['parent', 'details']
             ).first()
 
-        self.payment_questions = questionnaire.models.AbstractQuestionnaireQuestion.objects.filter(
-            questionnaire=self.payment_questionnaire
-        )
-        self.payment_questions = {q.short_name: q for q in self.payment_questions}
-
-        self.questionnaire_choice_variants = list(
-            questionnaire.models.ChoiceQuestionnaireQuestionVariant.objects.filter(
-                question__questionnaire=self.payment_questionnaire
-            )
-        )
-        self.questionnaire_choice_variants = {v.id: v for v in self.questionnaire_choice_variants}
-
-    # Return just user's answer if it's a text, integer or date,
-    # otherwise return corresponding option from ChoiceQuestionnaireQuestionVariant
-    def _get_payment_question_answer(self, user_answer):
-        question_short_name = user_answer.question_short_name
-        question = self.payment_questions[question_short_name]
-
-        if user_answer.answer.strip() == '':
-            return ''
-
-        if isinstance(question, questionnaire.models.ChoiceQuestionnaireQuestion):
-            return self.questionnaire_choice_variants[int(user_answer.answer)].text
-
-        return user_answer.answer
-
     def generate(self, document_type, user):
         if not self.payment_questionnaire.is_filled_by(user):
             raise ValueError('User has not fill the payment questionnaire')
 
-        user_payment_questionnaire = list(
-            questionnaire.models.QuestionnaireAnswer.objects.filter(
-                questionnaire=self.payment_questionnaire,
-                user=user
-            )
+        user_payment_questionnaire = self.payment_questionnaire.get_user_answers(
+            user, substitute_choice_variants=True
         )
-        user_payment_questionnaire = {
-            a.question_short_name: self._get_payment_question_answer(a)
-            for a in user_payment_questionnaire
-        }
+
+        # Some question may have several answers (i.e. multiple ChoiceQuestionnaireQuestion).
+        # Join them by ', '.
+        for question_short_name, answer in user_payment_questionnaire.items():
+            if type(answer) is list:
+                user_payment_questionnaire[question_short_name] = ', '.join(map(str, answer))
 
         entrance_status = EntranceStatus.get_visible_status(self.school, user)
         if entrance_status is None or entrance_status.status != EntranceStatus.Status.ENROLLED:
@@ -85,5 +58,5 @@ class DocumentGenerator:
             },
             'payment': user_payment_questionnaire,
             'price': price,
-            'currency': currency
+            'currency': currency,
         })

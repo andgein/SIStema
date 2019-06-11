@@ -45,38 +45,6 @@ def save_questionnaire_answers(user, questionnaire, form):
         },
     )
 
-
-def _get_user_questionnaire_answers(user, questionnaire):
-    questions = {q.short_name: q for q in questionnaire.questions}
-    answers = models.QuestionnaireAnswer.objects.filter(user=user, questionnaire=questionnaire)
-
-    # TODO: refactor this
-    result = {}
-    for answer in answers:
-        # Question could be deleted from the time when user answered it
-        if answer.question_short_name not in questions:
-            continue
-        if isinstance(questions[answer.question_short_name], models.ChoiceQuestionnaireQuestion) and \
-                questions[answer.question_short_name].is_multiple:
-            if answer.question_short_name not in result:
-                result[answer.question_short_name] = []
-            result[answer.question_short_name].append(answer.answer)
-        elif isinstance(questions[answer.question_short_name], models.DateQuestionnaireQuestion):
-            result[answer.question_short_name] = datetime.datetime.strptime(
-                answer.answer,
-                settings.SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT
-            ).date()
-        elif isinstance(questions[answer.question_short_name],
-                        models.UserListQuestionnaireQuestion):
-            if answer.question_short_name not in result:
-                result[answer.question_short_name] = []
-            result[answer.question_short_name].append(answer.answer)
-        else:
-            result[answer.question_short_name] = answer.answer
-
-    return result
-
-
 def questionnaire_for_user(request, user, questionnaire_name):
     if hasattr(request, 'school'):
         qs = (models.Questionnaire.objects
@@ -123,8 +91,7 @@ def questionnaire_for_user(request, user, questionnaire_name):
             typing_dynamics_form = forms.QuestionnaireTypingDynamicsForm()
 
     # Main questionnaire form
-    questionnaire_answers = (
-        _get_user_questionnaire_answers(user, questionnaire) or None)
+    questionnaire_answers = questionnaire.get_user_answers(user) or None
     if request.method == 'POST':
         form = form_class(data=request.POST, initial=questionnaire_answers)
         if is_closed:
