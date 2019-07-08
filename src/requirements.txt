@@ -13,7 +13,7 @@ Django==2.0.3
 # TODO(artemtab): upgrade to the next release as soon as it's available
 # django-allauth==0.35.0
 git+https://github.com/pennersr/django-allauth.git@8e8bfc40111eb45a5e77d885051ac1b035935fee
-django-anymail==1.4
+django-anymail==6.1.0
 django-autocomplete-light==3.2.10
 django-choices==1.6.0
 django-constance[database]==2.2.0
