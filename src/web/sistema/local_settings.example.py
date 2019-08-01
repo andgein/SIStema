@@ -28,6 +28,6 @@ POSTMARK_TEST_MODE = True
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'
 
 # Access for polygon API to update wiki
-POLYGON_API_URL = 'https://polygon.lksh.ru/api/'
-POLYGON_API_KEY = ''
-POLYGON_API_SECRET = ''
+SISTEMA_POLYGON_API_URL = 'https://polygon.lksh.ru/api/'
+SISTEMA_POLYGON_API_KEY = ''
+SISTEMA_POLYGON_API_SECRET = ''

@@ -62,9 +62,9 @@ class Request:
     def issue(self):
         """Issues request and returns parsed JSON response"""
 
-        api_url = getattr(settings, 'POLYGON_API_URL', '')
-        api_key = getattr(settings, 'POLYGON_API_KEY', '')
-        api_secret = getattr(settings, 'POLYGON_API_SECRET', '')
+        api_url = getattr(settings, 'SISTEMA_POLYGON_API_URL', '')
+        api_key = getattr(settings, 'SISTEMA_POLYGON_API_KEY', '')
+        api_secret = getattr(settings, 'SISTEMA_POLYGON_API_SECRET', '')
 
         args = dict(self.args)
         args['apiKey'] = api_key
