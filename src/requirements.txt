@@ -62,5 +62,5 @@ toml==0.9.4
 trans==2.1.0
 webencodings==0.5.1
 wiki==0.4.2
-xlsxwriter==1.0.4
+xlsxwriter==1.2.5
 zipstream==1.1.4
