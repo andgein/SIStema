@@ -103,6 +103,7 @@ INSTALLED_APPS = (
     'modules.finance',
     'modules.poldnev',
     'modules.poldnev.wiki.plugins.links.apps.LinksConfig',
+    'modules.polygon',
     'modules.smartq',
     'modules.study_results.apps.StudyResultsConfig',
     'modules.topics',
@@ -286,6 +287,16 @@ CONSTANCE_CONFIG = {
         30,
         'Время для проверки одного решения вступительной работы (в минутах)'
     ),
+
+    'SISTEMA_POLYGON_URL': (
+        '',
+        'URL полигона'),
+    'SISTEMA_POLYGON_KEY': (
+        '',
+        'Key для API полигона'),
+    'SISTEMA_POLYGON_SECRET': (
+        '',
+        'Secret для API полигона'),
 
     'SMARTQ_MODULE_EXECUTION_TIMEOUT': (
         1.0,
