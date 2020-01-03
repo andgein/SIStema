@@ -6,9 +6,12 @@ from django.db import transaction
 from django.utils import translation
 from polygon_client import Polygon, PolygonRequestFailedException
 
+import time
 from modules.polygon import models
 
-RETRIES = 3
+# How many seconds to wait before each retry attempt
+RETRY_DELAY = [1, 4, 16]
+ATTEMPTS_COUNT = len(RETRY_DELAY) + 1
 
 
 class Command(management.base.BaseCommand):
@@ -26,8 +29,11 @@ class Command(management.base.BaseCommand):
         # TODO(artemtab): more granular retries. At least we shouldn't repeat
         # successful Polygon requests if something unrelated goes wrong.
         last_exception = None
-        for i in range(RETRIES):
+        for i in range(ATTEMPTS_COUNT):
             try:
+                # Wait before retries
+                if i > 0:
+                    time.sleep(RETRY_DELAY[i - 1])
                 self.sync()
                 break
             except Exception as e:
