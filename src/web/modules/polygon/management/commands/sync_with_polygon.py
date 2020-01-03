@@ -70,18 +70,17 @@ class Command(management.base.BaseCommand):
         # Contests
         print('Syncing contests')
         contest_id = 1
-        current_gap = 0
+        last_updated_contest_id = 0
         while True:
             try:
                 problem_set = p.contest_problems(contest_id)
-                # Found a contest in Polygon. Reset the gap size.
-                current_gap = 0
+                last_updated_contest_id = contest_id
                 print('.', end='', flush=True)
             except PolygonRequestFailedException:
                 print('_', end='', flush=True)
                 # If at some point the specified number of contests in a row are
                 # missing we consider that there are no more contests to sync.
-                current_gap += 1
+                current_gap = contest_id - last_updated_contest_id
                 if current_gap > config.SISTEMA_POLYGON_MAXIMUM_CONTEST_ID_GAP:
                     break
             self.update_contest(contest_id, problem_set)
