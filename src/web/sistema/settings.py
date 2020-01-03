@@ -293,10 +293,11 @@ CONSTANCE_CONFIG = {
         'URL полигона'),
     'SISTEMA_POLYGON_KEY': (
         '',
-        'Key для API полигона'),
+        'Key для API полигона. Можно найти в полигоне в Settings -> API keys.'),
     'SISTEMA_POLYGON_SECRET': (
         '',
-        'Secret для API полигона'),
+        'Secret для API полигона. Можно найти в полигоне в Settings -> API '
+        'keys.'),
     'SISTEMA_POLYGON_MAXIMUM_CONTEST_ID_GAP': (
         2,
         'Максимальный последовательный промежуток из незанятых контестами ID'),
