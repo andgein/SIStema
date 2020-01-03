@@ -63,9 +63,8 @@ class Command(management.base.BaseCommand):
         problems = p.problems_list()
         print('Found {} problems in Polygon. Syncing...'.format(len(problems)))
         for polygon_problem in problems:
-            with transaction.atomic():
-                self.update_problem(polygon_problem)
-                print('.', end='', flush=True)
+            self.update_problem(polygon_problem)
+            print('.', end='', flush=True)
         print()
 
         # Contests
@@ -85,11 +84,11 @@ class Command(management.base.BaseCommand):
                 current_gap += 1
                 if current_gap > config.SISTEMA_POLYGON_MAXIMUM_CONTEST_ID_GAP:
                     break
-            with transaction.atomic():
-                self.update_contest(contest_id, problem_set)
+            self.update_contest(contest_id, problem_set)
             contest_id += 1
         print()
 
+    @transaction.atomic
     def update_problem(self, polygon_problem):
         local_problem = (
             models.Problem.objects
@@ -136,6 +135,7 @@ class Command(management.base.BaseCommand):
         for tag in tags:
             models.Tag.objects.get_or_create(tag=tag)
 
+    @transaction.atomic
     def update_contest(self, contest_id, problem_set):
         contest = (
             models.Contest.objects
