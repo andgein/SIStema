@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 
 from . import models
 
@@ -23,3 +24,19 @@ class TagAdmin(admin.ModelAdmin):
     )
     search_fields = ('tag',)
 
+
+class ProblemInContestInline(admin.TabularInline):
+    model = models.ProblemInContest
+    ordering = ('index',)
+    extra = 0
+
+
+@admin.register(models.Contest)
+class ContestAdmin(admin.ModelAdmin):
+    list_display = (
+        'polygon_id',
+        'name',
+    )
+    search_fields = ('=polygon_id', 'name')
+
+    inlines = (ProblemInContestInline,)

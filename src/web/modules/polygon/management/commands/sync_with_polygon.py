@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core import management
 from django.db import transaction
 from django.utils import translation
-from polygon_client import Polygon
+from polygon_client import Polygon, PolygonRequestFailedException
 
 from modules.polygon import models
 
@@ -23,15 +23,19 @@ class Command(management.base.BaseCommand):
     def handle(self, *args, **options):
         translation.activate(settings.LANGUAGE_CODE)
 
+        # TODO(artemtab): more granular retries. At least we shouldn't repeat
+        # successful Polygon requests if something unrelated goes wrong.
+        last_exception = None
         for i in range(RETRIES):
             try:
                 self.sync()
                 break
-            except RuntimeError as e:
+            except Exception as e:
                 print(e)
-                pass
+                last_exception = e
         else:
-            message = 'Error when syncing with polygon:\n{}'.format(e)
+            message = (
+                'Error when syncing with polygon:\n{}'.format(last_exception))
             print(message)
             django.core.mail.mail_admins('Sync with Polygon failed', message)
             return
@@ -49,12 +53,35 @@ class Command(management.base.BaseCommand):
             api_secret=config.SISTEMA_POLYGON_SECRET,
         )
 
+        # Problems
         problems = p.problems_list()
-        print('Found {} problems in Polygon'.format(len(problems)))
+        print('Found {} problems in Polygon. Syncing...'.format(len(problems)))
         for polygon_problem in problems:
             with transaction.atomic():
                 self.update_problem(polygon_problem)
                 print('.', end='', flush=True)
+        print()
+
+        # Contests
+        print('Syncing contests')
+        contest_id = 1
+        current_gap = 0
+        while True:
+            try:
+                problem_set = p.contest_problems(contest_id)
+                # Found a contest in Polygon. Reset the gap size.
+                current_gap = 0
+                print('.', end='', flush=True)
+            except PolygonRequestFailedException:
+                print('_', end='', flush=True)
+                # If at some point the specified number of contests in a row are
+                # missing we consider that there are no more contests to sync.
+                current_gap += 1
+                if current_gap > config.SISTEMA_POLYGON_MAXIMUM_CONTEST_ID_GAP:
+                    break
+            with transaction.atomic():
+                self.update_contest(contest_id, problem_set)
+            contest_id += 1
         print()
 
     def update_problem(self, polygon_problem):
@@ -102,3 +129,25 @@ class Command(management.base.BaseCommand):
     def create_missing_tags(self, tags):
         for tag in tags:
             models.Tag.objects.get_or_create(tag=tag)
+
+    def update_contest(self, contest_id, problem_set):
+        contest = (
+            models.Contest.objects
+                .filter(polygon_id=contest_id)
+                .first())
+        if contest is None:
+            contest = models.Contest(polygon_id=contest_id)
+        contest.save()
+        # Remove problems deleted from contest
+        (models.ProblemInContest.objects
+         .filter(contest_id=contest_id)
+         .exclude(problem_id__in=[problem.id
+                                  for problem in problem_set.values()])
+         .delete())
+        # Add/update problems which were added or re-ordered
+        for index, problem in problem_set.items():
+            models.ProblemInContest.objects.update_or_create(
+                contest_id=contest_id,
+                problem_id=problem.id,
+                defaults={'index': index},
+            )

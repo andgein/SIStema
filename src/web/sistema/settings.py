@@ -297,6 +297,9 @@ CONSTANCE_CONFIG = {
     'SISTEMA_POLYGON_SECRET': (
         '',
         'Secret для API полигона'),
+    'SISTEMA_POLYGON_MAXIMUM_CONTEST_ID_GAP': (
+        2,
+        'Максимальный последовательный промежуток из незанятых контестами ID'),
 
     'SMARTQ_MODULE_EXECUTION_TIMEOUT': (
         1.0,

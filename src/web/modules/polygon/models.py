@@ -88,6 +88,9 @@ class Problem(models.Model):
         verbose_name = _('problem')
         verbose_name_plural = _('problems')
 
+    def __str__(self):
+        return '{}:{}'.format(self.name, self.polygon_id)
+
 
 class Tag(models.Model):
     """Tag for problem in Polygon"""
@@ -97,3 +100,57 @@ class Tag(models.Model):
         primary_key=True,
         verbose_name=_('tag'),
     )
+
+    class Meta:
+        verbose_name = _('tag')
+        verbose_name_plural = _('tags')
+
+
+class Contest(models.Model):
+    """This model contains meta information about Polygon contest"""
+
+    polygon_id = models.IntegerField(
+        primary_key=True,
+        verbose_name=_('ID'),
+        help_text='ID контеста в полигоне',
+    )
+
+    name = models.CharField(
+        max_length=300,
+        blank=True,
+        verbose_name=_('name'),
+        help_text='Имя контеста в полигоне',
+    )
+
+    class Meta:
+        verbose_name = _('contest')
+        verbose_name_plural = _('contests')
+
+
+class ProblemInContest(models.Model):
+    """Relation between contests and problems"""
+
+    contest = models.ForeignKey(
+        'polygon.Contest',
+        on_delete=models.CASCADE,
+        related_name='problem_entries',
+        verbose_name=_('contest'),
+    )
+
+    index = models.CharField(
+        max_length=32,
+        verbose_name=_('index'),
+        help_text='Индекс задачи в контесте (например, A, B, C, ...)',
+    )
+
+    problem = models.ForeignKey(
+        'polygon.Problem',
+        on_delete=models.CASCADE,
+        related_name='contest_entries',
+        verbose_name=_('problem'),
+    )
+
+    class Meta:
+        verbose_name = _('problem in contest')
+        verbose_name_plural = _('problem in contests')
+        unique_together = ('contest', 'problem')
