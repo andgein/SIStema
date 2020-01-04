@@ -104,6 +104,7 @@ INSTALLED_APPS = (
     'modules.poldnev',
     'modules.poldnev.wiki.plugins.links.apps.LinksConfig',
     'modules.polygon',
+    'modules.polygon.wiki.apps.PolygonWikiExtensionsConfig',
     'modules.smartq',
     'modules.study_results.apps.StudyResultsConfig',
     'modules.topics',

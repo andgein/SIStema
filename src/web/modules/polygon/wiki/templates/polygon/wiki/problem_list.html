@@ -1,0 +1,5 @@
+<ol>
+    {% for p in problems %}
+        <li><code>{{ p.name }}:{{ p.polygon_id }}</code> — {{ p.general_description|escape|linebreaksbr  }}</li>
+    {% endfor %}
+</ol>
