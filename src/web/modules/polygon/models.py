@@ -126,6 +126,15 @@ class Contest(models.Model):
         verbose_name = _('contest')
         verbose_name_plural = _('contests')
 
+    def get_problems(self):
+        problem_entries = (
+            ProblemInContest.objects
+            .filter(contest_id=self.polygon_id)
+            .select_related('problem')
+            .order_by('index')
+        )
+        return (pe.problem for pe in problem_entries)
+
 
 class ProblemInContest(models.Model):
     """Relation between contests and problems"""

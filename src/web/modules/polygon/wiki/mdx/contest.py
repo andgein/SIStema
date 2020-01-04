@@ -26,20 +26,14 @@ class ContestPattern(markdown.inlinepatterns.Pattern):
         contest_id_str = m.group('contest_id')
         contest_id = int(contest_id_str)
 
-        if not models.Contest.objects.filter(polygon_id=contest_id).exists():
+        contest = models.Contest.objects.filter(polygon_id=contest_id).first()
+        if contest is None:
             return 'Контест с ID {} не существует'.format(contest_id)
 
-        problem_entries = (
-            models.ProblemInContest.objects
-            .filter(contest_id=contest_id)
-            .select_related('problem')
-            .order_by('index')
-        )
-        problems = (pe.problem for pe in problem_entries)
         html = render_to_string(
             "polygon/wiki/problem_list.html",
             context={
-                'problems': problems,
+                'problems': contest.get_problems(),
             })
         return self.markdown.htmlStash.store(html)
 
