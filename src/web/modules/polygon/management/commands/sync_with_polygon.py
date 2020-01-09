@@ -1,3 +1,6 @@
+import time
+import traceback
+
 import django.core.mail
 from constance import config
 from django.conf import settings
@@ -6,7 +9,6 @@ from django.db import transaction
 from django.utils import translation
 from polygon_client import Polygon, PolygonRequestFailedException
 
-import time
 from modules.polygon import models
 
 # How many seconds to wait before each retry attempt
@@ -28,7 +30,7 @@ class Command(management.base.BaseCommand):
 
         # TODO(artemtab): more granular retries. At least we shouldn't repeat
         # successful Polygon requests if something unrelated goes wrong.
-        last_exception = None
+        last_exception_trace = None
         for i in range(ATTEMPTS_COUNT):
             try:
                 # Wait before retries
@@ -36,12 +38,15 @@ class Command(management.base.BaseCommand):
                     time.sleep(RETRY_DELAY[i - 1])
                 self.sync()
                 break
-            except Exception as e:
-                print(e)
-                last_exception = e
+            except Exception:
+                trace = traceback.format_exc()
+                print(trace)
+                last_exception_trace = trace
+
         else:
             message = (
-                'Error when syncing with polygon:\n{}'.format(last_exception))
+                'Error when syncing with polygon:\n\n{}'
+                .format(last_exception_trace))
             print(message)
             django.core.mail.mail_admins('Sync with Polygon failed', message)
             return
