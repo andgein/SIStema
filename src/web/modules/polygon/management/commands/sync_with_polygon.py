@@ -47,7 +47,6 @@ class Command(management.base.BaseCommand):
             message = (
                 'Error when syncing with polygon:\n\n{}'
                 .format(last_exception_trace))
-            print(message)
             django.core.mail.mail_admins('Sync with Polygon failed', message)
             return
 
