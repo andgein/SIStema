@@ -16,11 +16,11 @@ class SistemaTextInput(forms.TextInput):
     def fa_type_safe(self):
         return self.fa_type.replace(r'"', r'\"')
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         attrs = copy.deepcopy(attrs) or {}
         attrs['class'] = attrs.get('class', '') + ' gui-input'
 
-        base_rendered = super().render(name, value, attrs=attrs)
+        base_rendered = super().render(name, value, attrs=attrs, renderer=renderer)
 
         icon_html = ('<label class="field-icon"><i class="fa fa-{}"></i>'
                      '</label>'.format(self.fa_type) if self.fa_type else '')
@@ -47,11 +47,11 @@ class SistemaTextarea(forms.Textarea):
     def fa_type_safe(self):
         return self.fa_type.replace(r'"', r'\"')
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         attrs = self.build_attrs(attrs)
         attrs['class'] = attrs.get('class', '') + ' gui-textarea'
 
-        base_rendered = super().render(name, value, attrs=attrs)
+        base_rendered = super().render(name, value, attrs=attrs, renderer=renderer)
 
         icon_html = ('<label class="field-icon"><i class="fa fa-{}"></i>'
                      '</label>'.format(self.fa_type) if self.fa_type else '')
@@ -68,11 +68,11 @@ class SistemaTextarea(forms.Textarea):
 
 
 class SistemaNumberInput(forms.NumberInput):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         attrs = copy.deepcopy(attrs) or {}
         attrs['class'] = attrs.get('class', '') + ' gui-input'
 
-        base_rendered = super().render(name, value, attrs=attrs)
+        base_rendered = super().render(name, value, attrs=attrs, renderer=renderer)
 
         return '<label class="field">{}</label>'.format(base_rendered)
 
@@ -90,8 +90,8 @@ class TextInputWithFaIcon(forms.TextInput):
     def fa_type_safe(self):
         return self.fa_type.replace(r'"', r'\"')
 
-    def render(self, name, value, attrs=None):
-        base_rendered = super().render(name, value, attrs=attrs)
+    def render(self, name, value, attrs=None, renderer=None):
+        base_rendered = super().render(name, value, attrs=attrs, renderer=renderer)
 
         return '<label class="field prepend-icon">%s<label class="field-icon"><i class="fa fa-%s"></i></label>' % \
                (base_rendered, self.fa_type_safe)
@@ -114,8 +114,8 @@ class TextareaWithFaIcon(forms.Textarea):
     def fa_type_safe(self):
         return self.fa_type.replace(r'"', r'\"')
 
-    def render(self, name, value, attrs=None):
-        base_rendered = super().render(name, value, attrs=attrs)
+    def render(self, name, value, attrs=None, renderer=None):
+        base_rendered = super().render(name, value, attrs=attrs, renderer=renderer)
 
         return '<label class="field prepend-icon">%s<label class="field-icon"><i class="fa fa-%s"></i></label>' % \
                (base_rendered, self.fa_type_safe)
@@ -123,7 +123,7 @@ class TextareaWithFaIcon(forms.Textarea):
 
 # TODO: it's not working and not used now
 class ButtonGroup(forms.NumberInput):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         """
             <div class="btn-toolbar inline">
                 <div class="btn-group inline" data-toggle="buttons-radio">
@@ -136,7 +136,7 @@ class ButtonGroup(forms.NumberInput):
                 </div>
             </div>
         """
-        hidden_input = forms.HiddenInput().render(name, value, attrs)
+        hidden_input = forms.HiddenInput().render(name, value, attrs, renderer=renderer)
 
         return format('''
         <div class="btn-toolbar inline">
