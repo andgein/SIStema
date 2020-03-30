@@ -3,7 +3,7 @@
 
 appdirs==1.4.3
 beautifulsoup4==4.6.0
-bleach==2.1.4
+bleach==3.1.4
 boto==2.48.0
 cached-property==1.4.2
 defusedxml==0.5.0
