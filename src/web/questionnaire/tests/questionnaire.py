@@ -91,5 +91,7 @@ class QuestionnaireTestCase(django.test.TestCase):
         # Catch not matching session and school
         with self.assertRaises(IntegrityError):
             self.src_q.clone(
-                new_school=self.school_2, new_session=self.session_1)
+                new_school=self.school_2, new_session=self.session_1,
+                new_short_name='dst-q-3'
+            )
 

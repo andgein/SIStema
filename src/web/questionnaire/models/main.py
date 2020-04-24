@@ -742,13 +742,13 @@ class Questionnaire(models.Model):
             new_close_time = self.close_time if school_unchanged else None
 
         # Check if questionnaire with pair (school, short_name) already exists
-        new_questionnaire = Questionnaire.objects.get(
+        new_questionnaire = Questionnaire.objects.filter(
             school=new_school,
             short_name=new_short_name,
-        )
-        
+        ).first()
+
         if new_questionnaire is None:
-            # Questionnaire doens't exist, create a copy
+            # Questionnaire doesn't exist, create a copy
             new_questionnaire = Questionnaire.objects.get(pk=self.pk)
             new_questionnaire.pk = None
             new_questionnaire.school = new_school
@@ -756,6 +756,8 @@ class Questionnaire(models.Model):
             new_questionnaire.session = new_session
             new_questionnaire.close_time = new_close_time
             new_questionnaire.save()
+        elif new_questionnaire.id == self.id:
+            raise IntegrityError('Can\'t copy questionnaire to itself')
 
         self._copy_blocks_to_questionnaire(new_questionnaire)
         self._copy_block_dependencies(new_questionnaire)
