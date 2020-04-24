@@ -748,7 +748,7 @@ class Questionnaire(models.Model):
         )
         
         if new_questionnaire is None:
-            # If questionnaire doens't exists, create a copy
+            # Questionnaire doens't exist, create a copy
             new_questionnaire = Questionnaire.objects.get(pk=self.pk)
             new_questionnaire.pk = None
             new_questionnaire.school = new_school
