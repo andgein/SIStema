@@ -207,8 +207,10 @@ class AutocompleteSelect2WidgetMixin(object):
         js = (
             'autocomplete_light/jquery.init.js',
             'autocomplete_light/autocomplete.init.js',
+            'autocomplete_light/forward.js',
             'vendor/plugins/select2/select2.full.min.js',
             'autocomplete_light/select2.js',
+            'autocomplete_light/jquery.post-setup.js',
         )
 
     autocomplete_function = 'select2'
