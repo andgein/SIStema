@@ -3,7 +3,7 @@
 
 appdirs==1.4.3
 beautifulsoup4==4.6.0
-bleach==2.1.4
+bleach==3.1.4
 boto==2.48.0
 cached-property==1.4.2
 defusedxml==0.5.0
@@ -58,6 +58,6 @@ sqlparse==0.2.4
 toml==0.10.0
 trans==2.1.0
 webencodings==0.5.1
-wiki==0.5
+wiki==0.6b2
 xlsxwriter==1.2.7
 zipstream==1.1.4
