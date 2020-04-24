@@ -24,7 +24,7 @@ django-markdown-deux==1.0.5
 django-nose==1.4.5
 django-polymorphic==2.0.2
 django-relativefilepathfield==1.0.3
-django-reversion==2.0.8
+django-reversion==3.0.7
 django-ses==0.8.1
 django-settings-export==1.2.1
 django-solo==1.1.3
