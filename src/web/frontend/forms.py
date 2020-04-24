@@ -246,7 +246,6 @@ def add_classes_to_label(f, classes=''):
     return func_wrapper
 
 
-
 forms.BoundField.label_tag = add_classes_to_label(
     forms.BoundField.label_tag,
     'control-label',
@@ -257,5 +256,3 @@ forms.BoundField.label_tag = add_classes_to_label(
 # TODO: Input is private for django, refactor not to reference it
 forms.widgets.Input.render = add_classes_to_label(forms.widgets.Input.render, 'form-control ')
 forms.Select.render = add_classes_to_label(forms.Select.render, 'form-control ')
-
-

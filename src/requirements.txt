@@ -55,7 +55,7 @@ six==1.11.0
 social-auth-app-django==1.2.0
 social-auth-core==1.7.0
 sqlparse==0.2.4
-toml==0.9.4
+toml==0.10.0
 trans==2.1.0
 webencodings==0.5.1
 wiki==0.5

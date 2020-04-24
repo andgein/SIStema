@@ -1,5 +1,5 @@
 {# Based on django/forms/widgets/input_option.html #}
-{% if wrap_label %}
+{% if widget.wrap_label %}
     <label
         {% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %}
         class="option
@@ -9,6 +9,6 @@
               ">
 {% endif %}
 {% include "frontend/forms/widgets/input.html" %}
-{% if wrap_label %} {% if widget.label.label %}{{ widget.label.label }}{% else %}{{ widget.label }}{% endif %}
+{% if widget.wrap_label %} {% if widget.label.label %}{{ widget.label.label }}{% else %}{{ widget.label }}{% endif %}
     </label>
 {% endif %}
