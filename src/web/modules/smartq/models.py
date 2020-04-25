@@ -11,6 +11,7 @@ from django import forms
 from django.db import models
 import django.core.mail
 import django.urls
+import django.forms.renderers
 
 from cached_property import cached_property
 from constance import config
@@ -434,7 +435,7 @@ def _make_form_type(generated_question_id, prefix, field_specs):
         field_order.append(field_name)
 
     return type('SmartQForm', (forms.BaseForm,), {
-        'default_renderer': 'django.forms.renderers.Jinja2',
+        'default_renderer': django.forms.renderers.Jinja2,
         'base_fields': fields,
         'field_order': field_order,
         'prefix': prefix,
