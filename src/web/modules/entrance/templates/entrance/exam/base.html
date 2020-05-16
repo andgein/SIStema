@@ -7,7 +7,7 @@
     {{ index }}. {{ task.title }}
 </h3>
 
-<div class="mw800 help-block mb20">
+<div class="mw1000 help-block mb20 fs16">
     {% if task.custom_description %}
         {{ task.custom_description|markdown }}
     {% else %}
@@ -19,7 +19,7 @@
     {% endif %}
 </div>
 
-<div class="entrance-exam__task__statement mw800">
+<div class="entrance-exam__task__statement mw1000 fs18">
     {% block statement %}
         {{ task.text|markdown }}
     {% endblock %}
