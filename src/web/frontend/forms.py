@@ -180,7 +180,7 @@ class RestrictedFileField(forms.FileField):
                 raise ValidationError('Файл неверного формата')
 
         if self.max_upload_size is not None:
-            file_size = file._size
+            file_size = file.size
             if file_size > self.max_upload_size:
                 raise ValidationError('Размер файла (%s) превышет допустимый (%s)' % (
                     filesizeformat(file_size), filesizeformat(self.max_upload_size)))
