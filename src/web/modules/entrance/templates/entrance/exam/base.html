@@ -7,7 +7,7 @@
     {{ index }}. {{ task.title }}
 </h3>
 
-<div class="mw1000 help-block mb20 fs16">
+<div class="mw1000 alert alert-border-left help-block mb20 fs16">
     {% if task.custom_description %}
         {{ task.custom_description|markdown }}
     {% else %}
@@ -19,13 +19,13 @@
     {% endif %}
 </div>
 
-<div class="entrance-exam__task__statement mw1000 fs18">
+<div class="entrance-exam__task__statement mw1000 fs18 mt30">
     {% block statement %}
         {{ task.text|markdown }}
     {% endblock %}
 </div>
 
-<div class="entrance-exam__task entrance-exam__task__{{ task.form.task_type }} form-group has-inf mt30"
+<div class="entrance-exam__task entrance-exam__task__{{ task.form.task_type }} form-group has-inf mt50"
      data-submit-url="{% url 'school:entrance:submit' task.exam.school.short_name task.id %}"
      data-solutions-url="{% url 'school:entrance:task_solutions' task.exam.school.short_name task.id %}">
     {% block answer_form %}
