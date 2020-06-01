@@ -1,7 +1,8 @@
 from django.db import models, IntegrityError
 
 import groups.models
-from questionnaire.models import Questionnaire
+from questionnaire.models import Questionnaire, ChoiceQuestionnaireQuestionVariant, \
+    QuestionnaireAnswer
 
 
 class UsersFilledQuestionnaireGroup(groups.models.AbstractGroup):
@@ -36,3 +37,23 @@ class UsersNotFilledQuestionnaireGroup(groups.models.AbstractGroup):
         filled_users_ids = set(self.questionnaire.get_filled_user_ids())
         must_fill_users_ids = set(self.questionnaire.must_fill.user_ids)
         return must_fill_users_ids - filled_users_ids
+
+
+class UsersSelectedQuestionVariant(groups.models.AbstractGroup):
+    variant = models.ForeignKey(
+        ChoiceQuestionnaireQuestionVariant,
+        help_text='В группу автоматически попадут все пользователи, выбравшие '
+                  'этот вариант ответа',
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+
+    @property
+    def user_ids(self):
+        question = self.variant.question
+        questionnaire_id = question.questionnaire_id
+        return QuestionnaireAnswer.objects.filter(
+            questionnaire_id=questionnaire_id,
+            question_short_name=question.short_name,
+            answer=self.variant.id
+        ).values_list('user_id', flat=True).distinct()

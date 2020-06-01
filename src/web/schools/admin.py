@@ -17,6 +17,8 @@ class SchoolAdmin(VersionAdmin):
 
     ordering = ('-year', '-name')
 
+    search_fields = ('name', 'year', 'full_name', 'short_name')
+
 
 @admin.register(models.Session)
 class SessionAdmin(VersionAdmin):

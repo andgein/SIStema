@@ -162,4 +162,13 @@ class QuestionnaireAnswerAdmin(admin.ModelAdmin):
 @admin.register(models.UsersFilledQuestionnaireGroup)
 @admin.register(models.UsersNotFilledQuestionnaireGroup)
 class QuestionnaireGroupAdmin(groups.admin.AbstractGroupAdmin):
-    pass
+    autocomplete_fields = (
+        groups.admin.AbstractGroupAdmin.autocomplete_fields + ('questionnaire', )
+    )
+
+
+@admin.register(models.UsersSelectedQuestionVariant)
+class UsersSelectedQuestionVariantAdmin(groups.admin.AbstractGroupAdmin):
+    autocomplete_fields = (
+        groups.admin.AbstractGroupAdmin.autocomplete_fields + ('variant', )
+    )

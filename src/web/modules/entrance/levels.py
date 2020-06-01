@@ -1,4 +1,3 @@
-from questionnaire.models import QuestionnaireAnswer, ChoiceQuestionnaireQuestionVariant
 from . import models
 
 

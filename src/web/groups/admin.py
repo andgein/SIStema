@@ -12,7 +12,7 @@ class AbstractGroupAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     list_display = ('id', 'school', 'created_by', 'short_name', 'name',
                     'can_be_deleted', )
     list_filter = (('school', admin.RelatedOnlyFieldListFilter), )
-    autocomplete_fields = ('created_by',)
+    autocomplete_fields = ('school', 'created_by',)
     search_fields = (
         '=id',
         'created_by__profile__first_name',
