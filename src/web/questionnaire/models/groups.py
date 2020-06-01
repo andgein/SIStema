@@ -39,7 +39,7 @@ class UsersNotFilledQuestionnaireGroup(groups.models.AbstractGroup):
         return must_fill_users_ids - filled_users_ids
 
 
-class UsersSelectedQuestionVariant(groups.models.AbstractGroup):
+class UsersSelectedQuestionVariantGroup(groups.models.AbstractGroup):
     variant = models.ForeignKey(
         ChoiceQuestionnaireQuestionVariant,
         help_text='В группу автоматически попадут все пользователи, выбравшие '

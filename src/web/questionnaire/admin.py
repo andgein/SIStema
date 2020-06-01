@@ -167,8 +167,8 @@ class QuestionnaireGroupAdmin(groups.admin.AbstractGroupAdmin):
     )
 
 
-@admin.register(models.UsersSelectedQuestionVariant)
-class UsersSelectedQuestionVariantAdmin(groups.admin.AbstractGroupAdmin):
+@admin.register(models.UsersSelectedQuestionVariantGroup)
+class UsersSelectedQuestionVariantGroupAdmin(groups.admin.AbstractGroupAdmin):
     autocomplete_fields = (
         groups.admin.AbstractGroupAdmin.autocomplete_fields + ('variant', )
     )
