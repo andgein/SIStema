@@ -72,3 +72,16 @@ class GroupAccessForUserAdmin(PolymorphicChildModelAdmin):
 class GroupAccessForGroupAdmin(PolymorphicChildModelAdmin):
     base_model = models.GroupAccess
     autocomplete_fields = GroupAccessAdmin.autocomplete_fields + ('group',)
+
+
+@admin.register(models.IntersectionGroup)
+@admin.register(models.UnionGroup)
+class IntersectionAndUnionGroupAdmin(AbstractGroupAdmin):
+    autocomplete_fields = AbstractGroupAdmin.autocomplete_fields + ('groups', )
+
+
+@admin.register(models.DifferenceGroup)
+class DifferenceGroupAdmin(AbstractGroupAdmin):
+    autocomplete_fields = (
+        AbstractGroupAdmin.autocomplete_fields + ('from_group', 'not_from_group')
+    )

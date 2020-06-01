@@ -2,7 +2,7 @@ import collections
 
 import djchoices
 import polymorphic.models
-from django.db import models
+from django.db import models, IntegrityError
 from django.utils.functional import cached_property
 
 import schools.models
@@ -24,8 +24,8 @@ class AbstractGroup(polymorphic.models.PolymorphicModel):
         blank=True,
         related_name='created_groups',
         on_delete=models.CASCADE,
-        help_text='Создатель группы. Не может никогда измениться и ' 
-                  'всегда имеет полные права на группу.' 
+        help_text='Создатель группы. Не может никогда измениться и '
+                  'всегда имеет полные права на группу.'
                   'None, если владелец группы — система'
     )
 
@@ -303,3 +303,61 @@ class GroupAccessForGroup(GroupAccess):
 
     def __str__(self):
         return 'Доступ участников %s к %s' % (self.group, self.to_group)
+
+
+class IntersectionGroup(AbstractGroup):
+    groups = models.ManyToManyField(
+        AbstractGroup,
+        related_name='+',
+        help_text='Пересечение каких групп построить'
+    )
+
+    @property
+    def user_ids(self):
+        if self.groups.count() == 0:
+            return []
+
+        user_ids = None
+        for group in self.groups.all():
+            if user_ids is None:
+                user_ids = set(group.user_ids)
+            else:
+                user_ids.intersection_update(group.user_ids)
+
+        return user_ids
+
+
+class UnionGroup(AbstractGroup):
+    groups = models.ManyToManyField(
+        AbstractGroup,
+        related_name='+',
+        help_text='Объединение каких групп построить'
+    )
+
+    @property
+    def user_ids(self):
+        user_ids = set()
+        for group in self.groups.all():
+            user_ids.update(group.user_ids)
+
+        return user_ids
+
+
+class DifferenceGroup(AbstractGroup):
+    from_group = models.ForeignKey(
+        AbstractGroup,
+        related_name='+',
+        on_delete=models.CASCADE,
+        help_text='Участников какой группы взять'
+    )
+
+    not_from_group = models.ForeignKey(
+        AbstractGroup,
+        related_name='+',
+        on_delete=models.CASCADE,
+        help_text='Участников какой группы вычесть из участников первой группы'
+    )
+
+    @property
+    def user_ids(self):
+        return set(self.from_group.user_ids) - set(self.not_from_group.user_ids)
