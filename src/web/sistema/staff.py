@@ -1,3 +1,5 @@
+import functools
+
 from django.shortcuts import redirect
 from django.urls import reverse
 
@@ -68,12 +70,9 @@ def staff_context_processor(request):
 # TODO(Artem Tabolin): is there any reason for not moving that function to
 #     users.decorators or to .decorators?
 def only_staff(func):
+    @functools.wraps(func)
     def wrapped(request, *args, **kwargs):
         if not request.user.is_authenticated or not request.user.is_staff:
             return redirect('account_login')
         return func(request, *args, **kwargs)
-
-    wrapped.__name__ = func.__name__
-    wrapped.__module__ = func.__module__
-    wrapped.__doc__ = func.__doc__
     return wrapped
