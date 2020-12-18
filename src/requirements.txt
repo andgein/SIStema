@@ -52,7 +52,7 @@ requests==2.21.0
 requests-oauthlib==0.8.0
 reversion==0.2
 six==1.11.0
-social-auth-app-django==1.2.0
+social-auth-app-django==4.0.0
 social-auth-core==1.7.0
 sqlparse==0.2.4
 toml==0.10.0
