@@ -1,3 +1,5 @@
+import datetime
+
 from . import models
 
 
@@ -63,7 +65,15 @@ class AgeEntranceLevelLimiter(EntranceLevelLimiter):
         if not hasattr(user, 'profile'):
             return EntranceLevelLimit(self._find_minimal_level())
 
-        current_class = user.profile.current_class
+        # Let's try to find out class in the right year
+        if self.school.sessions.exists():
+            date = self.school.sessions.first().start_date
+        elif self.school.year:
+            date = datetime.date(year=self.school.year, month=1, day=1)
+        else:
+            date = None
+
+        current_class = user.profile.get_class(date=date)
         if current_class is None:
             return EntranceLevelLimit(self._find_minimal_level())
 
