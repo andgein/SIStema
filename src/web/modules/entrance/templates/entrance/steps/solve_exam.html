@@ -7,7 +7,7 @@
         <div class="col-xs-12 col-sm-6 fs13">
             <h4>Уровень вступительной работы</h4>
             <p>
-                Вам выдана работа на&nbsp;параллел{% if entrance_block.level.name|length > 2 %}и{% else %}ь{% endif %} {{ entrance_block.level.name }}.
+                Вам выдана работа уровня {{ entrance_block.level.name }}.
                 {% if not entrance_block.is_at_maximum_level %}
                     Если решите все задачи, можно будет получить задания для следующей параллели.
                 {% endif %}
@@ -36,7 +36,7 @@
         <div class="col-xs-12 col-sm-6 fs13">
             <h4>Уровень вступительной работы</h4>
             <p>
-                Вам выдана работа на&nbsp;параллел{% if entrance_block.level.name|length > 2 %}и{% else %}ь{% endif %} {{ entrance_block.level.name }}.
+                Вам выдана работа уровня {{ entrance_block.level.name }}.
                 {% if not entrance_block.is_at_maximum_level %}
                     Если решите все задачи, можно будет получить задания для следующей параллели.
                 {% endif %}

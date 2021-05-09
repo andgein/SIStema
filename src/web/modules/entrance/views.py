@@ -154,7 +154,7 @@ def exam(request, selected_task_id=None):
         models.EntranceExam,
         school=request.school
     )
-    is_closed = entrance_exam.is_closed()
+    is_closed = entrance_exam.is_closed(request.user)
 
     base_level, tasks = get_entrance_level_and_tasks(request.school, request.user)
 
@@ -220,7 +220,7 @@ def submit(request, task_id):
         return HttpResponseNotFound()
 
     is_closed = (
-        entrance_exam.is_closed() or
+        entrance_exam.is_closed(request.user) or
         task.category.is_finished_for_user(request.user))
 
     ip = ipware.ip.get_ip(request) or ''
@@ -368,7 +368,7 @@ def solution(request, solution_id):
 @transaction.atomic
 def upgrade(request):
     entrance_exam = get_object_or_404(models.EntranceExam, school=request.school)
-    is_closed = entrance_exam.is_closed()
+    is_closed = entrance_exam.is_closed(request.user)
 
     # Not allow to upgrade if exam has been finished already
     if is_closed:

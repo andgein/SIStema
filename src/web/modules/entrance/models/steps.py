@@ -9,6 +9,7 @@ import groups.models
 import questionnaire.models
 import schools.models
 from . import main as main_models
+from . import levels as levels_models
 from .. import forms
 
 
@@ -357,7 +358,6 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
     def build(self, user):
         # It's here to avoid cyclic imports
         import modules.entrance.views as entrance_views
-        import modules.entrance.models as entrance_models
         import modules.entrance.upgrades as entrance_upgrades
 
         block = super().build(user)
@@ -837,7 +837,7 @@ class SelectedEnrollmentType(models.Model):
     )
 
     entrance_level = models.ForeignKey(
-        main_models.EntranceLevel,
+        levels_models.EntranceLevel,
         on_delete=models.CASCADE,
         verbose_name='уровень вступительной',
         help_text='Выставленный уровень вступительной. Должен содержать '

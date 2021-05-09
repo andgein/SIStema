@@ -520,3 +520,43 @@ class SelectedEnrollmentTypeGroupAdmin(groups.admin.AbstractGroupChildAdmin):
 @admin.register(models.UsersParticipatedInSchoolGroup)
 class SchoolGroupAdmin(groups.admin.AbstractGroupChildAdmin):
     base_model = models.UsersParticipatedInSchoolGroup
+
+
+@admin.register(models.EntranceLevelLimiter)
+class EntranceLevelLimiterAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
+    base_model = models.EntranceLevelLimiter
+    list_display = ('id', 'get_description_html', 'school')
+    list_display_links = ('id', 'get_description_html')
+    list_filter = ('school', PolymorphicChildModelFilter)
+    ordering = ('-school', )
+    autocomplete_fields = ('school', )
+    search_fields = ('school__name', )
+
+
+@admin.register(models.EnrollmentTypeEntranceLevelLimiter)
+class EntranceLevelLimiterChildAdmin(PolymorphicChildModelAdmin):
+    base_model = models.EntranceLevelLimiter
+    autocomplete_fields = EntranceLevelLimiterAdmin.autocomplete_fields
+    search_fields = EntranceLevelLimiterAdmin.search_fields
+
+
+class AgeEntranceLevelLimiterForClassAdmin(admin.TabularInline):
+    model = models.AgeEntranceLevelLimiterForClass
+    extra = 1
+    autocomplete_fields = ('level', )
+
+
+@admin.register(models.AgeEntranceLevelLimiter)
+class AgeEntranceLevelLimiterAdmin(EntranceLevelLimiterChildAdmin):
+    inlines = (AgeEntranceLevelLimiterForClassAdmin, )
+
+
+class AlreadyWasEntranceLevelLimiterForParallelAdmin(admin.TabularInline):
+    model = models.AlreadyWasEntranceLevelLimiterForParallel
+    extra = 1
+    autocomplete_fields = ('previous_parallel', 'level')
+
+
+@admin.register(models.AlreadyWasEntranceLevelLimiter)
+class AlreadyWasEntranceLevelLimiterAdmin(EntranceLevelLimiterChildAdmin):
+    inlines = (AlreadyWasEntranceLevelLimiterForParallelAdmin, )

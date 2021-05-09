@@ -4,7 +4,8 @@ from django.test import TransactionTestCase
 
 import schools.models
 import users.models
-from modules.entrance import levels, models
+from modules.entrance import models
+from modules.entrance.models import levels
 
 
 class AlreadyWasEntranceLevelLimiterTestCase(TransactionTestCase):

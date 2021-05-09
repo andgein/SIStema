@@ -259,3 +259,8 @@ class TopicsEntranceLevelLimitAdmin(admin.ModelAdmin):
         'user__profile__last_name',
         'questionnaire__school__name',
     )
+
+
+@admin.register(models.TopicsEntranceLevelLimiter)
+class TopicsEntranceLevelLimiterChildAdmin(entrance_admin.EntranceLevelLimiterChildAdmin):
+    pass
