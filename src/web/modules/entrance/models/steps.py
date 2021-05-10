@@ -172,7 +172,7 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
 
         return EntranceStepState.NOT_PASSED
 
-    def build(self, user):
+    def build(self, user, request):
         """
         You can override it in your subclass
         :returns EntranceStepBlock or None
@@ -355,13 +355,13 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
     def _get_accepted_count(tasks):
         return len(list(filter(lambda t: t.is_accepted, tasks)))
 
-    def build(self, user):
+    def build(self, user, request):
         # It's here to avoid cyclic imports
         import modules.entrance.views as entrance_views
         import modules.entrance.upgrades as entrance_upgrades
 
-        block = super().build(user)
-        base_level, tasks = entrance_views.get_entrance_level_and_tasks(self.school, user)
+        block = super().build(user, request)
+        level, tasks = entrance_views.get_entrance_level_and_tasks(self.school, user)
 
         for task in tasks:
             task.is_accepted = task.is_accepted_for_user(user)
@@ -375,6 +375,26 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
             (category, [task for task in tasks if task.category == category])
             for category in categories
         ]
+
+        entrance_exam = main_models.EntranceExam.objects.get(school=self.school)
+        block.can_select_entrance_level = (
+            not entrance_exam.is_closed(user) and
+            entrance_exam.can_participant_select_entrance_level
+        )
+        if block.can_select_entrance_level:
+            base_level = entrance_upgrades.get_base_entrance_level(self.school, user)
+            block.selected_entrance_level = (
+                entrance_views.get_entrance_level_selected_by_user(
+                    self.school, user, base_level
+                )
+            )
+            block.select_entrance_level_form = forms.SelectEntranceLevelForm(
+                levels=list(self.school.entrance_levels.all()),
+                base_level=base_level,
+            )
+
+            if request.GET.get('change_selected_entrance_level'):
+                block.selected_entrance_level = None
 
         block.task_category_stats = []
         for category, tasks in categories_with_tasks:
@@ -480,8 +500,8 @@ class ResultsEntranceStep(AbstractEntranceStep):
 
         return message
 
-    def build(self, user):
-        block = super().build(user)
+    def build(self, user, request):
+        block = super().build(user, request)
 
         entrance_status = self._get_visible_entrance_status(user)
         absence_reason = self._get_absence_reason(user)
@@ -525,7 +545,7 @@ class MakeUserParticipatingEntranceStep(AbstractEntranceStep):
     def is_visible(self, user):
         return False
 
-    def build(self, user):
+    def build(self, user, request):
         # It's here to avoid cyclic imports
         import modules.entrance.models.main as entrance_models
 
@@ -543,7 +563,7 @@ class MakeUserParticipatingEntranceStep(AbstractEntranceStep):
                         entrance_models.EntranceStatus.Status.PARTICIPATING
                     )
 
-        return super().build(user)
+        return super().build(user, request)
 
     def __str__(self):
         return 'Шаг, объявляющий школьника поступающим в ' + self.school.name
@@ -577,17 +597,17 @@ class UserParticipatedInSchoolEntranceStep(AbstractEntranceStep,
 
     def is_passed(self, user):
         return (
-                   user.school_participations
-                       .filter(school=self.school_to_check_participation)
-                       .exists()
-               ) or (
-                   self.exceptions
-                       .filter(user_id=user.id)
-                       .exists()
-               )
+               user.school_participations
+                   .filter(school=self.school_to_check_participation)
+                   .exists()
+           ) or (
+               self.exceptions
+                   .filter(user_id=user.id)
+                   .exists()
+           )
 
-    def build(self, user):
-        block = super().build(user)
+    def build(self, user, request):
+        block = super().build(user, request)
         # block may be equal to None if it's invisible to the current user
         if block is not None:
             block.school_to_check_participation = (
@@ -653,8 +673,8 @@ class UserIsMemberOfGroupEntranceStep(AbstractEntranceStep,
     def is_passed(self, user):
         return self.group.is_user_in_group(user)
 
-    def build(self, user):
-        block = super().build(user)
+    def build(self, user, request):
+        block = super().build(user, request)
         # block may be equal to None if it's invisible to the current user
         if block is not None:
             block.group = self.group
@@ -741,8 +761,8 @@ class SelectEnrollmentTypeEntranceStep(AbstractEntranceStep, EntranceStepTextsMi
 
         return selected.is_approved
 
-    def build(self, user):
-        block = super().build(user)
+    def build(self, user, request):
+        block = super().build(user, request)
 
         selected = SelectedEnrollmentType.objects.filter(
             user=user,

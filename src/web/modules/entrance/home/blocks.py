@@ -23,7 +23,7 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
 
         blocks = []
         for step in steps:
-            block = step.build(request.user)
+            block = step.build(request.user, request)
 
             if block is not None:
                 template_file = '%s/%s' % (self.ENTRANCE_STEPS_TEMPLATES_FOLDER,

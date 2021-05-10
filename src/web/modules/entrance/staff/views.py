@@ -28,6 +28,7 @@ from frontend.table.utils import A, TableDataSource
 from modules.ejudge import models as ejudge_models
 from modules.entrance import models
 from modules.entrance import upgrades
+from modules.entrance import views as entrance_views
 from modules.entrance.staff import forms
 from sistema.helpers import group_by, respond_as_attachment, nested_query_list, list_to_dict
 from users import search_utils
@@ -217,8 +218,9 @@ def _find_clones(user):
 
 
 def check_user(request, user, group=None):
-    entrance_exam = (
-        models.EntranceExam.objects.filter(school=request.school).first())
+    entrance_exam: models.EntranceExam = (
+        models.EntranceExam.objects.filter(school=request.school).first()
+    )
 
     checking_comments = user.entrance_checking_comments.filter(
         school=request.school
@@ -280,6 +282,9 @@ def check_user(request, user, group=None):
         'user_for_checking': user,
         'base_entrance_level': base_entrance_level,
         'level_upgrades': level_upgrades,
+
+        'can_participant_select_entrance_level': entrance_exam.can_participant_select_entrance_level if entrance_exam else False,
+        'selected_entrance_level': entrance_views.get_entrance_level_selected_by_user(request.school, user, base_entrance_level),
 
         'test_tasks': test_tasks,
         'file_tasks': file_tasks,
@@ -832,6 +837,10 @@ def check_users_task(request, task_id, user_id, group_name=None):
         'base_entrance_level': base_entrance_level,
         'level_upgrades': level_upgrades,
 
+        'can_participant_select_entrance_level': task.exam.can_participant_select_entrance_level,
+        'selected_entrance_level': entrance_views.get_entrance_level_selected_by_user(
+            request.school, user, base_entrance_level),
+
         'solutions': solutions,
         'last_solution': last_solution,
         'checks': checks,
@@ -1015,6 +1024,10 @@ def review_enrollment_type_for_user(request, user_id):
         'base_entrance_level': base_entrance_level,
         'level_upgrades': level_upgrades,
         'topics_entrance_level': topics_entrance_level,
+
+        'can_participant_select_entrance_level': request.school.entrance_exam.can_participant_select_entrance_level,
+        'selected_entrance_level': entrance_views.get_entrance_level_selected_by_user(
+            request.school, user, base_entrance_level),
 
         'selected_enrollment_type': selected_enrollment_type,
         'review_info': entrance_step.review_info,

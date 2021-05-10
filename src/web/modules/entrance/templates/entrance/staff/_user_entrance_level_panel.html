@@ -1,0 +1,22 @@
+{% if can_participant_select_entrance_level %}
+    <span title="{% if base_entrance_level %}Минимальный возможный уровень — {{ base_entrance_level.name }}{% endif %}">
+        {% if selected_entrance_level %}
+                Выбраны задания уровня <span class="label label-sm label-success">{{ selected_entrance_level.name }}</span>
+        {% else %}
+            <b>{{ user.get_full_name }} не&nbsp;выбрал{% if user.profile.sex == user.profile.Sex.FEMALE %}а{% endif %} уровень вступительной работы</b>
+        {% endif %}
+    </span>
+{% else %}
+    {% if base_entrance_level %}
+        Выданы задания уровня <span class="label label-sm label-{{ level_upgrades|yesno:'primary,success' }}">{{ base_entrance_level.name }}</span>
+    {% endif %}
+    {% if level_upgrades %}
+        , повышения до
+        {% for upgrade in level_upgrades %}
+            <span class="label label-sm label-{{ forloop.last|yesno:'success,primary' }}" title="{{ upgrade.created_at }}">
+                {{ upgrade.upgraded_to.name }}
+            </span>
+            {% if not forloop.last %},{% endif %}
+        {% endfor %}
+    {% endif %}
+{% endif %}

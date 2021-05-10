@@ -16,7 +16,11 @@ class EntranceLevel(models.Model):
     на основе тематической анкеты из модуля topics, класса в школе
     или учёбы в других параллелях в прошлые годы)
     """
-    school = models.ForeignKey('schools.School', on_delete=models.CASCADE)
+    school = models.ForeignKey(
+        'schools.School',
+        on_delete=models.CASCADE,
+        related_name='entrance_levels',
+    )
 
     short_name = models.CharField(
         max_length=100,
@@ -127,6 +131,38 @@ class SolveTaskEntranceLevelUpgradeRequirement(EntranceLevelUpgradeRequirement):
 
     def is_met_by_user(self, user):
         return self.task.is_solved_by_user(user)
+
+
+class SelectedEntranceLevel(models.Model):
+    school = models.ForeignKey(
+        schools.models.School,
+        related_name='+',
+        on_delete=models.CASCADE,
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='+',
+        on_delete=models.CASCADE,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    level = models.ForeignKey(
+        EntranceLevel,
+        related_name='+',
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+
+    def save(self, *args, **kwargs):
+        if self.level.school_id != self.school_id:
+            raise IntegrityError(
+                'SelectedEntranceLevel: invalid level, should be from school {}'.format(self.school.name)
+            )
+        super().save(*args, **kwargs)
 
 
 class EntranceLevelLimiter(polymorphic.models.PolymorphicModel):

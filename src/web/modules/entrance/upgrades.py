@@ -1,5 +1,5 @@
 import modules.entrance.models.levels
-import modules.topics.models.levels
+import modules.topics.models
 from . import models
 
 # Quick fix to possibly survive high QPS
@@ -55,8 +55,13 @@ def get_base_entrance_level(school, user):
 
 
 def get_topics_entrance_level(school, user):
-    limiter = modules.topics.models.levels.TopicsEntranceLevelLimiter(school)
-    return limiter.get_limit(user).min_level
+    # Create limiter, but don't save it to database
+    # Actually, we could get limiter from the database, but it's not guaranteed
+    # that it exists.
+    fake_limiter = modules.topics.models.TopicsEntranceLevelLimiter(
+        school=school
+    )
+    return fake_limiter.get_limit(user).min_level
 
 
 def get_maximum_issued_entrance_level(school, user, base_level):

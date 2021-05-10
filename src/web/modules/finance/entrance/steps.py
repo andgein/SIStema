@@ -11,8 +11,8 @@ __all__ = ['FillPaymentInfoEntranceStep', 'DocumentsEntranceStep']
 class FillPaymentInfoEntranceStep(steps.FillQuestionnaireEntranceStep):
     template_file = 'finance/fill_payment_info.html'
 
-    def build(self, user):
-        block = super().build(user)
+    def build(self, user, request):
+        block = super().build(user, request)
         if block is not None:
             block.payment_amount, block.payment_currency = (
                 finance_models.PaymentAmount.get_amount_for_user(self.school, user)
@@ -50,8 +50,8 @@ class DocumentsEntranceStep(steps.AbstractEntranceStep, steps.EntranceStepTextsM
     def is_passed(self, user):
         return False
 
-    def build(self, user):
-        block = super().build(user)
+    def build(self, user, request):
+        block = super().build(user, request)
 
         document_types = self._get_needed_document_types(user)
         block.documents = []

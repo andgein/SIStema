@@ -26,18 +26,7 @@
 
 {% block content %}
     <div class="mtn5 mb15">
-        {% if base_entrance_level %}
-            Выданы задания уровня <span class="label label-sm label-{{ level_upgrades|yesno:'primary,success' }}">{{ base_entrance_level.name }}</span>
-        {% endif %}
-        {% if level_upgrades %}
-            , повышения до
-            {% for upgrade in level_upgrades %}
-                <span class="label label-sm label-{{ forloop.last|yesno:'success,primary' }}" title="{{ upgrade.created_at }}">
-                    {{ upgrade.upgraded_to.name }}
-                </span>
-                {% if not forloop.last %},{% endif %}
-            {% endfor %}
-        {% endif %}
+        {% include "entrance/staff/_user_entrance_level_panel.html" with user=user_for_checking %}
     </div>
 
     {% if clone_accounts %}

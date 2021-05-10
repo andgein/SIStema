@@ -7,6 +7,7 @@ import sizefield.models
 from django.conf import settings
 from django.db import models, transaction, IntegrityError
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 import dates.models
@@ -23,10 +24,12 @@ class EntranceExam(models.Model):
 
     can_participant_select_entrance_level = models.BooleanField(
         default=False,
-        help_text='Может ли школьник выбрать себе уровень вступительной работы. Если True, то'
-                  'школьнику будет предоставлен выбор, начиная с минимального уровня, на который он может претендовать. '
-                  'Если False, то уровень выдаётся автоматически на основе тематической анкеты и других параметров. '
-                  'При решении определённых задач школьник может поднять себе уровень.'
+        help_text=mark_safe(
+            'Может ли школьник выбрать себе уровень вступительной работы.<br>Если отмечено, то '
+            'школьнику будет предоставлен выбор, начиная с минимального уровня, на который он может претендовать.<br>'
+            'Если не отмечено, то уровень выдаётся автоматически на основе тематической анкеты и других параметров. '
+            'При решении определённых задач школьник может поднять себе уровень.'
+        )
     )
 
     close_time = models.ForeignKey(

@@ -228,6 +228,31 @@ class ModelAutocompleteMultipleSelect2(QuerySetSelectMixin,
     """Multiple select widget for QuerySet choices and Select2."""
 
 
+class SelectWithDisabledOptions(forms.Select):
+    """
+    Subclass of Django's select widget that allows disabling options.
+    See https://www.djangosnippets.org/snippets/10646/
+    """
+
+    def __init__(self, *args, **kwargs):
+        self._disabled_choices = kwargs.pop('disabled_choices', [])
+        super().__init__(*args, **kwargs)
+
+    @property
+    def disabled_choices(self):
+        return self._disabled_choices
+
+    @disabled_choices.setter
+    def disabled_choices(self, other):
+        self._disabled_choices = other
+
+    def create_option(self, name, value, *args, **kwargs):
+        option_dict = super().create_option(name, value, *args, **kwargs)
+        if value in self.disabled_choices:
+            option_dict['attrs']['disabled'] = 'disabled'
+        return option_dict
+
+
 def add_classes_to_label(f, classes=''):
     def func_wrapper(self, *args, **kwargs):
         if hasattr(self, 'attrs'):

@@ -46,6 +46,7 @@ class EntranceExamAdmin(admin.ModelAdmin):
     list_filter = ('school',)
     search_fields = ('=id', 'school__name')
     ordering = ('-school', 'id')
+    autocomplete_fields = ('school', 'close_time')
 
 
 @admin.register(models.EntranceLevel)
@@ -57,6 +58,8 @@ class EntranceLevelAdmin(admin.ModelAdmin):
         'order',
         'school',
     )
+    list_display_links = ('id', 'short_name')
+    list_filter = ('school', )
     ordering = ('-school__year', '-school__name', 'name')
     search_fields = ('short_name', 'name', 'school__name')
     autocomplete_fields = ('tasks', )

@@ -44,11 +44,11 @@ class FillTopicsQuestionnaireEntranceStep(entrance_steps.AbstractEntranceStep,
     def is_passed(self, user):
         return super().is_passed(user) and self.questionnaire.is_filled_by(user)
 
-    def build(self, user):
+    def build(self, user, request):
         # It's here to avoid cyclic imports
         import modules.topics.models as topics_models
 
-        block = super().build(user)
+        block = super().build(user, request)
         if block is not None:
             block.questionnaire_status = self.questionnaire.get_status(user)
             block.UserQuestionnaireStatus = \
