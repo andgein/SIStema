@@ -410,12 +410,12 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
         block.level = entrance_upgrades.get_maximum_issued_entrance_level(
             self.school,
             user,
-            base_level
+            level
         )
         block.is_at_maximum_level = entrance_upgrades.is_user_at_maximum_level(
             self.school,
             user,
-            base_level
+            level
         )
 
         return block
