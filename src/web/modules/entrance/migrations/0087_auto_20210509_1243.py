@@ -6,10 +6,14 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('entrance', '0086_auto_20210509_1012'),
+        ('entrance', '0086_auto_20210509_1012_2'),
     ]
 
     operations = [
+        migrations.RemoveField(
+            model_name='entranceexam',
+            name='close_time',
+        ),
         migrations.RenameField(
             model_name='entranceexam',
             old_name='close_date',
