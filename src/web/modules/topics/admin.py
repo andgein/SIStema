@@ -20,12 +20,16 @@ class TopicAdmin(admin.ModelAdmin):
         'level',
         'order',
         'questionnaire',
+        'get_tags',
     )
 
-    list_filter = ('level', 'questionnaire')
+    list_filter = ('questionnaire', 'level', 'tags')
     autocomplete_fields = ('questionnaire', 'level', 'tags')
     search_fields = ('short_name', 'title', 'questionnaire__school__name')
     ordering = ('order',)
+
+    def get_tags(self, obj):
+        return ", ".join(tag.title for tag in obj.tags.order_by('short_name').all())
 
 
 @admin.register(models.TopicDependency)
