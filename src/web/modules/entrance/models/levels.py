@@ -56,6 +56,19 @@ class EntranceLevel(models.Model):
     class Meta:
         ordering = ('school_id', 'order')
 
+    @classmethod
+    def get_max_entrance_level(cls, school):
+        """
+        Возвращает специальный «максимальный» уровень, который заведомо больше
+        всех существующих. В базе такого уровня нет.
+        """
+        return cls(
+            school=school,
+            short_name='max',
+            name='Максимальный',
+            order=100000000
+        )
+
 
 class EntranceLevelOverride(models.Model):
     """
@@ -349,9 +362,8 @@ class EnrollmentTypeEntranceLevelLimiter(EntranceLevelLimiter):
         for selected_enrollment_type in selected_enrollment_types:
             if (selected_enrollment_type.is_moderated and
                selected_enrollment_type.is_approved and
-               selected_enrollment_type.entrance_level is not None):
-                current_limit.update_with_other(
-                    EntranceLevelLimit(selected_enrollment_type.entrance_level)
-                )
+               selected_enrollment_type.has_entrance_level()):
+                entrance_level = selected_enrollment_type.get_entrance_level()
+                current_limit.update_with_other(EntranceLevelLimit(entrance_level))
 
         return current_limit

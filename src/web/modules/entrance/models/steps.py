@@ -1,6 +1,7 @@
 import enum
 import operator
 
+from django.core.exceptions import ValidationError
 from django.db import models, transaction, IntegrityError
 from django.conf import settings
 from polymorphic import models as polymorphic_models
@@ -856,13 +857,29 @@ class SelectedEnrollmentType(models.Model):
                   "вступительной",
     )
 
+    accepted_entrance_level = models.ForeignKey(
+        levels_models.EntranceLevel,
+        on_delete=models.CASCADE,
+        verbose_name='зачтенный уровень вступительной',
+        help_text='Зачтённый уровень вступительной. Задачи этого уровня школьнику '
+                  'решать не надо, они зачтены автоматически. Должно коррелировать с '
+                  'выданным уровнем вступительной (см. ниже)',
+        related_name='+',
+        default=None,
+        blank=True,
+        null=True,
+    )
+
     entrance_level = models.ForeignKey(
         levels_models.EntranceLevel,
         on_delete=models.CASCADE,
         verbose_name='уровень вступительной',
-        help_text='Выставленный уровень вступительной. Должен содержать '
+        help_text='[Устарело, используйте «зачтённый уровень вступительной»] '
+                  'Выставленный уровень вступительной. Должен содержать '
                   'задачи, необходимые для поступления в следующую параллель '
-                  'после той, в которую школьник зачислен автоматически.',
+                  'после той, в которую школьник зачислен автоматически. '
+                  'Если не указать, то автоматически посчитается как уровень, '
+                  'следующий за «зачтённый уровень вступительной»',
         related_name='+',
         default=None,
         blank=True,
@@ -901,6 +918,41 @@ class SelectedEnrollmentType(models.Model):
         return '{} поступает в {}. {}'.format(
             self.user, self.step.school, self.enrollment_type
         )
+
+    def has_entrance_level(self):
+        return self.accepted_entrance_level is not None or self.entrance_level is not None
+
+    def get_entrance_level(self):
+        """
+        Returns entrance level for participant.
+        """
+        if self.accepted_entrance_level is not None:
+            entrance_level = levels_models.EntranceLevel.objects.filter(
+                school=self.step.school,
+                order__gt=self.accepted_entrance_level.order,
+            ).order_by('order').first()
+            if entrance_level is not None:
+                return entrance_level
+            return levels_models.EntranceLevel.get_max_entrance_level(self.step.school)
+
+        # Field entrance_level is deprecated, but watch it too
+        # for backward compatibility
+        if self.entrance_level is not None:
+            return self.entrance_level
+
+    def clean(self):
+        if (self.entrance_level is not None and
+           self.enrollment_type.step.school_id != self.entrance_level.school_id):
+            raise ValidationError('Can\'t save SelectedEnrollmentType: '
+                                  'Entrance step should belong to the same school '
+                                  'as entrance level')
+        if self.enrollment_type.step_id != self.step_id:
+            raise ValidationError('Can\'t save SelectedEnrollmentType: '
+                                 'Enrollment type should belong to the same step '
+                                 'as this object')
+        if self.accepted_entrance_level is not None and self.entrance_level is not None:
+            raise ValidationError('Can\' specify both entrance_level and accepted_entrance_level. '
+                                  'Choose only one.')
 
     def save(self, *args, **kwargs):
         if (self.entrance_level is not None and

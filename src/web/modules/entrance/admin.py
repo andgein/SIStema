@@ -433,6 +433,7 @@ class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
         'is_moderated',
         'is_approved',
         'parallel',
+        'accepted_entrance_level',
         'entrance_level',
         'reviewed_by',
         'enrollment_type',
@@ -444,6 +445,7 @@ class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
         'step',
         'enrollment_type',
         'parallel',
+        'accepted_entrance_level',
         'entrance_level',
         'reviewed_by',
     )

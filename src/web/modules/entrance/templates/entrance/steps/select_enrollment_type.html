@@ -74,6 +74,10 @@
                 <p>
                     {% if entrance_block.selected.parallel %}
                         Вы зачислены в параллель <strong>{{ entrance_block.selected.parallel.name }}</strong>
+                    {% elif entrance_block.selected.accepted_entrance_level %}
+                        Конкретная параллель, в которой вы будете учиться, пока неизвестна.
+                        Вам зачтён уровень вступительной работы {{ entrance_block.selected.accepted_entrance_level.name }}.
+                        Если хотите, вы можете решать вступительную работу более высоких параллелей.
                     {% elif entrance_block.selected.entrance_level %}
                         Конкретная параллель, в которой вы будете учиться, пока неизвестна.
                         Если хотите, вы можете решить вступительную работу

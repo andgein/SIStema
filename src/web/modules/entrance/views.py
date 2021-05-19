@@ -49,6 +49,11 @@ def get_entrance_level_and_tasks(school, user):
         # No exam — no tasks, sorry
         return level, []
 
+    if level.id is None:
+        # Sometimes we have fake "maximal" level which is not exist in database.
+        # In this case user has no tasks
+        return level, []
+
     if school.entrance_exam.can_participant_select_entrance_level:
         selected_level = get_entrance_level_selected_by_user(school, user, level)
         if selected_level is not None and selected_level >= level:

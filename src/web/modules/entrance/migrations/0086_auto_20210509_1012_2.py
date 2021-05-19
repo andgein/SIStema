@@ -11,6 +11,8 @@ def make_key_dates(apps, _schema_editor):
         if exam.close_time is not None:
             exam.close_date = KeyDate.objects.create(
                 datetime=exam.close_time,
+                school=exam.school,
+                short_name=exam.school.short_name + "_exam_end_auto_created",
                 name='Окончание вступительной работы для "{}" [авто-создано, удалить при возможности]'.format(exam.school.name),
             )
             exam.save()
