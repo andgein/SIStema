@@ -97,6 +97,7 @@ class SelectedEntranceLevelAdmin(admin.ModelAdmin):
         'school',
         'user',
         'level',
+        'created_at',
     )
 
     list_filter = (
