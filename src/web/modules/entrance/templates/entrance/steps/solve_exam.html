@@ -45,13 +45,15 @@
                         </span>
                     {% endif %}
                 {% endfor %}
+
+                {% if not entrance_block.can_select_entrance_level or entrance_block.selected_entrance_level %}
+                    <div class="mt10">
+                        <a href="{{ entrance_block.step.exam.get_absolute_url }}" class="btn btn-primary solve-exam-button">Решать задачи</a>
+                    </div>
+                {% endif %}
             </div>
         {% endif %}
     </div>
-
-    {% if not entrance_block.can_select_entrance_level or entrance_block.selected_entrance_level %}
-        <a href="{{ entrance_block.step.exam.get_absolute_url }}" class="btn btn-primary solve-exam-button">Решить задачи</a>
-    {% endif %}
 {% endblock %}
 
 {% block passed_after_text %}
