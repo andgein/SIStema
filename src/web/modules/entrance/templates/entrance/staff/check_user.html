@@ -106,6 +106,9 @@
                     <span class="panel-title">Практика</span>
                 </div>
                 <div class="panel-body">
+                    {% if not program_tasks %}
+                        Школьнику не&nbsp;выданы практические задачи.
+                    {% endif %}
                     {% for program_task in program_tasks %}
                         <div>
                             <div class="{{ program_task.is_solved|yesno:'text-success,text-danger' }} fs14">
