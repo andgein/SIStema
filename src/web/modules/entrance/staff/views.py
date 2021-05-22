@@ -235,19 +235,26 @@ def check_user(request, user, group=None):
     program_tasks = []
     if entrance_exam is not None:
         base_entrance_level = upgrades.get_base_entrance_level(request.school, user)
+        _, tasks = entrance_views.get_entrance_level_and_tasks(request.school, user)
         level_upgrades = models.EntranceLevelUpgrade.objects.filter(
             upgraded_to__school=request.school,
             user=user
-        )
-        tasks = upgrades.get_entrance_tasks(
-            request.school,
-            user,
-            base_entrance_level
         )
         tasks_solutions = group_by(
             user.entrance_exam_solutions.filter(task__exam=entrance_exam).order_by('-created_at'),
             operator.attrgetter('task_id')
         )
+
+        # Find solutions for tasks which are not in `tasks` (i.e. in case when
+        # user selected entrance level, solved some tasks and changed
+        # level later). Let's show these tasks on enrollment page too.
+        # We mark these tasks by `from_another_level` attribute and append
+        # them to the end of list.
+        level_task_ids = {task.id for task in tasks}
+        for task_id in set(tasks_solutions.keys()) - level_task_ids:
+            task = models.EntranceExamTask.objects.get(id=task_id)
+            task.from_another_level = True
+            tasks.append(task)
 
         for task in tasks:
             task.user_solutions = tasks_solutions[task.id]
@@ -266,6 +273,7 @@ def check_user(request, user, group=None):
                 else:
                     task.last_solution = None
                     task.checks = []
+
 
         test_tasks = list(filter(
             lambda t: type(t) is models.TestEntranceExamTask, tasks

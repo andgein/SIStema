@@ -52,6 +52,9 @@
                             <div class="mb10">
                                 <div class="{{ test_task.is_solved|yesno:'text-success,text-danger' }} fs14">
                                     {{ test_task.title }}
+                                    {% if test_task.from_another_level %}
+                                        <span class="label label-sm label-dark">с другого уровня</span>
+                                    {% endif %}
                                     {% if test_task.user_solutions %}
                                         <span class="fs12 ml10 text-dark">
                                             Последняя попытка:
@@ -107,6 +110,9 @@
                         <div>
                             <div class="{{ program_task.is_solved|yesno:'text-success,text-danger' }} fs14">
                                 {{ program_task.title }}
+                                {% if program_task.from_another_level %}
+                                    <span class="label label-sm label-dark">с другого уровня</span>
+                                {% endif %}
                                 {% if program_task.user_solutions %}
                                     <a href="#" class="internal-page-link fs12 ml10" data-toggle="modal" data-target="#tasks__program__{{ program_task.id }}">{{ program_task.user_solutions|length }} попыт{{ program_task.user_solutions|length|russian_pluralize:'ка,ки,ок' }}</a>
                                 {% endif %}
@@ -218,6 +224,9 @@
                             <span class="fw600">
                                 {% if file_task.last_solution %}
                                     <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=user_for_checking.id task_id=file_task.id %}" title="Проверить и оценить решение">{{ file_task.title }}</a>
+                                    {% if file_task.from_another_level %}
+                                        <span class="label label-sm label-dark">с другого уровня</span>
+                                    {% endif %}
                                 {% else %}
                                     {{ file_task.title }}
                                 {% endif %}
