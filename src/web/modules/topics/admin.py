@@ -31,7 +31,7 @@ class TopicAdmin(admin.ModelAdmin):
     def get_tags(self, obj):
         return ", ".join(tag.title for tag in obj.tags.order_by('short_name').all())
 
-    get_tags.description = 'теги'
+    get_tags.short_description = 'теги'
 
 
 @admin.register(models.TopicDependency)
