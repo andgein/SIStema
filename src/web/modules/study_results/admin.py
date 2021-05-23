@@ -7,11 +7,15 @@ from modules.study_results import models
 class StudyResultAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'school_participant',
+        'school_participant__school',
+        'school_participant__parallel',
+        'school_participant__user',
         'theory',
         'practice',
     )
     list_filter = (
+        'school_participant__school',
+        'school_participant__parallel',
         'theory',
         'practice',
     )
