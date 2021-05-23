@@ -28,6 +28,8 @@ class Command(BaseCommand):
     help = 'Run ejudge submitter for submitted solutions by users'
     TIME_INTERVAL = 0.5  # in seconds
 
+    runs_page_cache = {}
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.backend_address = config.SISTEMA_EJUDGE_BACKEND_ADDRESS
@@ -114,12 +116,17 @@ class Command(BaseCommand):
 
         return run_id
 
-    def _get_ejudge_run_status_from_url(self, runs_url, submit_id):
-        r = self.session.get(runs_url)
-        if r.status_code != 200:
-            raise EjudgeException('Bad http status code: %d' % r.status_code)
+    def _get_ejudge_run_status_from_url(self, runs_url, submit_id, force_load=False):
+        if self.runs_page_cache or force_load:
+            r = self.session.get(runs_url)
+            if r.status_code != 200:
+                raise EjudgeException('Bad http status code: %d' % r.status_code)
+            page_content = r.text
+            self.runs_page_cache = page_content
+        else:
+            page_content = self.runs_page_cache
 
-        parsed = BeautifulSoup(r.text)
+        parsed = BeautifulSoup(page_content)
         table = parsed.find(attrs={'class': 'table'})
         for tr in table.find_all('tr')[1:]:
             tds = tr.find_all('td')
@@ -142,6 +149,10 @@ class Command(BaseCommand):
 
                 return result, failed_test, score
 
+        if not force_load:
+            return self._get_ejudge_run_status_from_url(
+                runs_url, submit_id, force_load=True
+            )
         return None, None, None
 
     def _get_ejudge_run_status(self, contest_id, submit_id):
