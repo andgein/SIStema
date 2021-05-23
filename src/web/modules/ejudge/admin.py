@@ -75,9 +75,12 @@ class SubmissionAdmin(admin.ModelAdmin):
     search_fields = ('=id', '=ejudge_submit_id',)
 
     def result_link(self, obj):
-        url = reverse('admin:ejudge_solutioncheckingresult_change',
-                      args=[obj.result.id])
-        return mark_safe('<a href="{}">{}</a>'.format(url, obj.result))
+        if obj.result:
+            url = reverse('admin:ejudge_solutioncheckingresult_change',
+                          args=[obj.result.id])
+            return mark_safe('<a href="{}">{}</a>'.format(url, obj.result))
+        else:
+            return '—'
 
 
 admin.site.register(models.TestCheckingResult)
