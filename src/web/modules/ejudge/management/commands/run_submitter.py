@@ -13,6 +13,9 @@ from constance import config
 from modules.ejudge import models
 
 
+EJUDGE_SUBMISSIONS_LIMIT = 13
+
+
 class EjudgeException(Exception):
     pass
 
@@ -190,11 +193,15 @@ class Command(BaseCommand):
         return ejudge_submit_id
 
     def _process_not_submitted(self):
+        submitted_count = len(models.QueueElement.objects.filter(
+            status=models.QueueElement.Status.SUBMITTED
+        ))
+        limit = max(0, EJUDGE_SUBMISSIONS_LIMIT - submitted_count)
         not_fetched = (
             models.QueueElement.objects
             .filter(status=models.QueueElement.Status.NOT_FETCHED)
             .select_related('language')
-        )
+        )[:limit]
         for queue_element in not_fetched:
             try:
                 self.stdout.write(self.style.SUCCESS(
