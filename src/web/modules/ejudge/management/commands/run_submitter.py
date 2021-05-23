@@ -28,8 +28,6 @@ class Command(BaseCommand):
     help = 'Run ejudge submitter for submitted solutions by users'
     TIME_INTERVAL = 0.5  # in seconds
 
-    runs_page_cache = None
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.backend_address = config.SISTEMA_EJUDGE_BACKEND_ADDRESS
@@ -116,22 +114,15 @@ class Command(BaseCommand):
 
         return run_id
 
-    def _get_ejudge_run_status_from_url(self, runs_url, submit_id, force_load=False):
-        if self.runs_page_cache is None or force_load:
-            self.stdout.write(self.style.WARNING(
-                'Download runs page from %s' % (runs_url,)
-            ))
-            r = self.session.get(runs_url)
-            if r.status_code != 200:
-                raise EjudgeException('Bad http status code: %d' % r.status_code)
-            parsed = BeautifulSoup(r.text)
-            self.runs_page_cache = parsed
-        else:
-            self.stdout.write(self.style.NOTICE(
-                'Used cached runs page content for submit %d' % (submit_id, )
-            ))
-            parsed = self.runs_page_cache
+    def _get_ejudge_run_status_from_url(self, runs_url, submit_id):
+        self.stdout.write(self.style.WARNING(
+            'Download runs page from %s' % (runs_url,)
+        ))
+        r = self.session.get(runs_url)
+        if r.status_code != 200:
+            raise EjudgeException('Bad http status code: %d' % r.status_code)
 
+        parsed = BeautifulSoup(r.text)
         table = parsed.find(attrs={'class': 'table'})
         for tr in table.find_all('tr')[1:]:
             tds = tr.find_all('td')
@@ -153,21 +144,10 @@ class Command(BaseCommand):
                         pass
 
                 self.stdout.write(self.style.SUCCESS(
-                    'Found result for submission %d' % (submit_id,)
+                    'Found status of submission %d: %r (test %d)' % (submit_id, result, failed_test)
                 ))
                 return result, failed_test, score
 
-        if not force_load:
-            self.stdout.write(self.style.WARNING(
-                'Didn\'t find result for submission %d, try with force_load=True (without cache)' % (submit_id,)
-            ))
-            return self._get_ejudge_run_status_from_url(
-                runs_url, submit_id, force_load=True
-            )
-
-        self.stdout.write(self.style.WARNING(
-            'Didn\'t find result for submission %d, try again later' % (submit_id,)
-        ))
         return None, None, None
 
     def _get_ejudge_run_status(self, contest_id, submit_id):
