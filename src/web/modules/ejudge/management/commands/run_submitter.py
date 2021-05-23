@@ -144,7 +144,7 @@ class Command(BaseCommand):
                         pass
 
                 self.stdout.write(self.style.SUCCESS(
-                    'Found status of submission %d: %r (test %d)' % (submit_id, result, failed_test)
+                    'Found status of submission %d: %r (test %r)' % (submit_id, result, failed_test)
                 ))
                 return result, failed_test, score
 
