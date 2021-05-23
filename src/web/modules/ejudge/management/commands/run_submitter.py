@@ -118,12 +118,18 @@ class Command(BaseCommand):
 
     def _get_ejudge_run_status_from_url(self, runs_url, submit_id, force_load=False):
         if not self.runs_page_cache or force_load:
+            self.stdout.write(self.style.WARNING(
+                'Download runs page from %s' % (runs_url,)
+            ))
             r = self.session.get(runs_url)
             if r.status_code != 200:
                 raise EjudgeException('Bad http status code: %d' % r.status_code)
             page_content = r.text
             self.runs_page_cache = page_content
         else:
+            self.stdout.write(self.style.NOTICE(
+                'Used cached runs page content for submit %d' % (submit_id, )
+            ))
             page_content = self.runs_page_cache
 
         parsed = BeautifulSoup(page_content)
