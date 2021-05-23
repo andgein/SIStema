@@ -152,7 +152,7 @@ class Command(BaseCommand):
                     except Exception:
                         pass
 
-                self.stdout.write(self.style.SUCCSS(
+                self.stdout.write(self.style.SUCCESS(
                     'Found result for submission %d' % (submit_id,)
                 ))
                 return result, failed_test, score
