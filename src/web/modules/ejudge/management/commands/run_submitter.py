@@ -28,7 +28,7 @@ class Command(BaseCommand):
     help = 'Run ejudge submitter for submitted solutions by users'
     TIME_INTERVAL = 0.5  # in seconds
 
-    runs_page_cache = {}
+    runs_page_cache = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -117,7 +117,7 @@ class Command(BaseCommand):
         return run_id
 
     def _get_ejudge_run_status_from_url(self, runs_url, submit_id, force_load=False):
-        if self.runs_page_cache or force_load:
+        if not self.runs_page_cache or force_load:
             r = self.session.get(runs_url)
             if r.status_code != 200:
                 raise EjudgeException('Bad http status code: %d' % r.status_code)
