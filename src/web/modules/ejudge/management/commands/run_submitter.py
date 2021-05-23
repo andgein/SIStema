@@ -117,22 +117,21 @@ class Command(BaseCommand):
         return run_id
 
     def _get_ejudge_run_status_from_url(self, runs_url, submit_id, force_load=False):
-        if not self.runs_page_cache or force_load:
+        if self.runs_page_cache is None or force_load:
             self.stdout.write(self.style.WARNING(
                 'Download runs page from %s' % (runs_url,)
             ))
             r = self.session.get(runs_url)
             if r.status_code != 200:
                 raise EjudgeException('Bad http status code: %d' % r.status_code)
-            page_content = r.text
-            self.runs_page_cache = page_content
+            parsed = BeautifulSoup(r.text)
+            self.runs_page_cache = parsed
         else:
             self.stdout.write(self.style.NOTICE(
                 'Used cached runs page content for submit %d' % (submit_id, )
             ))
-            page_content = self.runs_page_cache
+            parsed = self.runs_page_cache
 
-        parsed = BeautifulSoup(page_content)
         table = parsed.find(attrs={'class': 'table'})
         for tr in table.find_all('tr')[1:]:
             tds = tr.find_all('td')
@@ -153,12 +152,22 @@ class Command(BaseCommand):
                     except Exception:
                         pass
 
+                self.stdout.write(self.style.SUCCSS(
+                    'Found result for submission %d' % (submit_id,)
+                ))
                 return result, failed_test, score
 
         if not force_load:
+            self.stdout.write(self.style.WARNING(
+                'Didn\'t find result for submission %d, try with force_load=True (without cache)' % (submit_id,)
+            ))
             return self._get_ejudge_run_status_from_url(
                 runs_url, submit_id, force_load=True
             )
+
+        self.stdout.write(self.style.WARNING(
+            'Didn\'t find result for submission %d, try again later' % (submit_id,)
+        ))
         return None, None, None
 
     def _get_ejudge_run_status(self, contest_id, submit_id):
