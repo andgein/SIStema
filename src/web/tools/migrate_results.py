@@ -47,8 +47,11 @@ def get_parallel_from_group(group, school):
             parallel = 'c.cpp'
     if group.lower() == 'a0':
         parallel = group
-    if len(group) > 1 and group[1].isdigit() and int(group[1]) >= 7:
-        parallel += '_prime'
+    if len(group) > 1:
+        if group[1].isdigit() and int(group[1]) >= 7:
+            parallel += '_prime'
+        elif group[1] == "'":
+            parallel += '_prime'
     print(parallel, end=' ', flush=True)
     return schools.models.Parallel.objects.get(short_name=parallel,
                                                school=school)

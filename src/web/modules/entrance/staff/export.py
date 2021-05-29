@@ -230,6 +230,12 @@ class ExportCompleteEnrollingTable(django.views.View):
 
             if entrance_exam.can_participant_select_entrance_level:
                 columns.append(PlainExcelColumn(
+                    name='Минимальный уровень',
+                    data=self.get_base_entrance_level_for_users(
+                        request.school, enrollees
+                    ),
+                ))
+                columns.append(PlainExcelColumn(
                     name='Выбранный уровень',
                     data=self.get_entrance_level_selected_by_users(
                         request.school, enrollees
@@ -238,8 +244,8 @@ class ExportCompleteEnrollingTable(django.views.View):
             else:
                 columns.append(PlainExcelColumn(
                     name='Уровень',
-                    data=self.get_entrance_level_for_users(request.school,
-                                                           enrollees),
+                    data=self.get_base_entrance_level_for_users(request.school,
+                                                                enrollees),
                 ))
 
                 columns.append(PlainExcelColumn(
@@ -355,7 +361,7 @@ class ExportCompleteEnrollingTable(django.views.View):
         # 2021
         if self.question_exists(request.school, 'want_to_school'):
             columns.append(PlainExcelColumn(
-                name='Смена',
+                name='Школа',
                 data=self.get_choice_question_for_users(
                     request.school, enrollees, 'want_to_school'),
             ))
@@ -549,7 +555,7 @@ class ExportCompleteEnrollingTable(django.views.View):
                                   else participation.parallel.name)
         return real_parallels
 
-    def get_entrance_level_for_users(self, school, enrollees):
+    def get_base_entrance_level_for_users(self, school, enrollees):
         return [upgrades.get_base_entrance_level(school, user).name
                 for user in enrollees]
 
