@@ -384,42 +384,39 @@ class ExportCompleteEnrollingTable(django.views.View):
             models.EntranceStatus.Status.ENROLLED: '+',
             models.EntranceStatus.Status.PARTICIPATING: '',
         }
+
+        get_parallels_list = lambda status: ', '.join(sp.parallel.name for sp in status.sessions_and_parallels.all())
+        get_sessions_list = lambda status: ', '.join(sp.session.name for sp in status.sessions_and_parallels.all())
+
         columns.append(ExcelMultiColumn(
             name='Итог',
             subcolumns=[
                 PlainExcelColumn(
                     name='Параллель',
                     cell_width=8,
-                    data=[getattr(entrance_status_by_user_id[user.id].parallel,
-                                  'name',
-                                  '')
-                          for user in enrollees],
+                    data=[get_parallels_list(entrance_status_by_user_id[user.id]) if user.id in entrance_status_by_user_id else "" for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Смена',
                     cell_width=7,
-                    data=[getattr(entrance_status_by_user_id[user.id].session,
-                                  'name',
-                                  '')
-                          for user in enrollees],
+                    data=[get_sessions_list(entrance_status_by_user_id[user.id]) if user.id in entrance_status_by_user_id else "" for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Статус',
                     cell_width=5,
                     data=[
-                        status_repr.get(
-                            entrance_status_by_user_id[user.id].status)
+                        status_repr.get(entrance_status_by_user_id[user.id].status) if user.id in entrance_status_by_user_id else ""
                         for user in enrollees
                     ],
                 ),
                 PlainExcelColumn(
                     name='Комментарий',
-                    data=[entrance_status_by_user_id[user.id].public_comment
+                    data=[entrance_status_by_user_id[user.id].public_comment if user.id in entrance_status_by_user_id else ""
                           for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Приватный комментарий',
-                    data=[entrance_status_by_user_id[user.id].private_comment
+                    data=[entrance_status_by_user_id[user.id].private_comment if user.id in entrance_status_by_user_id else ""
                           for user in enrollees],
                 ),
             ],
@@ -431,14 +428,14 @@ class ExportCompleteEnrollingTable(django.views.View):
             name='',
             subcolumns=[
                 PlainExcelColumn(
-                    name='Оценки 2017.Зима',
+                    name='Оценки 2020.Зима',
                     cell_width=7,
-                    data=self.get_marks_for_users('2017.winter', enrollees),
+                    data=self.get_marks_for_users('2020.winter', enrollees),
                 ),
                 PlainExcelColumn(
-                    name='Оценки 2017',
+                    name='Оценки 2019.Зима',
                     cell_width=7,
-                    data=self.get_marks_for_users('2017', enrollees),
+                    data=self.get_marks_for_users('2019.winter', enrollees),
                 ),
             ],
         ))
@@ -449,13 +446,14 @@ class ExportCompleteEnrollingTable(django.views.View):
         ))
 
         columns.append(PlainExcelColumn(
-            name='Комментарии 2017',
+            name='Комментарии 2020.Зима',
             cell_width=30,
-            data=self.get_study_comments_for_users('2017', enrollees),
+            data=self.get_study_comments_for_users('2020.winter', enrollees),
         ))
 
         if (self.question_exists(request.school, 'informatics_olympiads') and
-                self.question_exists(request.school, 'math_olympiads')):
+                self.question_exists(request.school, 'math_olympiads') and
+                self.question_exists(request.school, 'informatics_olympiads_select')):
             columns.append(ExcelMultiColumn(
                 name='Олимпиады',
                 subcolumns=[
@@ -463,13 +461,22 @@ class ExportCompleteEnrollingTable(django.views.View):
                         name='Информатика',
                         cell_width=30,
                         data=self.get_text_question_for_users(
-                            request.school, enrollees, 'informatics_olympiads'),
+                            request.school, enrollees, 'informatics_olympiads'
+                        ),
+                    ),
+                    PlainExcelColumn(
+                        name='Олимпиады по информатике',
+                        cell_width=50,
+                        data=self.get_choice_question_for_users(
+                            request.school, enrollees, 'informatics_olympiads_select',
+                        )
                     ),
                     PlainExcelColumn(
                         name='Математика',
                         cell_width=30,
                         data=self.get_text_question_for_users(
-                            request.school, enrollees, 'math_olympiads'),
+                            request.school, enrollees, 'math_olympiads'
+                        ),
                     ),
                 ],
             ))
@@ -623,7 +630,7 @@ class ExportCompleteEnrollingTable(django.views.View):
         entrance_statuses = (
             models.EntranceStatus.objects
             .filter(school=school, user__in=enrollees)
-            .select_related('session', 'parallel')
+            .prefetch_related('sessions_and_parallels')
         )
         return {entrance_status.user_id: entrance_status
                 for entrance_status in entrance_statuses}
@@ -706,11 +713,16 @@ class ExportCompleteEnrollingTable(django.views.View):
                     question_short_name=short_name)
         )
         answer_variant_by_id = self.get_answer_variant_by_id(school)
-        answer_by_user = {
-            answer.user: answer_variant_by_id[answer.answer].text
-            for answer in answers if answer.answer
-        }
-        return [answer_by_user.get(user, '') for user in enrollees]
+
+        answers_selected_by_user = collections.defaultdict(list)
+        for answer in answers:
+            if not answer.answer:
+                # Ignore if user didn't select any variant
+                continue
+            answers_selected_by_user[answer.user_id].append(
+                answer_variant_by_id[answer.answer].text
+            )
+        return [', '.join(answers_selected_by_user[user.id]) for user in enrollees]
 
     def question_exists(self, school, question_short_name):
         return (questionnaire.models.AbstractQuestionnaireQuestion.objects
