@@ -142,6 +142,13 @@ class ExportCompleteEnrollingTable(django.views.View):
                         enrollment_type_step, user)
                     for user in enrollees]
             ))
+            columns.append(PlainExcelColumn(
+                name='Зачтённый уровень',
+                data=[
+                    self.get_accepted_entrance_level_from_approved_enrollment_type_for_user(
+                        enrollment_type_step, user)
+                    for user in enrollees]
+            ))
         elif self.question_exists(request.school, 'entrance_reason'):
             columns.append(PlainExcelColumn(
                 name='Основание для поступления',
@@ -506,12 +513,32 @@ class ExportCompleteEnrollingTable(django.views.View):
     def get_enrollment_type_for_user(self, step, user):
         enrollment = (
             models.SelectedEnrollmentType.objects
-            .filter(step_id=step.id, user_id=user.id)
+            .filter(
+                step_id=step.id, user_id=user.id,
+                is_moderated=True, is_approved=True
+            )
             .select_related('enrollment_type')
-            .first())
+            .first()
+        )
         if enrollment is None:
             return ''
         return enrollment.enrollment_type.text
+
+    def get_accepted_entrance_level_from_approved_enrollment_type_for_user(
+        self, step, user
+    ):
+        enrollment = (
+            models.SelectedEnrollmentType.objects
+            .filter(
+                step_id=step.id, user_id=user.id,
+                is_moderated=True, is_approved=True
+            )
+            .select_related('accepted_entrance_level')
+            .first()
+        )
+        if enrollment is None or enrollment.accepted_entrance_level is None:
+            return ''
+        return enrollment.accepted_entrance_level.name
 
     def get_history_for_users(self, school, enrollees):
         previous_parallel_answers = (
