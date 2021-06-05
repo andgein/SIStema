@@ -500,7 +500,7 @@ class ExportCompleteEnrollingTable(django.views.View):
                 name='Innopolis Open 2021',
                 cell_width=50,
                 data=self.get_choice_question_for_users(
-                    request.school, 'innopolis_open_winner'),
+                    request.school, enrollees, 'innopolis_open_winner'),
             ))
 
         return columns
