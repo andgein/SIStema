@@ -494,6 +494,15 @@ class ExportCompleteEnrollingTable(django.views.View):
                 ],
             ))
 
+        # 2021
+        if self.question_exists(request.school, 'innopolis_open_winner'):
+            columns.append(PlainExcelColumn(
+                name='Innopolis Open 2021',
+                cell_width=50,
+                data=self.get_choice_question_for_users(
+                    request.school, 'innopolis_open_winner'),
+            ))
+
         return columns
 
     def get_auto_parallel_for_user(self, school, user):
