@@ -130,6 +130,11 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=[user.profile.school_name for user in enrollees],
         ))
 
+        columns.append(PlainExcelColumn(
+            name='Емэйл',
+            data=[user.email for user in enrollees]
+        ))
+
         enrollment_type_step = (
             models.SelectEnrollmentTypeEntranceStep.objects
             .filter(school=request.school)
