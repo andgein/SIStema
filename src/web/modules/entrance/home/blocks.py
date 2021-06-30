@@ -58,10 +58,13 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
             self.school,
             user
         )
-        if status is not None and status.is_enrolled and status.is_approved:
-            sessions_and_parallels = status.sessions_and_parallels.filter(
-                selected_by_user=True
-            )
+        if status is not None and status.is_enrolled:
+            if status.sessions_and_parallels.filter(selected_by_user=True).count() > 0:
+                sessions_and_parallels = status.sessions_and_parallels.filter(
+                    selected_by_user=True
+                )
+            else:
+                sessions_and_parallels = status.sessions_and_parallels.all()
 
             enrolled_to_session_ids = nested_query_list(
                 sessions_and_parallels.values_list('session_id', flat=True)
