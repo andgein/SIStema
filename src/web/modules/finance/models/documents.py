@@ -10,12 +10,14 @@ import schools.models
 import generator.models
 import users.models
 import questionnaire.models
+import groups.models
 
 
 __all__ = ['DocumentType',
            'Document',
            'AbstractDocumentGenerationCondition',
-           'QuestionnaireVariantDocumentGenerationCondition'
+           'QuestionnaireVariantDocumentGenerationCondition',
+           'GroupDocumentGenerationCondition'
            ]
 
 
@@ -154,3 +156,14 @@ class QuestionnaireVariantDocumentGenerationCondition(AbstractDocumentGeneration
             answer=self.variant.id
         )
         return qs.exists()
+
+
+class GroupDocumentGenerationCondition(AbstractDocumentGenerationCondition):
+    group = models.ForeignKey(
+        groups.models.AbstractGroup,
+        related_name='+',
+        on_delete=models.CASCADE,
+    )
+
+    def is_satisfied(self, user):
+        return self.group.is_user_in_group(user)

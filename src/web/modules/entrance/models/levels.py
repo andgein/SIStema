@@ -217,7 +217,7 @@ class AlreadyWasEntranceLevelLimiter(EntranceLevelLimiter):
 
         # First, find limits for specific parallel in specific school
         user_parallel_ids = list(
-            user.school_participations.values_list('parallel_id')
+            user.school_participations.values_list('parallel_id', flat=True)
         )
         for limit_by_parallel in self.limits_for_parallels.filter(
             previous_parallel_id__in=user_parallel_ids
@@ -228,7 +228,7 @@ class AlreadyWasEntranceLevelLimiter(EntranceLevelLimiter):
 
         # Second, find limits for parallel by it's short name
         user_parallel_short_names = list(
-            user.school_participations.values_list('parallel__short_name')
+            user.school_participations.values_list('parallel__short_name', flat=True)
         )
         for limit_by_parallel_short_name in self.limits_for_parallels.filter(
             previous_parallel_short_name__in=user_parallel_short_names
