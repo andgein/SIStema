@@ -5,3 +5,10 @@
 .CodeMirror-fullscreen {
     z-index: 10000;
 }
+
+/* Following is very important. Wiki-bootstrap has rules for '#article-container pre'
+   which conflicts with simple-markdown-editor. We reset these rules to initial states. */
+#article-container pre {
+    padding: initial !important;
+    background-color: initial !important;
+}
