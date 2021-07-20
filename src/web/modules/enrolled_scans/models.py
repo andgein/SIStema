@@ -1,5 +1,6 @@
 from django.db import models
 
+import groups.models
 import schools.models
 import users.models
 import questionnaire.models
@@ -107,3 +108,14 @@ class GroupEnrolledScanRequirementCondition(EnrolledScanRequirementCondition):
     def __str__(self):
         return 'Участники %s' % (self.group, )
 
+
+class UploadedEnrolledScanGroup(groups.models.AbstractGroup):
+    requirement = models.ForeignKey(
+        EnrolledScanRequirement,
+        related_name='+',
+        on_delete=models.CASCADE,
+    )
+
+    @property
+    def user_ids(self):
+        return self.requirement.scans.values_list('user_id', flat=True)

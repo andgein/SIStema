@@ -6,6 +6,7 @@ from polymorphic.admin import (StackedPolymorphicInline,
                                PolymorphicInlineSupportMixin)
 
 import modules.entrance.admin
+import groups.admin
 from . import models
 
 
@@ -55,3 +56,10 @@ class EnrolledScanAdmin(admin.ModelAdmin):
 
 admin.site.register(models.EnrolledScansEntranceStep,
                     modules.entrance.admin.EntranceStepChildAdmin)
+
+
+@admin.register(models.UploadedEnrolledScanGroup)
+class UploadedEnrolledScanGroupAdmin(groups.admin.AbstractGroupAdmin):
+    autocomplete_fields = (
+        groups.admin.AbstractGroupAdmin.autocomplete_fields + ('requirement', )
+    )
