@@ -86,7 +86,7 @@ class Font(models.Model):
             settings.SISTEMA_GENERATOR_FONTS_DIR,
             'SISTEMA_GENERATOR_FONTS_DIR'
         ),
-        match='.*\.ttf',
+        match=r'.*\.ttf',
         recursive=True,
         max_length=1000)
 

@@ -25,9 +25,6 @@ class Migration(migrations.Migration):
                 ('text_step_is_passed', models.TextField(blank=True, help_text='Текст, который показывается, когда шаг пройден пользователем. Поддерживается Markdown')),
                 ('markdown', models.TextField(help_text='Текст, который будет показан школьникам. Поддерживается Markdown')),
             ],
-            options={
-                'manager_inheritance_from_future': True,
-            },
             bases=('entrance.abstractentrancestep', models.Model),
         ),
     ]
