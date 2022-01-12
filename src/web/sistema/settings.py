@@ -352,6 +352,8 @@ SETTINGS_EXPORT = [
     'SISTEMA_CONTACT_US_EMAIL',
 ]
 
+# Django >=3.2 requires default type for models.AutoField
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Override settings defined above with the settings from local_settings.py
 try:
