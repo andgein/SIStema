@@ -16,7 +16,7 @@ colorama==0.4.4
 coverage==6.2
 cryptography==36.0.1
 defusedxml==0.7.1
-Django==3.2.10
+Django==3.2.12
 django-allauth==0.47.0
 django-anymail==8.4
 django-autocomplete-light==3.8.2
