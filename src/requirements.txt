@@ -19,7 +19,7 @@ defusedxml==0.7.1
 Django==3.2.13
 django-allauth==0.47.0
 django-anymail==8.4
-django-autocomplete-light==3.8.2
+django-autocomplete-light==3.9.4
 django-choices==1.7.2
 django-classy-tags==2.0.0
 django-compat==1.0.15
