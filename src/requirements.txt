@@ -80,7 +80,7 @@ s3transfer==0.5.2
 six==1.16.0
 social-auth-app-django==5.0.0
 social-auth-core==4.1.0
-sorl-thumbnail==12.7.0
+sorl-thumbnail==12.8.0
 soupsieve==2.3.1
 sqlparse==0.4.2
 termstyle==0.1.11
