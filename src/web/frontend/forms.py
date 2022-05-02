@@ -191,7 +191,7 @@ class RestrictedFileField(forms.FileField):
 class AutocompleteSelect2WidgetMixin(object):
     """Mixin for Select2 widgets.
 
-    This class has been copied from dal_select2/widgets.py,
+    This class has been copied from Select2WidgetMixin from dal_select2/widgets.py,
     but we replaced select2's files with our analogies.
     """
 
@@ -202,15 +202,14 @@ class AutocompleteSelect2WidgetMixin(object):
             'all': (
                 'vendor/plugins/select2/css/core.css',
                 'vendor/plugins/select2/css/theme/default/layout.css',
+                'admin/css/autocomplete.css',
+                'autocomplete_light/select2.css',
             )
         }
         js = (
-            'autocomplete_light/jquery.init.js',
-            'autocomplete_light/autocomplete.init.js',
-            'autocomplete_light/forward.js',
             'vendor/plugins/select2/select2.full.min.js',
+            'autocomplete_light/autocomplete_light.js',
             'autocomplete_light/select2.js',
-            'autocomplete_light/jquery.post-setup.js',
         )
 
     autocomplete_function = 'select2'
