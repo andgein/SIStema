@@ -45,8 +45,8 @@ def get_entrance_level_selected_by_user(school, user, base_level):
 
 def get_entrance_level_and_tasks(school, user):
     level = upgrades.get_base_entrance_level(school, user)
-    if not hasattr(school, 'entrance_exam') or not school.entrance_exam:
-        # No exam — no tasks, sorry
+    if not hasattr(school, 'entrance_exam') or not school.entrance_exam or level is None:
+        # No exam or no levels — no tasks, sorry
         return level, []
 
     if level.id is None:
@@ -412,6 +412,9 @@ def upgrade(request):
         return redirect(entrance_exam.get_absolute_url())
 
     base_level = upgrades.get_base_entrance_level(request.school, request.user)
+    if base_level is None:
+        # No levels at all
+        return redirect(entrance_exam.get_absolute_url())
 
     # We may need to upgrade several times because there are levels with
     # the same sets of tasks
@@ -464,6 +467,9 @@ def select_entrance_level(request, step_id):
 
     levels = list(request.school.entrance_levels.order_by('order').all())
     base_level = upgrades.get_base_entrance_level(request.school, request.user)
+    if base_level is None:
+        # No levels at all
+        return redirect(step_url)
     form = forms.SelectEntranceLevelForm(levels, base_level, data=request.POST)
 
     if form.is_valid():

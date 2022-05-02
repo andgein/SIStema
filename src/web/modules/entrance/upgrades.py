@@ -50,6 +50,9 @@ def get_base_entrance_level(school, user):
     for limiter in school.entrance_level_limiters.all():
         current_limit.update_with_other(limiter.get_limit(user))
 
+    if current_limit.min_level is None:
+        # Let's find minimal entrance level for the school
+        return school.entrance_levels.order_by('order').first()
     return current_limit.min_level
 
 
@@ -88,6 +91,9 @@ def is_user_at_maximum_level(school, user, base_level):
 def can_user_upgrade(school, user, base_level=None):
     if base_level is None:
         base_level = get_base_entrance_level(school, user)
+        if base_level is None:
+            return False
+
     issued_level = get_maximum_issued_entrance_level(school, user, base_level)
 
     if is_user_at_maximum_level(school, user, base_level):
