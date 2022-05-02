@@ -7,7 +7,7 @@
 {% load markdown_deux_tags %}
 {% load groups %}
 {% load date %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}{{ user_for_checking.get_full_name }}, «{{ task.title }}»{% endblock %}
 
@@ -40,19 +40,10 @@
 {% endblock %}
 
 {% block content %}
-    <div class="mtn5 mb15 text-muted">
-        Выданы задания уровня <span class="label label-sm label-{{ level_upgrades|yesno:'primary,success' }}">{{ base_entrance_level.name }}</span>
-        {% if level_upgrades %}
-            , повышения до
-            {% for upgrade in level_upgrades %}
-                <span class="label label-sm label-{{ forloop.last|yesno:'success,primary' }}" title="{{ upgrade.created_at }}">
-                {{ upgrade.upgraded_to.name }}
-            </span>
-                {% if not forloop.last %},{% endif %}
-            {% endfor %}
-        {% endif %}
+    <div class="mtn5 mb15">
+        {% include "entrance/staff/_user_entrance_level_panel.html" with user=user_for_checking %}
 
-        <div class="pull-right mb10">
+        <div class="pull-right mb10 text-muted">
             Проверено <strong>{{ task.checked_solutions_count }} из {{ task.total_solutions_count }}</strong> решени{{ task.total_solutions_count|russian_pluralize:'я,й,й' }} этой задачи
             {% if group %}
                 <div class="hidden-md hidden-lg hidden-xl"></div>

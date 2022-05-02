@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from djchoices import choices
 
-import modules.entrance.levels as entrance_levels
+import modules.entrance.models.levels as entrance_levels
 import modules.entrance.models as entrance_models
 import schools.models
 import sistema.helpers

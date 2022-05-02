@@ -20,12 +20,18 @@ class TopicAdmin(admin.ModelAdmin):
         'level',
         'order',
         'questionnaire',
+        'get_tags',
     )
 
-    list_filter = ('level', 'questionnaire')
+    list_filter = ('questionnaire', 'level', 'tags')
     autocomplete_fields = ('questionnaire', 'level', 'tags')
     search_fields = ('short_name', 'title', 'questionnaire__school__name')
     ordering = ('order',)
+
+    def get_tags(self, obj):
+        return ", ".join(tag.title for tag in obj.tags.order_by('short_name').all())
+
+    get_tags.short_description = 'теги'
 
 
 @admin.register(models.TopicDependency)
@@ -88,6 +94,7 @@ class ScaleAdmin(admin.ModelAdmin):
 @admin.register(models.ScaleLabelGroup)
 class ScaleLabelGroupAdmin(admin.ModelAdmin):
     list_display = ('id', 'short_name', 'scale')
+    list_filter = ('scale__questionnaire', )
     autocomplete_fields = ('scale',)
     search_fields = (
         'short_name',
@@ -100,13 +107,14 @@ class ScaleLabelGroupAdmin(admin.ModelAdmin):
 @admin.register(models.ScaleLabel)
 class ScaleLabelAdmin(admin.ModelAdmin):
     list_display = ('id', 'group', 'mark', 'label_text')
+    list_filter = ('group__scale__questionnaire', )
     autocomplete_fields = ('group',)
 
 
 @admin.register(models.ScaleInTopic)
 class ScaleInTopicAdmin(admin.ModelAdmin):
     list_display = ('id', 'topic', 'scale_label_group')
-    list_filter = ('scale_label_group',)
+    list_filter = ('scale_label_group', 'topic__questionnaire')
     autocomplete_fields = ('topic', 'scale_label_group')
     search_fields = (
         'topic__short_name',
@@ -149,6 +157,9 @@ class BaseMarkAdmin(admin.ModelAdmin):
     list_filter = ('mark', 'is_automatically')
     autocomplete_fields = ('user', 'scale_in_topic')
     search_fields = (
+        '=user_id',
+        '=user__profile__first_name',
+        '=user__profile__last_name',
         '=user__username',
         '=user__email',
         '=scale_in_topic__topic__short_name',
@@ -259,3 +270,8 @@ class TopicsEntranceLevelLimitAdmin(admin.ModelAdmin):
         'user__profile__last_name',
         'questionnaire__school__name',
     )
+
+
+@admin.register(models.TopicsEntranceLevelLimiter)
+class TopicsEntranceLevelLimiterChildAdmin(entrance_admin.EntranceLevelLimiterChildAdmin):
+    pass

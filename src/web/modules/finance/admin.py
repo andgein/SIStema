@@ -76,6 +76,13 @@ class QuestionnaireVariantDocumentGenerationConditionAdmin(admin.ModelAdmin):
     autocomplete_fields = ('document_type', 'variant')
 
 
+@admin.register(models.GroupDocumentGenerationCondition)
+class GroupDocumentGenerationConditionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'group', 'document_type')
+    list_filter = ('document_type', )
+    autocomplete_fields = ('document_type', 'group')
+
+
 @admin.register(models.FillPaymentInfoEntranceStep)
 class FillPaymentInfoEntranceStepAdmin(
         modules.entrance.admin.EntranceStepChildAdmin):

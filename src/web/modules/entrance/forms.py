@@ -134,3 +134,20 @@ class SelectSessionAndParallelForm(forms.Form):
             }),
             coerce=int,
         )
+
+
+class SelectEntranceLevelForm(forms.Form):
+    def __init__(self, levels, base_level, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['level'] = forms.TypedChoiceField(
+            choices=[('', 'Не выбрано')] + [(level.id, level.name) for level in levels],
+            required=True,
+            label='',
+            widget=frontend.forms.SelectWithDisabledOptions(
+                disabled_choices=[level.id for level in levels if level < base_level]
+            ),
+            coerce=int,
+        )
+
+        self.has_disabled_levels = any(level < base_level for level in levels)

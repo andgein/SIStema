@@ -13,6 +13,9 @@ from constance import config
 from modules.ejudge import models
 
 
+EJUDGE_SUBMISSIONS_LIMIT = 13
+
+
 class EjudgeException(Exception):
     pass
 
@@ -112,6 +115,9 @@ class Command(BaseCommand):
         return run_id
 
     def _get_ejudge_run_status_from_url(self, runs_url, submit_id):
+        self.stdout.write(self.style.WARNING(
+            'Download runs page from %s' % (runs_url,)
+        ))
         r = self.session.get(runs_url)
         if r.status_code != 200:
             raise EjudgeException('Bad http status code: %d' % r.status_code)
@@ -137,6 +143,9 @@ class Command(BaseCommand):
                     except Exception:
                         pass
 
+                self.stdout.write(self.style.SUCCESS(
+                    'Found status of submission %d: %r (test %r)' % (submit_id, result, failed_test)
+                ))
                 return result, failed_test, score
 
         return None, None, None
@@ -190,11 +199,15 @@ class Command(BaseCommand):
         return ejudge_submit_id
 
     def _process_not_submitted(self):
+        submitted_count = len(models.QueueElement.objects.filter(
+            status=models.QueueElement.Status.SUBMITTED
+        ))
+        limit = max(0, EJUDGE_SUBMISSIONS_LIMIT - submitted_count)
         not_fetched = (
             models.QueueElement.objects
             .filter(status=models.QueueElement.Status.NOT_FETCHED)
             .select_related('language')
-        )
+        )[:limit]
         for queue_element in not_fetched:
             try:
                 self.stdout.write(self.style.SUCCESS(

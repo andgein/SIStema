@@ -1,7 +1,7 @@
 <div class="entrance-timeline__block
             {% if not entrance_block.step.with_background %}without-background{% endif %}
             {% block _block_css_classes %}{% endblock %}
-           ">
+           " id="entrance-step-{{ entrance_block.step.id }}">
     <div class="entrance-timeline__block__content">
         <div class="entrance-timeline__block__header">
             {% block _header %}{% endblock %}

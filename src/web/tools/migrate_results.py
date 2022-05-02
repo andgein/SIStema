@@ -41,12 +41,17 @@ def preprocess_mark(mark):
 def get_parallel_from_group(group, school):
     parallel = group[0].lower()
     if parallel == 'c':
-        if group[1] in '123':
+        if len(group) > 1 and group[1].isdigit() and group[1] in '123':
             parallel = 'c.python'
-        elif group[1] in '56':
+        elif len(group) > 1 and group[1].isdigit() and group[1] in '56':
             parallel = 'c.cpp'
-    if int(group[1]) >= 7:
-        parallel += '_prime'
+    if group.lower() == 'a0':
+        parallel = group
+    if len(group) > 1:
+        if group[1].isdigit() and int(group[1]) >= 7:
+            parallel += '_prime'
+        elif group[1] == "'":
+            parallel += '_prime'
     print(parallel, end=' ', flush=True)
     return schools.models.Parallel.objects.get(short_name=parallel,
                                                school=school)

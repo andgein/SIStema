@@ -175,10 +175,10 @@ class GroupsConfig(AppConfig):
 
     def _set_hook_for_new_school(self):
         post_save.connect(
-            lambda school, **kwargs: self._on_new_school(school),
+            lambda **kwargs: self._on_new_school(),
             sender='schools.School'
         )
 
-    def _on_new_school(self, school):
+    def _on_new_school(self):
         # Call initializing method again for creating groups for the new school
         self._ensure_all_groups_exist_and_configured()

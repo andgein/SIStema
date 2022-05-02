@@ -28,6 +28,7 @@ from frontend.table.utils import A, TableDataSource
 from modules.ejudge import models as ejudge_models
 from modules.entrance import models
 from modules.entrance import upgrades
+from modules.entrance import views as entrance_views
 from modules.entrance.staff import forms
 from sistema.helpers import group_by, respond_as_attachment, nested_query_list, list_to_dict
 from users import search_utils
@@ -217,8 +218,9 @@ def _find_clones(user):
 
 
 def check_user(request, user, group=None):
-    entrance_exam = (
-        models.EntranceExam.objects.filter(school=request.school).first())
+    entrance_exam: models.EntranceExam = (
+        models.EntranceExam.objects.filter(school=request.school).first()
+    )
 
     checking_comments = user.entrance_checking_comments.filter(
         school=request.school
@@ -233,19 +235,26 @@ def check_user(request, user, group=None):
     program_tasks = []
     if entrance_exam is not None:
         base_entrance_level = upgrades.get_base_entrance_level(request.school, user)
+        _, tasks = entrance_views.get_entrance_level_and_tasks(request.school, user)
         level_upgrades = models.EntranceLevelUpgrade.objects.filter(
             upgraded_to__school=request.school,
             user=user
-        )
-        tasks = upgrades.get_entrance_tasks(
-            request.school,
-            user,
-            base_entrance_level
         )
         tasks_solutions = group_by(
             user.entrance_exam_solutions.filter(task__exam=entrance_exam).order_by('-created_at'),
             operator.attrgetter('task_id')
         )
+
+        # Find solutions for tasks which are not in `tasks` (i.e. in case when
+        # user selected entrance level, solved some tasks and changed
+        # level later). Let's show these tasks on enrollment page too.
+        # We mark these tasks by `from_another_level` attribute and append
+        # them to the end of list.
+        level_task_ids = {task.id for task in tasks}
+        for task_id in set(tasks_solutions.keys()) - level_task_ids:
+            task = models.EntranceExamTask.objects.get(id=task_id)
+            task.from_another_level = True
+            tasks.append(task)
 
         for task in tasks:
             task.user_solutions = tasks_solutions[task.id]
@@ -265,6 +274,7 @@ def check_user(request, user, group=None):
                     task.last_solution = None
                     task.checks = []
 
+
         test_tasks = list(filter(
             lambda t: type(t) is models.TestEntranceExamTask, tasks
         ))
@@ -280,6 +290,9 @@ def check_user(request, user, group=None):
         'user_for_checking': user,
         'base_entrance_level': base_entrance_level,
         'level_upgrades': level_upgrades,
+
+        'can_participant_select_entrance_level': entrance_exam.can_participant_select_entrance_level if entrance_exam else False,
+        'selected_entrance_level': entrance_views.get_entrance_level_selected_by_user(request.school, user, base_entrance_level),
 
         'test_tasks': test_tasks,
         'file_tasks': file_tasks,
@@ -832,6 +845,10 @@ def check_users_task(request, task_id, user_id, group_name=None):
         'base_entrance_level': base_entrance_level,
         'level_upgrades': level_upgrades,
 
+        'can_participant_select_entrance_level': task.exam.can_participant_select_entrance_level,
+        'selected_entrance_level': entrance_views.get_entrance_level_selected_by_user(
+            request.school, user, base_entrance_level),
+
         'solutions': solutions,
         'last_solution': last_solution,
         'checks': checks,
@@ -1015,6 +1032,10 @@ def review_enrollment_type_for_user(request, user_id):
         'base_entrance_level': base_entrance_level,
         'level_upgrades': level_upgrades,
         'topics_entrance_level': topics_entrance_level,
+
+        'can_participant_select_entrance_level': request.school.entrance_exam.can_participant_select_entrance_level,
+        'selected_entrance_level': entrance_views.get_entrance_level_selected_by_user(
+            request.school, user, base_entrance_level),
 
         'selected_enrollment_type': selected_enrollment_type,
         'review_info': entrance_step.review_info,

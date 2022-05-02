@@ -1,5 +1,6 @@
 import enum
 
+
 class Generator:
     def generate(self):
         """

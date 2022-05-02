@@ -16,7 +16,7 @@ class MarkGuesser:
         self.update_by_level_dependencies()
 
     def update_from_previous_questionnaire(self):
-        previous_questionnaire = self.questionnaire.previous;
+        previous_questionnaire = self.questionnaire.previous
         if previous_questionnaire is None:
             return
 
@@ -97,7 +97,7 @@ class MarkGuesser:
         }
 
         # Consider previous questionnaire, if it exists
-        previous_questionnaire = self.questionnaire.previous;
+        previous_questionnaire = self.questionnaire.previous
         if previous_questionnaire is not None:
             previous_scale_in_topics = models.ScaleInTopic.objects.filter(
                 topic__questionnaire=previous_questionnaire

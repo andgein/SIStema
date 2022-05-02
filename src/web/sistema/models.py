@@ -40,7 +40,7 @@ class CompressedTextField(models.BinaryField):
 
         return super().get_db_prep_value(value, connection, prepared)
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         if isinstance(value, bytes):
             return force_text(zlib.decompress(value))
         return value

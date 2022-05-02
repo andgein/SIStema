@@ -20,6 +20,8 @@ urlpatterns = [
         url(r'^set_enrollment_type/$', views.set_enrollment_type, name='set_enrollment_type'),
         url(r'^reset_enrollment_type/$', views.reset_enrollment_type, name='reset_enrollment_type'),
 
+        url(r'^select_entrance_level/$', views.select_entrance_level, name='select_entrance_level'),
+
         url(r'^select_session_and_parallel/$', views.select_session_and_parallel, name='select_session_and_parallel'),
         url(r'^reset_session_and_parallel/$', views.reset_session_and_parallel, name='reset_session_and_parallel'),
         url(r'^approve_enrollment/$', views.approve_enrollment, name='approve_enrollment'),

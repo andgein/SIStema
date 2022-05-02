@@ -10,6 +10,7 @@ from django.http.response import (HttpResponseNotFound,
                                   JsonResponse,
                                   HttpResponseForbidden)
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST
 
@@ -25,10 +26,43 @@ from . import models
 from . import upgrades
 
 
+def get_entrance_level_selected_by_user(school, user, base_level):
+    last_selected_level = (
+        models.SelectedEntranceLevel.objects
+            .filter(school=school, user=user)
+            .order_by('-created_at')
+            .first()
+    )
+    if last_selected_level is None:
+        return None
+
+    level = last_selected_level.level
+    if base_level > level:
+        level = base_level
+
+    return level
+
+
 def get_entrance_level_and_tasks(school, user):
-    base_level = upgrades.get_base_entrance_level(school, user)
-    tasks = upgrades.get_entrance_tasks(school, user, base_level)
-    return base_level, tasks
+    level = upgrades.get_base_entrance_level(school, user)
+    if not hasattr(school, 'entrance_exam') or not school.entrance_exam:
+        # No exam — no tasks, sorry
+        return level, []
+
+    if level.id is None:
+        # Sometimes we have fake "maximal" level which is not exist in database.
+        # In this case user has no tasks
+        return level, []
+
+    if school.entrance_exam.can_participant_select_entrance_level:
+        selected_level = get_entrance_level_selected_by_user(school, user, level)
+        if selected_level is not None and selected_level >= level:
+            level = selected_level
+        tasks = list(sorted(level.tasks.all(), key=lambda x: x.order))
+    else:
+        tasks = upgrades.get_entrance_tasks(school, user, level)
+
+    return level, tasks
 
 
 class EntrancedUsersTable(frontend.table.Table):
@@ -154,9 +188,9 @@ def exam(request, selected_task_id=None):
         models.EntranceExam,
         school=request.school
     )
-    is_closed = entrance_exam.is_closed()
+    is_closed = entrance_exam.is_closed(request.user)
 
-    base_level, tasks = get_entrance_level_and_tasks(request.school, request.user)
+    level, tasks = get_entrance_level_and_tasks(request.school, request.user)
 
     # Order task by type and order
     tasks = sorted(tasks, key=lambda t: (t.type_title, t.order))
@@ -188,18 +222,19 @@ def exam(request, selected_task_id=None):
 
     return render(request, 'entrance/exam.html', {
         'is_closed': is_closed,
-        'entrance_level': base_level,
+        'entrance_level': level,
         'school': request.school,
         'categories_with_tasks': categories_with_tasks,
+        'can_select_entrance_level': entrance_exam.can_participant_select_entrance_level,
         'is_user_at_maximum_level': upgrades.is_user_at_maximum_level(
             request.school,
             request.user,
-            base_level
+            level
         ),
         'can_upgrade': not is_closed and upgrades.can_user_upgrade(
             request.school,
             request.user,
-            base_level
+            level
         ),
         'selected_task_id': selected_task_id
     })
@@ -220,7 +255,7 @@ def submit(request, task_id):
         return HttpResponseNotFound()
 
     is_closed = (
-        entrance_exam.is_closed() or
+        entrance_exam.is_closed(request.user) or
         task.category.is_finished_for_user(request.user))
 
     ip = ipware.ip.get_ip(request) or ''
@@ -368,10 +403,12 @@ def solution(request, solution_id):
 @transaction.atomic
 def upgrade(request):
     entrance_exam = get_object_or_404(models.EntranceExam, school=request.school)
-    is_closed = entrance_exam.is_closed()
+    is_closed = entrance_exam.is_closed(request.user)
 
     # Not allow to upgrade if exam has been finished already
-    if is_closed:
+    # Also not allow to upgrade if exam deny upgrades, because users can select
+    # entrance levels for themselves.
+    if is_closed or entrance_exam.can_participant_select_entrance_level:
         return redirect(entrance_exam.get_absolute_url())
 
     base_level = upgrades.get_base_entrance_level(request.school, request.user)
@@ -410,6 +447,37 @@ def results(request):
 def results_data(request):
     table = EntrancedUsersTable(request.school)
     return TableDataSource(table).get_response(request)
+
+
+@require_POST
+@login_required
+def select_entrance_level(request, step_id):
+    get_object_or_404(
+        models.SolveExamEntranceStep,
+        id=step_id, school=request.school
+    )
+    step_url = reverse('school:user', args=(request.school.short_name, )) + '#entrance-step-' + str(step_id)
+
+    entrance_exam = get_object_or_404(models.EntranceExam, school=request.school)
+    if entrance_exam.is_closed(request.user) or not entrance_exam.can_participant_select_entrance_level:
+        return redirect(step_url)
+
+    levels = list(request.school.entrance_levels.order_by('order').all())
+    base_level = upgrades.get_base_entrance_level(request.school, request.user)
+    form = forms.SelectEntranceLevelForm(levels, base_level, data=request.POST)
+
+    if form.is_valid():
+        if form.cleaned_data['level'] == '':
+            return redirect(step_url)
+        models.SelectedEntranceLevel.objects.create(
+            school=request.school,
+            user=request.user,
+            level_id=form.cleaned_data['level']
+        )
+    else:
+        # TODO (andgein): show error if form is not valid
+        raise ValueError('Errors: ' + ', '.join(map(str, form.errors)))
+    return redirect(step_url)
 
 
 @require_POST

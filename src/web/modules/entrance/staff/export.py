@@ -13,6 +13,7 @@ import django.views
 
 from modules.entrance import models
 from modules.entrance import upgrades
+from modules.entrance import views as entrance_views
 import questionnaire.models
 import modules.ejudge.models as ejudge_models
 import modules.study_results.models as study_results_models
@@ -129,6 +130,11 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=[user.profile.school_name for user in enrollees],
         ))
 
+        columns.append(PlainExcelColumn(
+            name='Емэйл',
+            data=[user.email for user in enrollees]
+        ))
+
         enrollment_type_step = (
             models.SelectEnrollmentTypeEntranceStep.objects
             .filter(school=request.school)
@@ -141,6 +147,13 @@ class ExportCompleteEnrollingTable(django.views.View):
                         enrollment_type_step, user)
                     for user in enrollees]
             ))
+            columns.append(PlainExcelColumn(
+                name='Зачтённый уровень',
+                data=[
+                    self.get_accepted_entrance_level_from_approved_enrollment_type_for_user(
+                        enrollment_type_step, user)
+                    for user in enrollees]
+            ))
         elif self.question_exists(request.school, 'entrance_reason'):
             columns.append(PlainExcelColumn(
                 name='Основание для поступления',
@@ -148,7 +161,7 @@ class ExportCompleteEnrollingTable(django.views.View):
                     request.school, enrollees, 'entrance_reason'),
             ))
 
-        # TODO(artemtab): create ScoolParticipant entries for all the users
+        # TODO(artemtab): create SchoolParticipant entries for all the users
         #                 and use them instead
         if self.question_exists(request.school, 'previous_parallels'):
             columns.append(PlainExcelColumn(
@@ -161,24 +174,24 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=self.get_poldnev_history_for_users(enrollees),
         ))
 
-        previous_school = schools.models.School.objects.get(short_name='2017')
+        previous_school = schools.models.School.objects.get(short_name='2020.winter')
         columns.append(PlainExcelColumn(
-            name='Параллель',
+            name='Параллель в ЛКШ 2020.Зима',
             data=self.get_real_parallel_for_users(enrollees, previous_school),
         ))
 
-        if self.question_exists(request.school, 'main_langauge'):
+        if self.question_exists(request.school, 'main_language'):
             columns.append(PlainExcelColumn(
                 name='Язык (основной)',
                 data=self.get_text_question_for_users(
-                    request.school, enrollees, 'main_langauge'),
+                    request.school, enrollees, 'main_language'),
             ))
 
-        if self.question_exists(request.school, 'travel_pasport'):
+        if self.question_exists(request.school, 'travel_passport'):
             columns.append(PlainExcelColumn(
                 name='Загран',
                 data=self.get_choice_question_for_users(
-                    request.school, enrollees, 'travel_pasport'),
+                    request.school, enrollees, 'travel_passport'),
             ))
 
         if self.question_exists(request.school, 'visa'):
@@ -203,6 +216,8 @@ class ExportCompleteEnrollingTable(django.views.View):
             ))
 
         if hasattr(request.school, 'entrance_exam'):
+            entrance_exam = request.school.entrance_exam
+
             columns.append(PlainExcelColumn(
                 name='Языки ОК\'ов',
                 data=self.get_ok_languages_for_users(request.school, enrollees),
@@ -225,16 +240,30 @@ class ExportCompleteEnrollingTable(django.views.View):
                 ]
             ))
 
-            columns.append(PlainExcelColumn(
-                name='Уровень',
-                data=self.get_entrance_level_for_users(request.school,
-                                                       enrollees),
-            ))
+            if entrance_exam.can_participant_select_entrance_level:
+                columns.append(PlainExcelColumn(
+                    name='Минимальный уровень',
+                    data=self.get_base_entrance_level_for_users(
+                        request.school, enrollees
+                    ),
+                ))
+                columns.append(PlainExcelColumn(
+                    name='Выбранный уровень',
+                    data=self.get_entrance_level_selected_by_users(
+                        request.school, enrollees
+                    ),
+                ))
+            else:
+                columns.append(PlainExcelColumn(
+                    name='Уровень',
+                    data=self.get_base_entrance_level_for_users(request.school,
+                                                                enrollees),
+                ))
 
-            columns.append(PlainExcelColumn(
-                name='Апгрейд',
-                data=self.get_max_upgrade_for_users(request.school, enrollees),
-            ))
+                columns.append(PlainExcelColumn(
+                    name='Повышения',
+                    data=self.get_max_upgrade_for_users(request.school, enrollees),
+                ))
 
             columns.append(PlainExcelColumn(
                 name='Группы проверки',
@@ -341,7 +370,15 @@ class ExportCompleteEnrollingTable(django.views.View):
                 data=[answer_mapping[answer][1] for answer in answers],
             ))
 
-        # 2016 & 2017
+        # 2021
+        if self.question_exists(request.school, 'want_to_school'):
+            columns.append(PlainExcelColumn(
+                name='Школа',
+                data=self.get_choice_question_for_users(
+                    request.school, enrollees, 'want_to_school'),
+            ))
+
+        # 2016 & 2017, and after 2018
         if self.question_exists(request.school, 'want_to_session'):
             columns.append(PlainExcelColumn(
                 name='Смена',
@@ -365,42 +402,39 @@ class ExportCompleteEnrollingTable(django.views.View):
             models.EntranceStatus.Status.ENROLLED: '+',
             models.EntranceStatus.Status.PARTICIPATING: '',
         }
+
+        get_parallels_list = lambda status: ', '.join(sp.parallel.name for sp in status.sessions_and_parallels.all())
+        get_sessions_list = lambda status: ', '.join(sp.session.name for sp in status.sessions_and_parallels.all())
+
         columns.append(ExcelMultiColumn(
             name='Итог',
             subcolumns=[
                 PlainExcelColumn(
                     name='Параллель',
                     cell_width=8,
-                    data=[getattr(entrance_status_by_user_id[user.id].parallel,
-                                  'name',
-                                  '')
-                          for user in enrollees],
+                    data=[get_parallels_list(entrance_status_by_user_id[user.id]) if user.id in entrance_status_by_user_id else "" for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Смена',
                     cell_width=7,
-                    data=[getattr(entrance_status_by_user_id[user.id].session,
-                                  'name',
-                                  '')
-                          for user in enrollees],
+                    data=[get_sessions_list(entrance_status_by_user_id[user.id]) if user.id in entrance_status_by_user_id else "" for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Статус',
                     cell_width=5,
                     data=[
-                        status_repr.get(
-                            entrance_status_by_user_id[user.id].status)
+                        status_repr.get(entrance_status_by_user_id[user.id].status) if user.id in entrance_status_by_user_id else ""
                         for user in enrollees
                     ],
                 ),
                 PlainExcelColumn(
                     name='Комментарий',
-                    data=[entrance_status_by_user_id[user.id].public_comment
+                    data=[entrance_status_by_user_id[user.id].public_comment if user.id in entrance_status_by_user_id else ""
                           for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Приватный комментарий',
-                    data=[entrance_status_by_user_id[user.id].private_comment
+                    data=[entrance_status_by_user_id[user.id].private_comment if user.id in entrance_status_by_user_id else ""
                           for user in enrollees],
                 ),
             ],
@@ -412,14 +446,14 @@ class ExportCompleteEnrollingTable(django.views.View):
             name='',
             subcolumns=[
                 PlainExcelColumn(
-                    name='Оценки 2017.Зима',
+                    name='Оценки 2020.Зима',
                     cell_width=7,
-                    data=self.get_marks_for_users('2017.winter', enrollees),
+                    data=self.get_marks_for_users('2020.winter', enrollees),
                 ),
                 PlainExcelColumn(
-                    name='Оценки 2017',
+                    name='Оценки 2019.Зима',
                     cell_width=7,
-                    data=self.get_marks_for_users('2017', enrollees),
+                    data=self.get_marks_for_users('2019.winter', enrollees),
                 ),
             ],
         ))
@@ -430,13 +464,14 @@ class ExportCompleteEnrollingTable(django.views.View):
         ))
 
         columns.append(PlainExcelColumn(
-            name='Комментарии 2017',
+            name='Комментарии 2020.Зима',
             cell_width=30,
-            data=self.get_study_comments_for_users('2017', enrollees),
+            data=self.get_study_comments_for_users('2020.winter', enrollees),
         ))
 
         if (self.question_exists(request.school, 'informatics_olympiads') and
-                self.question_exists(request.school, 'math_olympiads')):
+                self.question_exists(request.school, 'math_olympiads') and
+                self.question_exists(request.school, 'informatics_olympiads_select')):
             columns.append(ExcelMultiColumn(
                 name='Олимпиады',
                 subcolumns=[
@@ -444,15 +479,33 @@ class ExportCompleteEnrollingTable(django.views.View):
                         name='Информатика',
                         cell_width=30,
                         data=self.get_text_question_for_users(
-                            request.school, enrollees, 'informatics_olympiads'),
+                            request.school, enrollees, 'informatics_olympiads'
+                        ),
+                    ),
+                    PlainExcelColumn(
+                        name='Олимпиады по информатике',
+                        cell_width=50,
+                        data=self.get_choice_question_for_users(
+                            request.school, enrollees, 'informatics_olympiads_select',
+                        )
                     ),
                     PlainExcelColumn(
                         name='Математика',
                         cell_width=30,
                         data=self.get_text_question_for_users(
-                            request.school, enrollees, 'math_olympiads'),
+                            request.school, enrollees, 'math_olympiads'
+                        ),
                     ),
                 ],
+            ))
+
+        # 2021
+        if self.question_exists(request.school, 'innopolis_open_winner'):
+            columns.append(PlainExcelColumn(
+                name='Innopolis Open 2021',
+                cell_width=50,
+                data=self.get_choice_question_for_users(
+                    request.school, enrollees, 'innopolis_open_winner'),
             ))
 
         return columns
@@ -463,19 +516,43 @@ class ExportCompleteEnrollingTable(django.views.View):
             .filter(step__school_id=school.id, user_id=user.id)
             .select_related('parallel')
             .first())
-        if enrollment is None or enrollment.parallel is None:
+        if enrollment is None:
             return ''
-        return enrollment.parallel.name
+        if enrollment.parallel is not None:
+            return enrollment.parallel.name
+        if enrollment.entrance_level is not None:
+            return enrollment.entrance_level.name
+        return ''
 
     def get_enrollment_type_for_user(self, step, user):
         enrollment = (
             models.SelectedEnrollmentType.objects
-            .filter(step_id=step.id, user_id=user.id)
+            .filter(
+                step_id=step.id, user_id=user.id,
+                is_moderated=True, is_approved=True
+            )
             .select_related('enrollment_type')
-            .first())
+            .first()
+        )
         if enrollment is None:
             return ''
         return enrollment.enrollment_type.text
+
+    def get_accepted_entrance_level_from_approved_enrollment_type_for_user(
+        self, step, user
+    ):
+        enrollment = (
+            models.SelectedEnrollmentType.objects
+            .filter(
+                step_id=step.id, user_id=user.id,
+                is_moderated=True, is_approved=True
+            )
+            .select_related('accepted_entrance_level')
+            .first()
+        )
+        if enrollment is None or enrollment.accepted_entrance_level is None:
+            return ''
+        return enrollment.accepted_entrance_level.name
 
     def get_history_for_users(self, school, enrollees):
         previous_parallel_answers = (
@@ -519,9 +596,18 @@ class ExportCompleteEnrollingTable(django.views.View):
                                   else participation.parallel.name)
         return real_parallels
 
-    def get_entrance_level_for_users(self, school, enrollees):
+    def get_base_entrance_level_for_users(self, school, enrollees):
         return [upgrades.get_base_entrance_level(school, user).name
                 for user in enrollees]
+
+    def get_entrance_level_selected_by_users(self, school, enrollees):
+        for user in enrollees:
+            base_level = upgrades.get_base_entrance_level(school, user)
+            level = entrance_views.get_entrance_level_selected_by_user(school, user.id, base_level)
+            if level is None:
+                yield "не выбран"
+            else:
+                yield level.name
 
     def get_max_upgrade_for_users(self, school, enrollees):
         issued_upgrades = (
@@ -591,7 +677,7 @@ class ExportCompleteEnrollingTable(django.views.View):
         entrance_statuses = (
             models.EntranceStatus.objects
             .filter(school=school, user__in=enrollees)
-            .select_related('session', 'parallel')
+            .prefetch_related('sessions_and_parallels')
         )
         return {entrance_status.user_id: entrance_status
                 for entrance_status in entrance_statuses}
@@ -674,11 +760,16 @@ class ExportCompleteEnrollingTable(django.views.View):
                     question_short_name=short_name)
         )
         answer_variant_by_id = self.get_answer_variant_by_id(school)
-        answer_by_user = {
-            answer.user: answer_variant_by_id[answer.answer].text
-            for answer in answers
-        }
-        return [answer_by_user.get(user, '') for user in enrollees]
+
+        answers_selected_by_user = collections.defaultdict(list)
+        for answer in answers:
+            if not answer.answer:
+                # Ignore if user didn't select any variant
+                continue
+            answers_selected_by_user[answer.user_id].append(
+                answer_variant_by_id[answer.answer].text
+            )
+        return [', '.join(answers_selected_by_user[user.id]) for user in enrollees]
 
     def question_exists(self, school, question_short_name):
         return (questionnaire.models.AbstractQuestionnaireQuestion.objects

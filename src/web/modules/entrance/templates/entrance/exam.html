@@ -1,6 +1,6 @@
 {% extends 'user_layout.html' %}
 
-{% load staticfiles %}
+{% load static %}
 {% load types %}
 
 {% block title %}Вступительная работа{% endblock %}
@@ -12,9 +12,11 @@
 {% block content %}
     <h1 class="mt10 mb30 text-dark fw400 text-center">Вступительная работа</h1>
 
-    <div class="entrance-exam__upgrade-panel" data-update-url="{% url 'school:entrance:upgrade_panel' request.school.short_name %}">
-        {% include 'entrance/_exam_upgrade.html' %}
-    </div>
+    {% if not can_select_entrance_level %}
+        <div class="entrance-exam__upgrade-panel" data-update-url="{% url 'school:entrance:upgrade_panel' request.school.short_name %}">
+            {% include 'entrance/_exam_upgrade.html' %}
+        </div>
+    {% endif %}
 
     <div class="entrance-exam tab-block mb40">
         <ul class="nav tabs-left tabs-border mb40">

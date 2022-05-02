@@ -1,6 +1,7 @@
 import enum
 import operator
 
+from django.core.exceptions import ValidationError
 from django.db import models, transaction, IntegrityError
 from django.conf import settings
 from polymorphic import models as polymorphic_models
@@ -9,6 +10,7 @@ import groups.models
 import questionnaire.models
 import schools.models
 from . import main as main_models
+from . import levels as levels_models
 from .. import forms
 
 
@@ -171,7 +173,7 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
 
         return EntranceStepState.NOT_PASSED
 
-    def build(self, user):
+    def build(self, user, request):
         """
         You can override it in your subclass
         :returns EntranceStepBlock or None
@@ -354,14 +356,13 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
     def _get_accepted_count(tasks):
         return len(list(filter(lambda t: t.is_accepted, tasks)))
 
-    def build(self, user):
+    def build(self, user, request):
         # It's here to avoid cyclic imports
         import modules.entrance.views as entrance_views
-        import modules.entrance.models as entrance_models
         import modules.entrance.upgrades as entrance_upgrades
 
-        block = super().build(user)
-        base_level, tasks = entrance_views.get_entrance_level_and_tasks(self.school, user)
+        block = super().build(user, request)
+        level, tasks = entrance_views.get_entrance_level_and_tasks(self.school, user)
 
         for task in tasks:
             task.is_accepted = task.is_accepted_for_user(user)
@@ -375,6 +376,26 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
             (category, [task for task in tasks if task.category == category])
             for category in categories
         ]
+
+        entrance_exam = main_models.EntranceExam.objects.get(school=self.school)
+        block.can_select_entrance_level = (
+            not entrance_exam.is_closed(user) and
+            entrance_exam.can_participant_select_entrance_level
+        )
+        if block.can_select_entrance_level:
+            base_level = entrance_upgrades.get_base_entrance_level(self.school, user)
+            block.selected_entrance_level = (
+                entrance_views.get_entrance_level_selected_by_user(
+                    self.school, user, base_level
+                )
+            )
+            block.select_entrance_level_form = forms.SelectEntranceLevelForm(
+                levels=list(self.school.entrance_levels.all()),
+                base_level=base_level,
+            )
+
+            if request.GET.get('change_selected_entrance_level'):
+                block.selected_entrance_level = None
 
         block.task_category_stats = []
         for category, tasks in categories_with_tasks:
@@ -390,12 +411,12 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
         block.level = entrance_upgrades.get_maximum_issued_entrance_level(
             self.school,
             user,
-            base_level
+            level
         )
         block.is_at_maximum_level = entrance_upgrades.is_user_at_maximum_level(
             self.school,
             user,
-            base_level
+            level
         )
 
         return block
@@ -480,8 +501,8 @@ class ResultsEntranceStep(AbstractEntranceStep):
 
         return message
 
-    def build(self, user):
-        block = super().build(user)
+    def build(self, user, request):
+        block = super().build(user, request)
 
         entrance_status = self._get_visible_entrance_status(user)
         absence_reason = self._get_absence_reason(user)
@@ -525,7 +546,7 @@ class MakeUserParticipatingEntranceStep(AbstractEntranceStep):
     def is_visible(self, user):
         return False
 
-    def build(self, user):
+    def build(self, user, request):
         # It's here to avoid cyclic imports
         import modules.entrance.models.main as entrance_models
 
@@ -543,7 +564,7 @@ class MakeUserParticipatingEntranceStep(AbstractEntranceStep):
                         entrance_models.EntranceStatus.Status.PARTICIPATING
                     )
 
-        return super().build(user)
+        return super().build(user, request)
 
     def __str__(self):
         return 'Шаг, объявляющий школьника поступающим в ' + self.school.name
@@ -577,17 +598,17 @@ class UserParticipatedInSchoolEntranceStep(AbstractEntranceStep,
 
     def is_passed(self, user):
         return (
-                   user.school_participations
-                       .filter(school=self.school_to_check_participation)
-                       .exists()
-               ) or (
-                   self.exceptions
-                       .filter(user_id=user.id)
-                       .exists()
-               )
+               user.school_participations
+                   .filter(school=self.school_to_check_participation)
+                   .exists()
+           ) or (
+               self.exceptions
+                   .filter(user_id=user.id)
+                   .exists()
+           )
 
-    def build(self, user):
-        block = super().build(user)
+    def build(self, user, request):
+        block = super().build(user, request)
         # block may be equal to None if it's invisible to the current user
         if block is not None:
             block.school_to_check_participation = (
@@ -653,8 +674,8 @@ class UserIsMemberOfGroupEntranceStep(AbstractEntranceStep,
     def is_passed(self, user):
         return self.group.is_user_in_group(user)
 
-    def build(self, user):
-        block = super().build(user)
+    def build(self, user, request):
+        block = super().build(user, request)
         # block may be equal to None if it's invisible to the current user
         if block is not None:
             block.group = self.group
@@ -741,8 +762,8 @@ class SelectEnrollmentTypeEntranceStep(AbstractEntranceStep, EntranceStepTextsMi
 
         return selected.is_approved
 
-    def build(self, user):
-        block = super().build(user)
+    def build(self, user, request):
+        block = super().build(user, request)
 
         selected = SelectedEnrollmentType.objects.filter(
             user=user,
@@ -836,13 +857,29 @@ class SelectedEnrollmentType(models.Model):
                   "вступительной",
     )
 
+    accepted_entrance_level = models.ForeignKey(
+        levels_models.EntranceLevel,
+        on_delete=models.CASCADE,
+        verbose_name='зачтенный уровень вступительной',
+        help_text='Зачтённый уровень вступительной. Задачи этого уровня школьнику '
+                  'решать не надо, они зачтены автоматически. Должно коррелировать с '
+                  'выданным уровнем вступительной (см. ниже)',
+        related_name='+',
+        default=None,
+        blank=True,
+        null=True,
+    )
+
     entrance_level = models.ForeignKey(
-        main_models.EntranceLevel,
+        levels_models.EntranceLevel,
         on_delete=models.CASCADE,
         verbose_name='уровень вступительной',
-        help_text='Выставленный уровень вступительной. Должен содержать '
+        help_text='[Устарело, используйте «зачтённый уровень вступительной»] '
+                  'Выставленный уровень вступительной. Должен содержать '
                   'задачи, необходимые для поступления в следующую параллель '
-                  'после той, в которую школьник зачислен автоматически.',
+                  'после той, в которую школьник зачислен автоматически. '
+                  'Если не указать, то автоматически посчитается как уровень, '
+                  'следующий за «зачтённый уровень вступительной»',
         related_name='+',
         default=None,
         blank=True,
@@ -881,6 +918,41 @@ class SelectedEnrollmentType(models.Model):
         return '{} поступает в {}. {}'.format(
             self.user, self.step.school, self.enrollment_type
         )
+
+    def has_entrance_level(self):
+        return self.accepted_entrance_level is not None or self.entrance_level is not None
+
+    def get_entrance_level(self):
+        """
+        Returns entrance level for participant.
+        """
+        if self.accepted_entrance_level is not None:
+            entrance_level = levels_models.EntranceLevel.objects.filter(
+                school=self.step.school,
+                order__gt=self.accepted_entrance_level.order,
+            ).order_by('order').first()
+            if entrance_level is not None:
+                return entrance_level
+            return levels_models.EntranceLevel.get_max_entrance_level(self.step.school)
+
+        # Field entrance_level is deprecated, but watch it too
+        # for backward compatibility
+        if self.entrance_level is not None:
+            return self.entrance_level
+
+    def clean(self):
+        if (self.entrance_level is not None and
+           self.enrollment_type.step.school_id != self.entrance_level.school_id):
+            raise ValidationError('Can\'t save SelectedEnrollmentType: '
+                                  'Entrance step should belong to the same school '
+                                  'as entrance level')
+        if self.enrollment_type.step_id != self.step_id:
+            raise ValidationError('Can\'t save SelectedEnrollmentType: '
+                                 'Enrollment type should belong to the same step '
+                                 'as this object')
+        if self.accepted_entrance_level is not None and self.entrance_level is not None:
+            raise ValidationError('Can\' specify both entrance_level and accepted_entrance_level. '
+                                  'Choose only one.')
 
     def save(self, *args, **kwargs):
         if (self.entrance_level is not None and

@@ -65,15 +65,25 @@
         {{ entrance_block.form }}
         {% csrf_token %}
         {% if entrance_block.passed_moderation %}
-            <div class="text-success-dark mt5">
+            <div class="text-success-dark mt10">
                 {% if entrance_block.selected.custom_resolution_text %}
                     {{ entrance_block.selected.custom_resolution_text|markdown }}
                 {% else %}
                     {{ entrance_block.step.text_passed_moderation|markdown }}
                 {% endif %}
-                {% if entrance_block.selected.parallel %}
-                    Вы зачислены в параллель <strong>{{ entrance_block.selected.parallel.name }}</strong>
-                {%  endif %}
+                <p>
+                    {% if entrance_block.selected.parallel %}
+                        Вы зачислены в параллель <strong>{{ entrance_block.selected.parallel.name }}</strong>
+                    {% elif entrance_block.selected.accepted_entrance_level %}
+                        Конкретная параллель, в которой вы будете учиться, пока неизвестна.
+                        Вам зачтена вступительная работа <b>уровня «{{ entrance_block.selected.accepted_entrance_level.name }}»</b>.
+                        Если хотите, вы можете решать вступительную работу более высоких уровней.
+                    {% elif entrance_block.selected.entrance_level %}
+                        Конкретная параллель, в которой вы будете учиться, пока неизвестна.
+                        Если хотите, вы можете решить вступительную работу
+                        <b>уровня «{{ entrance_block.selected.entrance_level.name }}»</b> или выше.
+                    {%  endif %}
+                </p>
             </div>
         {% endif %}
         {% if not entrance_block.step_is_closed %}

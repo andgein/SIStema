@@ -26,16 +26,7 @@
 
 {% block content %}
     <div class="mtn5 mb15 text-muted">
-        Выданы задания уровня <span class="label label-sm label-{{ level_upgrades|yesno:'primary,success' }}">{{ base_entrance_level.name }}</span>
-        {% if level_upgrades %}
-            , повышения до
-            {% for upgrade in level_upgrades %}
-                <span class="label label-sm label-{{ forloop.last|yesno:'success,primary' }}" title="{{ upgrade.created_at }}">
-                {{ upgrade.upgraded_to.name }}
-            </span>
-                {% if not forloop.last %},{% endif %}
-            {% endfor %}
-        {% endif %}
+        {% include "entrance/staff/_user_entrance_level_panel.html" with user=user_for_review %}
 
         {% comment %}
         TODO: review progress
@@ -78,6 +69,11 @@
                             {% endifingroup %}
                         </b>
                         <span class="label label-sm label-success">{{ topics_entrance_level.name }}</span>
+
+                        {% if base_entrance_level and can_participant_select_entrance_level %}
+                            <br>
+                            <b>Минимальный возможный уровень:</b> <span class="label label-sm label-success">{{ base_entrance_level.name }}</span>
+                        {% endif %}
                     </p>
                     {% if user_for_review.profile.poldnev_person %}
                         <p>
@@ -142,7 +138,9 @@
                                 {% endfor %}
                             </ol>
                         {% else %}
-                            Не принимал(а) участие в ЛКШ
+                            <p class="mv10">
+                                Не принимал{% if user_for_review.profile.sex == user_for_refiew.profile.Sex.FEMALE %}а{% endif %} участие в ЛКШ
+                            </p>
                         {% endif %}
                     </div>
                 </div>

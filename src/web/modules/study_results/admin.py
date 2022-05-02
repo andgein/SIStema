@@ -7,11 +7,14 @@ from modules.study_results import models
 class StudyResultAdmin(admin.ModelAdmin):
     list_display = (
         'id',
+        'get_parallel',
         'school_participant',
         'theory',
         'practice',
     )
     list_filter = (
+        'school_participant__school',
+        'school_participant__parallel',
         'theory',
         'practice',
     )
@@ -23,3 +26,7 @@ class StudyResultAdmin(admin.ModelAdmin):
         'school_participant__user__last_name',
         'school_participant__user__username',
     )
+
+    def get_parallel(self, result):
+        return result.school_participant.parallel
+    get_parallel.short_description = 'parallel'

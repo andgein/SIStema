@@ -1,5 +1,4 @@
-import modules.entrance.levels
-import modules.topics.entrance.levels
+import modules.topics.models
 from . import models
 
 # Quick fix to possibly survive high QPS
@@ -47,22 +46,21 @@ def get_base_entrance_level(school, user):
     if override is not None:
         return override.entrance_level
 
-    limiters = [modules.topics.entrance.levels.TopicsEntranceLevelLimiter,
-                modules.entrance.levels.AlreadyWasEntranceLevelLimiter,
-                modules.entrance.levels.AgeEntranceLevelLimiter,
-                modules.entrance.levels.EnrollmentTypeEntranceLevelLimiter,
-                ]
-
-    current_limit = modules.entrance.levels.EntranceLevelLimit(None)
-    for limiter in limiters:
-        current_limit.update_with_other(limiter(school).get_limit(user))
+    current_limit = models.EntranceLevelLimit(None)
+    for limiter in school.entrance_level_limiters.all():
+        current_limit.update_with_other(limiter.get_limit(user))
 
     return current_limit.min_level
 
 
 def get_topics_entrance_level(school, user):
-    limiter = modules.topics.entrance.levels.TopicsEntranceLevelLimiter(school)
-    return limiter.get_limit(user).min_level
+    # Create limiter, but don't save it to database
+    # Actually, we could get limiter from the database, but it's not guaranteed
+    # that it exists.
+    fake_limiter = modules.topics.models.TopicsEntranceLevelLimiter(
+        school=school
+    )
+    return fake_limiter.get_limit(user).min_level
 
 
 def get_maximum_issued_entrance_level(school, user, base_level):
