@@ -346,6 +346,7 @@ ACCOUNT_FORMS = {
 SOCIALACCOUNT_FORMS = {
     'signup': 'users.forms.SocialSignupForm',
 }
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
 SETTINGS_EXPORT = [
     'DEBUG',
