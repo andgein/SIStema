@@ -475,7 +475,7 @@ class Topic(models.Model):
             # TODO: extract to class
             fields[name] = forms.TypedChoiceField(
                 label=scale.scale.title,
-                choices=[(label.mark, label.label_text) for label in labels],
+                choices=sorted([(label.mark, label.label_text) for label in labels]),
                 coerce=int,
                 required=True,
                 error_messages={
