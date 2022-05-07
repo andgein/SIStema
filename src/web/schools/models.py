@@ -207,7 +207,7 @@ class SchoolParticipant(models.Model):
         related_name='participants',
     )
 
-    # TODO: Add group
+    # TODO: Add session and group
 
     class Meta:
         unique_together = ('school', 'user')

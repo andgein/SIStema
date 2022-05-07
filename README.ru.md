@@ -15,7 +15,7 @@
     git clone git@github.com:andgein/SIStema.git
     cd SIStema/
 
-    # Создайте виртуальное окружение с Python >3.4
+    # Создайте виртуальное окружение с Python >= 3.8
     virtualenv -p python3 venv
     source ./venv/bin/activate
 

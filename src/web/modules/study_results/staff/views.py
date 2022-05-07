@@ -1,13 +1,23 @@
+import csv
+import logging
+from dataclasses import dataclass
+from typing import List, Tuple, Dict, Optional
+
 import django.shortcuts
 import django.urls
+import django.db.transaction
+from django.http import HttpRequest, HttpResponse
 
+import schools.models
+import sistema.uploads
 import frontend.icons
 import frontend.table
 import groups.decorators
 import modules.study_results.models as study_results_models
 import users.models
 from frontend.table.utils import A, TableDataSource
-from modules.study_results.groups import STUDENT_COMMENTS_VIEWERS
+from modules.study_results.groups import STUDENT_COMMENTS_VIEWERS, STUDENT_COMMENTS_EDITORS
+from . import forms
 
 
 class StudyResultsTable(frontend.table.Table):
@@ -71,7 +81,7 @@ class StudyResultsTable(frontend.table.Table):
 
         super().__init__(
             qs,
-            django.urls.reverse('school:study_results:study_results_data',
+            django.urls.reverse('school:study_results:data',
                                 args=[school.short_name]),
             *args, **kwargs)
 
@@ -108,3 +118,164 @@ def study_result_user(request, user_id):
     return django.shortcuts.render(
         request, 'study_results/staff/study_result_user.html',
         {'user_name': user.get_full_name()})
+
+
+@dataclass
+class UploadWarning:
+    line_index: int
+    line: dict
+    message: str
+
+
+def _find_parallel_by_parallel_or_group_name(
+    parallel_name: str, parallels_by_name: Dict[str, schools.models.Parallel]
+) -> Optional[schools.models.Parallel]:
+    """
+    Finds parallel by name of parallel or group. I.e. if group is 1A or A8,
+    parallel "1" or "A" is returned.
+    """
+    if parallel_name in parallels_by_name:
+        return parallels_by_name[parallel_name]
+
+    if len(parallel_name) > 1 and parallel_name[:-1] in parallels_by_name:
+        return parallels_by_name[parallel_name[:-1]]
+
+    return None
+
+
+@django.db.transaction.atomic
+def _upload_study_results(
+    school: schools.models.School, form: forms.UploadStudyResultsForm,
+    saved_file: str, created_by: users.models.User,
+) -> Tuple[int, List[UploadWarning]]:
+    warnings: List[UploadWarning] = []
+    parallels_by_name = {
+        parallel.name: parallel for parallel in school.parallels.all()
+    }
+    with open(saved_file, 'r') as opened_file:
+        reader = csv.DictReader(opened_file)
+        line_index = None
+        for line_index, line in enumerate(reader, start=1):
+            try:
+                user_id = line[form.cleaned_data['user_id_field_name']]
+                user = users.models.User.objects.filter(id=user_id).first()
+                if user is None:
+                    warnings.append(
+                        UploadWarning(line_index, line, f"Нет пользователя с айди {user_id}")
+                    )
+                    continue
+
+                parallel_name = line[form.cleaned_data['parallel_field_name']]
+                parallel = _find_parallel_by_parallel_or_group_name(
+                    parallel_name, parallels_by_name
+                )
+                if not parallel:
+                    warnings.append(
+                        UploadWarning(line_index, line, f"Неизвестная параллель «{parallel_name}». "
+                                                        f"Допустимые параллели: {list(parallels_by_name.keys())}")
+                    )
+                    continue
+                theory = line[form.cleaned_data['theory_field_name']].strip()
+                if not theory:
+                    theory = "N/A"
+                practice = line[form.cleaned_data['practice_field_name']].strip()
+                if not practice:
+                    practice = "N/A"
+
+                participant, _ = schools.models.SchoolParticipant.objects.get_or_create(
+                    school=school,
+                    user=user,
+                    defaults={
+                        'parallel': parallel,
+                    }
+                )
+                if participant.parallel != parallel:
+                    warnings.append(
+                        UploadWarning(
+                            line_index, line,
+                            f"Для школьника {user.get_full_name()} "
+                            f"уже была установлена параллель {participant.parallel.name}, "
+                            f"поменялась на {parallel.name}"
+                        )
+                    )
+                    participant.parallel = parallel
+                    participant.save()
+
+                evaluation = study_results_models.StudyResult.Evaluation
+                try:
+                    evaluation.get_choice(theory)
+                    evaluation.get_choice(practice)
+                except KeyError as e:
+                    warnings.append(UploadWarning(
+                        line_index, line, f"Неизвестная оценка «{e.args[0]}». "
+                                          f"Допустимые оценки: {list(evaluation.labels.values())}"
+                    ))
+                    continue
+
+                study_result, _ = study_results_models.StudyResult.objects.update_or_create(
+                    school_participant=participant,
+                    defaults={
+                        'theory': theory,
+                        'practice': practice,
+                    }
+                )
+
+                comments = {
+                    'study_comment_field_name': study_results_models.StudyComment,
+                    'social_comment_field_name': study_results_models.SocialComment,
+                    'as_winter_participant_field_name': study_results_models.AsWinterParticipantComment,
+                    'next_year_field_name': study_results_models.NextYearComment,
+                    'as_teacher_field_name': study_results_models.AsTeacherComment,
+                    'after_winter_field_name': study_results_models.AfterWinterComment,
+                }
+                for comment_field_name, comment_class in comments.items():
+                    if form.cleaned_data[comment_field_name] and line[form.cleaned_data[comment_field_name]]:
+                        comment_class.objects.get_or_create(
+                            study_result=study_result,
+                            defaults={
+                                'comment': line[form.cleaned_data[comment_field_name]],
+                                'created_by': created_by,
+                            }
+                        )
+            except KeyError as e:
+                warnings.append(UploadWarning(
+                    line_index, line, f"Не найдена колонка «{e.args[0]}»"
+                ))
+            except Exception as e:
+                warnings.append(UploadWarning(
+                    line_index, line, f"Ошибка: {e}"
+                ))
+
+        if line_index is None:
+            warnings.append(UploadWarning(
+                1, {}, "Пустой файл"
+            ))
+
+    return line_index, warnings
+
+
+@groups.decorators.only_for_groups(STUDENT_COMMENTS_EDITORS)
+def upload_study_results(request: HttpRequest) -> HttpResponse:
+    records_count = None
+    warnings: List[UploadWarning] = []
+    if request.method == 'POST':
+        form = forms.UploadStudyResultsForm(data=request.POST, files=request.FILES)
+        if form.is_valid():
+            file = form.cleaned_data['file']
+            saved_file = sistema.uploads.save_file(file, 'study-results')
+            try:
+                records_count, warnings = _upload_study_results(request.school, form, saved_file, request.user)
+            except Exception as e:
+                form.add_error('file', f'Не удалось прочитать CSV-файл. Питоновская ошибка: {e}.')
+    else:
+        form = forms.UploadStudyResultsForm()
+
+    return django.shortcuts.render(
+        request, 'study_results/staff/upload_study_results.html',
+        {
+            'school': request.school,
+            'form': form,
+            'uploaded_records_count': records_count,
+            'uploading_warnings': warnings,
+        }
+    )

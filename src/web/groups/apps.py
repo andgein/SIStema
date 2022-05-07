@@ -174,11 +174,18 @@ class GroupsConfig(AppConfig):
             )
 
     def _set_hook_for_new_school(self):
+        import schools.models
         post_save.connect(
-            lambda **kwargs: self._on_new_school(),
-            sender='schools.School'
+            self._on_new_school,
+            sender=schools.models.School
         )
 
-    def _on_new_school(self):
+    def _on_new_school(self, **kwargs):
+        if kwargs.get('raw'):
+            # Ignore "loaddata" operations which is marked by "raw" keyword.
+            # See https://stackoverflow.com/questions/3499791/how-do-i-prevent-fixtures-from-conflicting-with-django-post-save-signal-code
+            # and https://code.djangoproject.com/ticket/8399
+            return
+
         # Call initializing method again for creating groups for the new school
         self._ensure_all_groups_exist_and_configured()

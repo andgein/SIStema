@@ -1,8 +1,8 @@
 {% load url %}
 
 {% for menu_item in menu %}
-    <li class="active_">
-        <a href="{{ menu_item.view_link }}" class="{{ menu_item.child|yesno:'accordion-toggle,' }}">
+    <li class="{% if menu_item.is_active %}active{% endif %}">
+        <a href="{{ menu_item.view_link }}" class="{{ menu_item.children|yesno:'accordion-toggle,' }} {{ menu_item.is_active|yesno:'menu-open,' }}">
             {% if menu_item.icon %}
                 <span class="{{ menu_item.icon }}"></span>
             {% endif %}
@@ -20,14 +20,14 @@
                 </span>
             {% endif %}
 
-            {% if menu_item.child %}
+            {% if menu_item.children %}
                 <span class="caret"></span>
             {% endif %}
         </a>
 
-        {% if menu_item.child %}
+        {% if menu_item.children %}
             <ul class="nav sub-nav">
-                {% include '_staff_sidebar_menu.html' with menu=menu_item.child %}
+                {% include '_staff_sidebar_menu.html' with menu=menu_item.children %}
             </ul>
         {% endif %}
     </li>

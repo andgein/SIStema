@@ -1,7 +1,7 @@
 from functools import wraps
 
 from django.db.models import Q
-from django.http.response import HttpResponseNotFound, HttpResponseForbidden
+from django.http.response import HttpResponseNotFound
 
 from groups.models import AbstractGroup
 
@@ -10,10 +10,11 @@ __all__ = ['only_for_groups']
 
 def only_for_groups(*group_names):
     """
-    This decorators passes the request if user is a member of at least one
-    of groups defined in `group_names`. Groups should be defined for
-    school from request (`request.school`) or as system-wide.
-    Otherwise decorator returns HttpResponseNotFound()
+    This decorator passes the request further if (and only if)
+    user is a member of at least one of groups specified in `group_names`.
+    Groups should be created in the school from the request (`request.school`)
+    or as system-wide.
+    Otherwise, decorator returns HttpResponseNotFound()
     :param group_names: list of group's short_names
     """
     if len(group_names) == 0:
@@ -45,7 +46,7 @@ def only_for_groups(*group_names):
                 if group_name not in groups_by_short_name:
                     raise ValueError(
                         'Invalid group_name in only_for_groups(): %s. '
-                        'Can\'t find this group for school %s' % (
+                        'Can\'t find this group for school %s or system-wide' % (
                             group_name,
                             school
                         ))

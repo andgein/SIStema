@@ -10,6 +10,7 @@ class StudyResult(models.Model):
     class Evaluation(djchoices.DjangoChoices):
         NOT_APPLICABLE = djchoices.ChoiceItem('N/A', 'N/A')
         TWO = djchoices.ChoiceItem('2', '2')
+        TWO_PLUS = djchoices.ChoiceItem('2+', '2+')
         THREE_MINUS = djchoices.ChoiceItem('3-', '3-')
         THREE = djchoices.ChoiceItem('3', '3')
         THREE_PLUS = djchoices.ChoiceItem('3+', '3+')

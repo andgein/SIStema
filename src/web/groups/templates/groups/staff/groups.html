@@ -15,10 +15,10 @@
 {% block topbar_left %}
     <ol class="breadcrumb">
         <li class="crumb-active">
-            Группы
+            {{ school.full_name }}
         </li>
         <li class="crumb-train">
-            <a href="{% url 'school:groups:list' school.short_name %}">{{ school.full_name }}</a>
+            <a href="{% url 'school:groups:list' school.short_name %}">Группы</a>
         </li>
     </ol>
 {% endblock %}

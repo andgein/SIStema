@@ -7,7 +7,7 @@ _registered_staff_interfaces = []
 
 
 class MenuItem:
-    def __init__(self, request, text, view_name, icon, label=None, button=None, child=None):
+    def __init__(self, request, text, view_name, icon, label=None, button=None, children=None):
         if isinstance(view_name, tuple) and len(view_name) == 2:
             view_name, view_params = view_name
         else:
@@ -21,11 +21,16 @@ class MenuItem:
             self.view_link = '#'
         else:
             self.view_link = reverse(view_name, kwargs=view_params)
+
         self.view_params = view_params
         self.icon = icon
         self.label = label
         self.button = button
-        self.child = child
+        self.children = children
+
+        self.is_active = self.view_link == request.path
+        if self.children is not None and any(child.is_active for child in children):
+            self.is_active = True
 
 
 class MenuItemLabel:

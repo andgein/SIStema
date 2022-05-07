@@ -1,0 +1,129 @@
+{% extends 'staff_layout.html' %}
+
+{% load static %}
+{% load dict_tags %}
+{% load number_to_text %}
+
+{% block title %}Загрузить результаты обучения {{ school.name }}{% endblock %}
+
+{% block topbar_left %}
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            {{ school.full_name }}
+        </li>
+        <li class="crumb-train">
+            <a href="{% url 'school:study_results:view' request.school.short_name %}">Результаты обучения</a>
+        </li>
+        <li>
+            Загрузить
+        </li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+    {% if form.errors %}
+        {% for field in form %}
+            {% if field.errors %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <i class="fa fa-warning pr10"></i>
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+
+    <form action="{% url 'school:study_results:upload' request.school.short_name %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="admin-form theme-primary">
+            <div class="panel heading-border panel-primary mw1000 center-block">
+                {% if uploaded_records_count or uploading_warnings %}
+                    <div class="panel-heading lh25">
+                        {% if uploaded_records_count %}
+                            <div class="panel-title mv20">
+                                Обработано {{ uploaded_records_count }} {{ uploaded_records_count|russian_pluralize:'строка,строки,строк' }}
+                            </div>
+                        {% endif %}
+
+                        {% if uploading_warnings %}
+                            <a class="internal-page-link" href="javascript: return false" data-toggle="collapse" data-target="#warnings" aria-expanded="false" aria-controls="collapseExample">
+                                Предупреждения и ошибки
+                            </a>
+                            <div class="collapse" id="warnings">
+                                <div class="card card-body">
+                                    {% for warning in uploading_warnings %}
+                                    <div class="text-dark-dark mv10">
+                                        Строка {{ warning.line_index }}: {{ warning.message }}
+                                        <div class="fs8 lh12">Данные в строке: {{ warning.line }}</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="panel-footer text-left pl25 pv20">
+                        <a href="{% url 'school:study_results:upload' request.school.short_name %}" class="btn btn-default">← Назад к форме</a>
+                        <span class="text-right ">
+                            <a href="{% url 'school:study_results:view' request.school.short_name %}" class="btn btn-success">Перейти к загруженным данным →</a>
+                        </span>
+                    </div>
+                {% else %}
+                    <div class="panel-heading">
+                        <div class="panel-title mb10">
+                            Загрузите оценки и комментарии преподавателей
+                        </div>
+                        <p class="lh25">
+                            Если оценки хранятся в гуглдоке, экспортируйте таблицу как CSV (Файл → Скачать → Формат CSV или File → Download → CSV Format).
+                        </p>
+                        <p class="lh25">
+                            Укажите ниже в&nbsp;«Параметрах» названия тех полей, которые присутствуют в гуглдоке.
+                            Поля, которые отсутствуют, заполните пустой строкой или проигнорируйте.
+                        </p>
+                    </div>
+                    <div class="panel-body bg-light">
+                        <label class="field prepend-icon file mt20">
+                            <span class="button btn-primary">Выбрать</span>
+                            <input type="file" class="gui-file" name="file" id="file" onchange="document.getElementById('uploader').value = this.files[0].name;">
+                            <input type="text" class="gui-input" id="uploader" placeholder="CSV-файл с результатами">
+                            <label class="field-icon">
+                              <i class="fa fa-upload"></i>
+                            </label>
+                        </label>
+
+                        <div class="section-divider mv40">
+                            <span>Параметры</span>
+                        </div>
+
+                        {% for field_name in form.fields %}
+                            {% with field=form|get_item:field_name %}
+                                {% if field.name != 'file' %}
+                                    <div class="row mv10">
+                                        <div class="col-md-4">
+                                            <label class="field-label pt10">
+                                                {{ field.help_text }}{% if field.field.required %}*{% endif %}
+                                            </label>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <label class="field">
+                                                <input type="text" name="{{ field.name }}" id="{{ field.auto_id }}" class="gui-input" placeholder="Например, «{{ field.initial }}»" value="{{ field.initial }}">
+                                            </label>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+
+                    </div>
+                    <div class="panel-footer text-right pr25 pv20">
+                        <button type="submit" class="btn btn-success">Загрузить</button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </form>
+{% endblock %}

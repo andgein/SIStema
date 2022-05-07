@@ -14,14 +14,14 @@
 
 {% block topbar_left %}
     <ol class="breadcrumb">
-        <li class="crumb-active">
-            Группы
-        </li>
         {% if group.school %}
-            <li class="crumb-link">
-                <a href="{% url 'school:groups:list' request.school.short_name %}">{{ group.school.full_name }}</a>
+            <li class="crumb-active">
+                {{ group.school.full_name }}
             </li>
         {% endif %}
+        <li class="crumb-link">
+            <a href="{% url 'school:groups:list' request.school.short_name %}">Группы</a>
+        </li>
         <li class="crumb-train">{{ group.name }}</li>
     </ol>
 {% endblock %}
