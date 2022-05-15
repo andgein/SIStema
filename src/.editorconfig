@@ -12,7 +12,7 @@ trim_trailing_whitespace = true
 
 [*.py]
 continuation_indent_size = 4
-max_line_length = 80
+max_line_length = 120
 spaces_around_operators=true
 
 [**/static/vendor/**]

@@ -1,5 +1,6 @@
 import enum
 import operator
+from typing import Optional
 
 from django.core.exceptions import ValidationError
 from django.db import models, transaction, IntegrityError
@@ -30,7 +31,7 @@ EntranceStepState.do_not_call_in_templates = True
 
 
 class EntranceStepBlock:
-    def __init__(self, step, user, state):
+    def __init__(self, step: "AbstractEntranceStep", user, state):
         self.step = step
         self.user = user
         self.state = state
@@ -45,6 +46,11 @@ class EntranceStepBlock:
             else step.available_to_time.datetime_for_user(user))
         self.step_is_opened = step.is_opened(user)
         self.step_is_closed = step.is_closed(user)
+
+        next_visible_step = step.get_next_visible_step(user)
+        self.step_is_last_passed_step = step.is_passed(user) and (
+            next_visible_step is None or not next_visible_step.is_passed(user)
+        )
 
 
 class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
@@ -217,6 +223,16 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
         if self.available_to_time is None:
             return False
         return self.available_to_time.passed_for_user(user)
+
+    @property
+    def next(self) -> Optional["AbstractEntranceStep"]:
+        return self.school.entrance_steps.filter(order__gt=self.order).order_by("order").first()
+
+    def get_next_visible_step(self, user) -> Optional["AbstractEntranceStep"]:
+        next_step = self.next
+        while next_step is not None and not next_step.is_visible(user):
+            next_step = next_step.next
+        return next_step
 
 
 class EntranceStepTextsMixIn(models.Model):
@@ -746,13 +762,13 @@ class SelectEnrollmentTypeEntranceStep(AbstractEntranceStep, EntranceStepTextsMi
         if not super().is_passed(user):
             return False
 
-        # Looking for enrollment type already selected in this step by this user
+        # Looking for enrollment type already selected in this step by the user
         selected = SelectedEnrollmentType.objects.filter(
             user=user,
             enrollment_type__step=self
         ).first()
 
-        # If user haven't selected the enrollment type, then step is not passed
+        # If user doesn't select the enrollment type, step is not passed
         if selected is None:
             return False
 
@@ -886,6 +902,15 @@ class SelectedEnrollmentType(models.Model):
         null=True,
     )
 
+    allow_pass_entrance_exam = models.BooleanField(
+        verbose_name='разрешить ли сдавать вступительную',
+        help_text='Если False, то школьнику будет недоступно выполнение вступительной работы ни на каком уровне. '
+                  'Технически эквивалентно тому, чтобы выставить «зачтённый уровень вступительной» в максимально '
+                  'возможный уровень. Отличается в формулировках, видимых пользователю.',
+        default=True,
+        null=False,
+    )
+
     custom_resolution_text = models.TextField(
         help_text='Текст, объясняющий решение организаторов. Можно не указывать, '
                   'тогда школьнику покажется текст по умолчанию в зависимости '
@@ -920,12 +945,19 @@ class SelectedEnrollmentType(models.Model):
         )
 
     def has_entrance_level(self):
-        return self.accepted_entrance_level is not None or self.entrance_level is not None
+        return (
+            self.accepted_entrance_level is not None or
+            self.entrance_level is not None or
+            not self.allow_pass_entrance_exam
+        )
 
     def get_entrance_level(self):
         """
         Returns entrance level for participant.
         """
+        if not self.allow_pass_entrance_exam:
+            return levels_models.EntranceLevel.get_max_entrance_level(self.step.school)
+
         if self.accepted_entrance_level is not None:
             entrance_level = levels_models.EntranceLevel.objects.filter(
                 school=self.step.school,
@@ -948,11 +980,19 @@ class SelectedEnrollmentType(models.Model):
                                   'as entrance level')
         if self.enrollment_type.step_id != self.step_id:
             raise ValidationError('Can\'t save SelectedEnrollmentType: '
-                                 'Enrollment type should belong to the same step '
-                                 'as this object')
+                                  'Enrollment type should belong to the same step '
+                                  'as this object')
         if self.accepted_entrance_level is not None and self.entrance_level is not None:
             raise ValidationError('Can\' specify both entrance_level and accepted_entrance_level. '
                                   'Choose only one.')
+        if self.accepted_entrance_level is not None and not self.allow_pass_entrance_exam:
+            raise ValidationError('Can\'t specify accepted_entrance_level while disallowing '
+                                  'participating in the entrance exam. Left accepted_entrance_level '
+                                  'empty.')
+        if self.entrance_level is not None and not self.allow_pass_entrance_exam:
+            raise ValidationError('Can\'t specify entrance_level while disallowing '
+                                  'participating in the entrance exam. Left entrance_level '
+                                  'empty.')
 
     def save(self, *args, **kwargs):
         if (self.entrance_level is not None and

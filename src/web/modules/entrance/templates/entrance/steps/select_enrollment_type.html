@@ -73,7 +73,10 @@
                 {% endif %}
                 <p>
                     {% if entrance_block.selected.parallel %}
-                        Вы зачислены в параллель <strong>{{ entrance_block.selected.parallel.name }}</strong>
+                        Вы зачислены в&nbsp;параллель <strong>{{ entrance_block.selected.parallel.name }}</strong>.
+                    {% elif not entrance_block.selected.allow_pass_entrance_exam %}
+                        Вы зачислены в&nbsp;{{ entrance_block.step.school.name }} <b>без вступительной работы</b>.
+                        Конкретная параллель, в которой вы будете учиться, пока неизвестна.
                     {% elif entrance_block.selected.accepted_entrance_level %}
                         Конкретная параллель, в которой вы будете учиться, пока неизвестна.
                         Вам зачтена вступительная работа <b>уровня «{{ entrance_block.selected.accepted_entrance_level.name }}»</b>.
@@ -88,7 +91,13 @@
         {% endif %}
         {% if not entrance_block.step_is_closed %}
             <div class="pt25">
-                <button type="submit" class="btn btn-danger">Изменить выбор</button>
+                <button type="submit" class="btn {% if entrance_block.selected.is_approved %}btn-danger{% else %}btn-default{% endif %}">Изменить выбор</button>
+                {% if entrance_block.selected.is_approved %}
+                    <div class="text-danger mt10">
+                        При нажатии на эту кнопку текущее подтверждение <strong>полностью отменится</strong>.<br>
+                        Вам придётся выбирать и ожидать его заново.
+                    </div>
+                {% endif %}
             </div>
         {% endif %}
     </form>

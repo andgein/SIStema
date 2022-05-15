@@ -114,7 +114,7 @@ class SelectedEntranceLevelAdmin(admin.ModelAdmin):
         'user__profile__middle_name',
         'user__profile__last_name',
     )
-    
+
 
 @admin.register(models.EntranceExamTaskSolution)
 class EntranceExamTaskSolutionAdmin(
@@ -461,6 +461,7 @@ class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
         'parallel',
         'accepted_entrance_level',
         'entrance_level',
+        'allow_pass_entrance_exam',
         'reviewed_by',
         'enrollment_type',
     )

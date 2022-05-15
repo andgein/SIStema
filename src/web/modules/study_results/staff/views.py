@@ -1,19 +1,18 @@
 import csv
-import logging
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Optional
 
+import django.db.transaction
 import django.shortcuts
 import django.urls
-import django.db.transaction
 from django.http import HttpRequest, HttpResponse
 
-import schools.models
-import sistema.uploads
 import frontend.icons
 import frontend.table
 import groups.decorators
 import modules.study_results.models as study_results_models
+import schools.models
+import sistema.uploads
 import users.models
 from frontend.table.utils import A, TableDataSource
 from modules.study_results.groups import STUDENT_COMMENTS_VIEWERS, STUDENT_COMMENTS_EDITORS
@@ -262,7 +261,7 @@ def upload_study_results(request: HttpRequest) -> HttpResponse:
         form = forms.UploadStudyResultsForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             file = form.cleaned_data['file']
-            saved_file = sistema.uploads.save_file(file, 'study-results')
+            saved_file = sistema.uploads.save_file(file, 'study-results', 'csv')
             try:
                 records_count, warnings = _upload_study_results(request.school, form, saved_file, request.user)
             except Exception as e:
