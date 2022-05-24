@@ -1,3 +1,4 @@
+import multiselectfield
 from django.db import models, IntegrityError
 from django.db.models import Q
 
@@ -7,6 +8,9 @@ from .main import EntranceStatus, AbstractAbsenceReason
 
 
 class EntranceStatusGroup(groups.models.AbstractGroup):
+    """
+    Deprecated. Use EntranceStatusesGroup
+    """
     status = models.IntegerField(
         choices=EntranceStatus.Status.choices,
         validators=[EntranceStatus.Status.validator]
@@ -23,6 +27,26 @@ class EntranceStatusGroup(groups.models.AbstractGroup):
     def user_ids(self):
         return EntranceStatus.objects.filter(
             status=self.status,
+            school=self.school
+        ).values_list('user_id', flat=True)
+
+
+class EntranceStatusesGroup(groups.models.AbstractGroup):
+    statuses = multiselectfield.MultiSelectField(
+        choices=EntranceStatus.Status.choices,
+    )
+
+    def is_user_in_group(self, user):
+        return EntranceStatus.objects.filter(
+            user=user,
+            status__in=list(self.statuses),
+            school=self.school,
+        ).exists()
+
+    @property
+    def user_ids(self):
+        return EntranceStatus.objects.filter(
+            status__in=list(self.statuses),
             school=self.school
         ).values_list('user_id', flat=True)
 

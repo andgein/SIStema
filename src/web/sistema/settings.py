@@ -65,6 +65,7 @@ INSTALLED_APPS = (
     'mptt',
     'sekizai',
     'sorl.thumbnail',
+    'multiselectfield',
     'wiki',
     'wiki.plugins.attachments',
     'wiki.plugins.globalhistory',

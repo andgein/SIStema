@@ -526,6 +526,11 @@ class EntranceStatusGroupAdmin(groups.admin.AbstractGroupChildAdmin):
     base_model = models.EntranceStatusGroup
 
 
+@admin.register(models.EntranceStatusesGroup)
+class EntranceStatusesGroupAdmin(groups.admin.AbstractGroupChildAdmin):
+    base_model = models.EntranceStatusesGroup
+
+
 @admin.register(models.EnrollmentApprovingStatusGroup)
 class EnrollmentApprovingStatusGroupAdmin(groups.admin.AbstractGroupChildAdmin):
     base_model = models.EnrollmentApprovingStatusGroup
