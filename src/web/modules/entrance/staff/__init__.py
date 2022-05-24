@@ -2,7 +2,7 @@ import frontend.icons
 import sistema.staff
 from . import views
 from .. import groups as entrance_groups
-from .. import helpers
+from .. import utils
 import groups
 
 
@@ -11,7 +11,7 @@ class EntranceStaffInterface(sistema.staff.StaffInterface):
     def __init__(self, request):
         super().__init__(request)
         self._enrollees_count = \
-            helpers.get_enrolling_users_ids(request.school).count()
+            utils.get_enrolling_user_ids(request.school).count()
 
         self.is_entrance_admin = groups.is_user_in_group(
             request.user,

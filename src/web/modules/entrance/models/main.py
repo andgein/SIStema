@@ -11,6 +11,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 import dates.models
+import groups.models
 import modules.ejudge.models
 from modules.entrance import forms
 
@@ -146,7 +147,7 @@ class EntranceExamTaskCategory(models.Model):
 class EntranceExamTask(polymorphic.models.PolymorphicModel):
     title = models.CharField(max_length=100, help_text='Название')
 
-    text = models.TextField(help_text='Формулировка задания')
+    text = models.TextField(help_text='Формулировка задания', blank=True)
 
     exam = models.ForeignKey(
         'EntranceExam',
@@ -182,6 +183,16 @@ class EntranceExamTask(polymorphic.models.PolymorphicModel):
                   'для кого эта задача предназначена.\n'
                   'Поддерживается Markdown',
         blank=True,
+    )
+
+    visible_only_for_group = models.ForeignKey(
+        groups.models.AbstractGroup,
+        related_name='+',
+        null=True,
+        blank=True,
+        help_text='Здесь можно указать группу школьников. '
+                  'Тогда эта задача будет видна только этим школьникам.',
+        on_delete=models.SET_NULL,
     )
 
     def __str__(self):

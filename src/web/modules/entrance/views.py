@@ -62,6 +62,12 @@ def get_entrance_level_and_tasks(school, user):
     else:
         tasks = upgrades.get_entrance_tasks(school, user, level)
 
+    # Some tasks may have a filter, which specifies the group of students who can see this task
+    tasks = [
+        task for task in tasks
+        if task.visible_only_for_group is None or task.visible_only_for_group.is_user_in_group(user)
+    ]
+
     return level, tasks
 
 

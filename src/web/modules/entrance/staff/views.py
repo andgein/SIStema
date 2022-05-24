@@ -32,7 +32,7 @@ from modules.entrance import views as entrance_views
 from modules.entrance.staff import forms
 from sistema.helpers import group_by, respond_as_attachment, nested_query_list, list_to_dict
 from users import search_utils
-from .. import helpers
+from .. import utils
 
 
 class EnrollingUsersTable(frontend.table.Table):
@@ -930,7 +930,7 @@ def _get_ejudge_task_accepted_solutions(school, solution_model):
 @sistema.staff.only_staff
 @groups.decorators.only_for_groups(entrance_groups.ADMINS)
 def initial_auto_reject(request):
-    user_ids = list(helpers.get_enrolling_users_ids(request.school))
+    user_ids = list(utils.get_enrolling_user_ids(request.school))
 
     practice_user_ids = set(_get_ejudge_task_accepted_solutions(
         request.school, models.ProgramEntranceExamTaskSolution

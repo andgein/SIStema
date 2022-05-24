@@ -17,7 +17,7 @@ class EntranceExamTaskAdmin(sistema.polymorphic.PolymorphicParentModelAdmin):
     list_display_links = ('id', 'get_description_html')
     list_filter = ('exam', PolymorphicChildModelFilter)
     ordering = ('exam', 'order')
-    autocomplete_fields = ('exam', 'category')
+    autocomplete_fields = ('exam', 'category', 'visible_only_for_group')
     search_fields = ('title', 'exam__school__name')
 
 

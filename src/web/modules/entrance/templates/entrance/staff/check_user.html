@@ -126,6 +126,14 @@
                                     <span class="">{{ entrance_level.name }}</span>{% if not forloop.last %}, {% endif %}
                                 {% endfor %}
                             </div>
+                            {% if program_task.visible_only_for_group %}
+                                <div class="fs10 mb10 mtn10 text-muted">
+                                    Задача для участников группы
+                                    <a href="{% url 'school:groups:group' request.school.short_name program_task.visible_only_for_group.id %}">
+                                        «{{ program_task.visible_only_for_group.name }}»
+                                    </a>
+                                </div>
+                            {% endif %}
                             <div id="tasks__program__{{ program_task.id }}" class="modal fade" role="dialog">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
