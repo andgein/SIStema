@@ -61,7 +61,7 @@ Pillow==9.1.0
 pip-review==1.1.1
 polygon-api==1.0a7
 pycparser==2.21
-PyJWT==2.3.0
+PyJWT==2.4.0
 pyparsing==3.0.6
 python-dateutil==2.8.2
 python-postmark==0.5.8
