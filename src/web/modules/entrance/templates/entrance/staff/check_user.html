@@ -187,7 +187,7 @@
                             Анкета поступающего</a>
                         <a href="{% url 'school:entrance:user_topics' request.school.short_name user_for_checking.id %}"
                            target="_blank" class="ml10" title="Откроется в новой вкладке">
-                            Тематическая анкета</a> {% if topics_entrance_level %}(<span title="Уровень, выданный по итогам тематической анкеты">«{{ topics_entrance_level.name }}»</span>){% endif %}
+                            ТА</a> {% if topics_entrance_level %}(<span title="Уровень, выданный по итогам тематической анкеты">«{{ topics_entrance_level.name }}»</span>){% endif %}
                     </div>
                 </div>
                 <div class="panel-body">
