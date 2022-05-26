@@ -630,7 +630,10 @@ class EntranceStatus(models.Model):
         ).first()
 
     def __str__(self):
-        return '%s %s' % (self.user, self.Status.values[self.status])
+        return '%s %s' % (self.user, self.get_status_description())
+
+    def get_status_description(self) -> str:
+        return self.Status.values[self.status]
 
     class Meta:
         verbose_name_plural = 'User entrance statuses'

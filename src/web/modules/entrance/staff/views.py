@@ -154,14 +154,13 @@ def check(request):
 
 
 class UserSummary:
-    def __init__(self, class_number, school, city, previous_parallels, a_ml, entrance_reason_text, entrance_statuses):
+    def __init__(self, class_number, school, city, previous_participations, a_ml, entrance_reason_text):
         self.class_number = class_number
         self.school = school
         self.city = city
-        self.previous_parallels = previous_parallels
+        self.previous_participations = previous_participations
         self.a_ml = a_ml
         self.entrance_reason_text = entrance_reason_text
-        self.entrance_statuses = entrance_statuses
 
     @classmethod
     def get_answer(cls, user, school, answer_model, question_short_name):
@@ -191,13 +190,12 @@ class UserSummary:
         entrance_reason_id = cls.get_answer(user, school, AnswerModel, 'entrance_reason')
         entrance_reason_text = variant_by_id[entrance_reason_id].text if entrance_reason_id else None
 
-        prev_parallel_answers = AnswerModel.objects.filter(
-            user=user,
-            questionnaire__school=school,
-            question_short_name='previous_parallels'
+        previous_participations = list(user.school_participations.select_related('school'))
+        previous_participations_school_ids = [p.school_id for p in previous_participations]
+        other_entrance_statuses = list(user.entrance_statuses.exclude(school_id__in=previous_participations_school_ids))
+        previous_participations = sorted(
+            previous_participations + other_entrance_statuses, key=lambda p: (p.school.year, p.school.id), reverse=True
         )
-        previous_parallels = [variant_by_id[ans.answer].text
-                              for ans in prev_parallel_answers]
 
         a_ml = AnswerModel.objects.filter(
             user=user,
@@ -205,9 +203,7 @@ class UserSummary:
             question_short_name='a_ml'
         ).exists()
 
-        entrance_statuses = list(models.EntranceStatus.objects.filter(user=user))
-
-        return cls(class_number, school_name, city, previous_parallels, a_ml, entrance_reason_text, entrance_statuses)
+        return cls(class_number, school_name, city, previous_participations, a_ml, entrance_reason_text)
 
 
 def _find_clones(user):
@@ -230,6 +226,7 @@ def check_user(request, user, group=None):
 
     base_entrance_level = None
     topics_entrance_level = None
+    level_limiters = []
     level_upgrades = []
     test_tasks = []
     file_tasks = []
@@ -237,6 +234,7 @@ def check_user(request, user, group=None):
     if entrance_exam is not None:
         base_entrance_level = upgrades.get_base_entrance_level(request.school, user)
         _, tasks = entrance_views.get_entrance_level_and_tasks(request.school, user)
+        level_limiters = list(request.school.entrance_level_limiters.all())
         level_upgrades = models.EntranceLevelUpgrade.objects.filter(
             upgraded_to__school=request.school,
             user=user
@@ -292,6 +290,7 @@ def check_user(request, user, group=None):
         'base_entrance_level': base_entrance_level,
         'level_upgrades': level_upgrades,
         'topics_entrance_level': topics_entrance_level,
+        'level_limiters': [(str(limiter), limiter.get_limit(user)) for limiter in level_limiters],
 
         'can_participant_select_entrance_level': entrance_exam.can_participant_select_entrance_level if entrance_exam else False,
         'selected_entrance_level': entrance_views.get_entrance_level_selected_by_user(request.school, user, base_entrance_level),
