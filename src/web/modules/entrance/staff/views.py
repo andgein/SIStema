@@ -229,6 +229,7 @@ def check_user(request, user, group=None):
     add_checking_comment_form = forms.AddCheckingCommentForm()
 
     base_entrance_level = None
+    topics_entrance_level = None
     level_upgrades = []
     test_tasks = []
     file_tasks = []
@@ -240,6 +241,7 @@ def check_user(request, user, group=None):
             upgraded_to__school=request.school,
             user=user
         )
+        topics_entrance_level = upgrades.get_topics_entrance_level(request.school, user)
         tasks_solutions = group_by(
             user.entrance_exam_solutions.filter(task__exam=entrance_exam).order_by('-created_at'),
             operator.attrgetter('task_id')
@@ -274,7 +276,6 @@ def check_user(request, user, group=None):
                     task.last_solution = None
                     task.checks = []
 
-
         test_tasks = list(filter(
             lambda t: type(t) is models.TestEntranceExamTask, tasks
         ))
@@ -290,6 +291,7 @@ def check_user(request, user, group=None):
         'user_for_checking': user,
         'base_entrance_level': base_entrance_level,
         'level_upgrades': level_upgrades,
+        'topics_entrance_level': topics_entrance_level,
 
         'can_participant_select_entrance_level': entrance_exam.can_participant_select_entrance_level if entrance_exam else False,
         'selected_entrance_level': entrance_views.get_entrance_level_selected_by_user(request.school, user, base_entrance_level),
