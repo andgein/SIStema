@@ -264,7 +264,7 @@ def submit(request, task_id):
         entrance_exam.is_closed(request.user) or
         task.category.is_finished_for_user(request.user))
 
-    ip = ipware.ip.get_ip(request) or ''
+    ip = ipware.ip.get_client_ip(request) or ''
 
     form = task.get_form_for_user(request.user, data=request.POST, files=request.FILES)
 
