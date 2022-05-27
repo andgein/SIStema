@@ -58,7 +58,7 @@ def get_entrance_level_and_tasks(school, user):
         selected_level = get_entrance_level_selected_by_user(school, user, level)
         if selected_level is not None and selected_level >= level:
             level = selected_level
-        tasks = list(sorted(level.tasks.all(), key=lambda x: x.order))
+        tasks = list(sorted(level.tasks.select_related('category', 'exam', 'exam__school').all(), key=lambda x: x.order))
     else:
         tasks = upgrades.get_entrance_tasks(school, user, level)
 
