@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django import forms
 from django.forms import widgets
 
@@ -137,7 +139,7 @@ class SelectSessionAndParallelForm(forms.Form):
 
 
 class SelectEntranceLevelForm(forms.Form):
-    def __init__(self, levels, base_level, *args, **kwargs):
+    def __init__(self, levels, base_level, recommended_level: Optional["EntranceLevel"] = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.fields['level'] = forms.TypedChoiceField(
@@ -148,6 +150,7 @@ class SelectEntranceLevelForm(forms.Form):
                 disabled_choices=[level.id for level in levels if level < base_level]
             ),
             coerce=int,
+            initial=recommended_level.id if recommended_level else None,
         )
 
         self.has_disabled_levels = any(level < base_level for level in levels)

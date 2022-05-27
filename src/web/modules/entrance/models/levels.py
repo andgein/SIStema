@@ -185,6 +185,11 @@ class EntranceLevelLimiter(polymorphic.models.PolymorphicModel):
         on_delete=models.CASCADE,
     )
 
+    is_recommendation_only_limiter = models.BooleanField(
+        default=False, help_text="Если True, то лимитер на самом деле не участвует в ограничении "
+                                 "доступных уровней, а влияет только на показ «рекомендуемого» уровня"
+    )
+
     def _find_minimal_level(self):
         return EntranceLevel.objects.filter(school=self.school).order_by('order').first()
 

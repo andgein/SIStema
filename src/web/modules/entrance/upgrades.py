@@ -38,7 +38,7 @@ def cache(seconds=900):
 #     checking 2017. We need to be able to see and export enrolling table
 #     without waiting forever. There shouldn't be any harm in doing that,
 #     because entrance levels do not change after exam is over.
-# TODO(andgein): In 2018 I've revered timeout back to 30 seconds
+# TODO(andgein): In 2018 I've reverted timeout back to 30 seconds
 @cache(30)
 def get_base_entrance_level(school, user):
     override = (models.EntranceLevelOverride.objects
@@ -46,8 +46,20 @@ def get_base_entrance_level(school, user):
     if override is not None:
         return override.entrance_level
 
+    return _get_entrance_level_by_limiters(school, user, allow_recommendation_only_limiters=False)
+
+
+@cache(30)
+def get_recommended_entrance_level(school, user):
+    return _get_entrance_level_by_limiters(school, user, allow_recommendation_only_limiters=True)
+
+
+def _get_entrance_level_by_limiters(school, user, allow_recommendation_only_limiters: bool):
     current_limit = models.EntranceLevelLimit(None)
-    for limiter in school.entrance_level_limiters.all():
+    limiters = school.entrance_level_limiters.all()
+    if not allow_recommendation_only_limiters:
+        limiters = limiters.filter(is_recommendation_only_limiter=False)
+    for limiter in limiters:
         current_limit.update_with_other(limiter.get_limit(user))
 
     if current_limit.min_level is None:

@@ -4,17 +4,24 @@
 
 {% block not_passed_after_text %}
     <div class="row {{ entrance_block.step.text_step_is_not_passed|yesno:'mt20,' }} mb20">
-        <div class="col-xs-12 col-sm-6">
+        <div class="col-xs-12 {% if not entrance_block.can_select_entrance_level or entrance_block.selected_entrance_level %}col-sm-6{% endif %}">
             <h4>Уровень вступительной работы</h4>
             {% if entrance_block.can_select_entrance_level %}
                 {% if entrance_block.selected_entrance_level %}
                     Вы выбрали вступительную работу уровня {{ entrance_block.selected_entrance_level.name }}.
                     <a href="?change_selected_entrance_level=true#entrance-step-{{ entrance_block.step.id }}" >Поменять уровень?</a>
                 {% else %}
+                    {% if entrance_block.recommended_entrance_level %}
+                        <p>
+                            На основании тематической анкеты мы рекомендуем вам уровень
+                            <b>«{{ entrance_block.recommended_entrance_level.name }}»</b>, но вы можете
+                            выбрать любой другой доступный вам уровень.
+                        </p>
+                    {% endif %}
                     <p>
                         Выберите уровень вступительной работы:
                     </p>
-                    <form method="POST" action="{% url 'school:entrance:steps:select_entrance_level' request.school.short_name entrance_block.step.id %}">
+                    <form method="POST" action="{% url 'school:entrance:steps:select_entrance_level' request.school.short_name entrance_block.step.id %}" class="col-sm-6 mln10">
                         {% csrf_token %}
                         {{ entrance_block.select_entrance_level_form }}
                         {% if entrance_block.select_entrance_level_form.has_disabled_levels %}

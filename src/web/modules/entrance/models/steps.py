@@ -405,13 +405,21 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
                     self.school, user, base_level
                 )
             )
-            block.select_entrance_level_form = forms.SelectEntranceLevelForm(
-                levels=list(self.school.entrance_levels.all()),
-                base_level=base_level,
-            )
 
             if request.GET.get('change_selected_entrance_level'):
                 block.selected_entrance_level = None
+
+            block.recommended_entrance_level = None
+            if block.selected_entrance_level is None:
+                block.recommended_entrance_level = entrance_upgrades.get_recommended_entrance_level(self.school, user)
+                if block.recommended_entrance_level < base_level:
+                    block.recommended_entrance_level = None
+
+                block.select_entrance_level_form = forms.SelectEntranceLevelForm(
+                    levels=list(self.school.entrance_levels.all()),
+                    base_level=base_level,
+                    recommended_level=block.recommended_entrance_level,
+                )
 
         block.task_category_stats = []
         for category, tasks in categories_with_tasks:
