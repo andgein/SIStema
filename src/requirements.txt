@@ -85,7 +85,7 @@ sqlparse==0.4.2
 termstyle==0.1.11
 toml==0.10.2
 trans==2.1.0
-urllib3==1.26.7
+urllib3==1.26.9
 webencodings==0.5.1
 wiki==0.7.9
 XlsxWriter==3.0.2
