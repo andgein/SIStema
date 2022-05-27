@@ -775,15 +775,16 @@ class TopicsEntranceLevelLimit(models.Model):
 
     @classmethod
     @transaction.atomic
-    def get_limit(cls, *, user, questionnaire) -> entrance_levels.EntranceLevelLimit:
-        cached_limit = (
-            cls.objects
-            .filter(user=user, questionnaire=questionnaire)
-            .select_related('level')
-            .first())
+    def get_limit(cls, *, user, questionnaire, ignore_cache: bool = False) -> entrance_levels.EntranceLevelLimit:
+        if not ignore_cache:
+            cached_limit = (
+                cls.objects
+                .filter(user=user, questionnaire=questionnaire)
+                .select_related('level')
+                .first())
 
-        if cached_limit is not None:
-            return entrance_levels.EntranceLevelLimit(cached_limit.level)
+            if cached_limit is not None:
+                return entrance_levels.EntranceLevelLimit(cached_limit.level)
 
         level = cls.compute_level(user=user, questionnaire=questionnaire)
         if questionnaire.get_status(user) == UserQuestionnaireStatus.Status.FINISHED:

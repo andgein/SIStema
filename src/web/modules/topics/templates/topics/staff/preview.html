@@ -17,38 +17,42 @@
 {% endblock %}
 
 {% block content %}
-    <div class="alert-info alert">
-        <p><b>Внимание!</b></p>
+    {% if not levels %}
+        Ещё никто не заполнил тематическую анкету. Приходите позже :-)
+    {% else %}
+        <div class="alert-info alert">
+            <p><b>Внимание!</b></p>
 
-        <p>Ниже указаны уровни вступительной работы, посчитанные только по тематической анкете.</p>
-        <p>Эти уровни посчитаны в режиме реального времени, без учёта кешей. </p>
-    </div>
-    <div class="row">
-        <div class="col-xs-12 col-md-4 col-lg-3">
-            <h3>По фамилии</h3>
-            {% for user, level in levels %}
-                <div>
-                    {{ forloop.counter }}.
-                    <a href="{% url 'school:entrance:user_topics' request.school.short_name user.id %}">{{ user.get_full_name }}</a>
-                    — «{{ level.name }}»
-                </div>
-            {% endfor %}
+            <p>Ниже указаны уровни вступительной работы, посчитанные только по тематической анкете.</p>
+            <p>Эти уровни посчитаны в режиме реального времени, без учёта кешей. </p>
         </div>
-        <div class="col-xs-12 col-md-8 col-lg-9">
-            <h3>По уровню</h3>
-            {% for level, users in users_by_level %}
-                <div class="mr10" style="float: left; display: inline-block">
+        <div class="row">
+            <div class="col-xs-12 col-md-4 col-lg-3">
+                <h3>По фамилии</h3>
+                {% for user, level in levels %}
                     <div>
-                        <b>{{ level.name }}</b>
+                        {{ forloop.counter }}.
+                        <a href="{% url 'school:entrance:user_topics' request.school.short_name user.id %}">{{ user.get_full_name }}</a>
+                        — «{{ level.name }}»
                     </div>
-                    {% for user in users %}
+                {% endfor %}
+            </div>
+            <div class="col-xs-12 col-md-8 col-lg-9">
+                <h3>По уровню</h3>
+                {% for level, users in users_by_level %}
+                    <div class="mr10" style="float: left; display: inline-block">
                         <div>
-                            {{ forloop.counter }}.
-                            <a href="{% url 'school:entrance:user_topics' request.school.short_name user.id %}">{{ user.get_full_name }}</a>
+                            <b>{{ level.name }}</b>
                         </div>
-                    {% endfor %}
-                </div>
-            {% endfor %}
+                        {% for user in users %}
+                            <div>
+                                {{ forloop.counter }}.
+                                <a href="{% url 'school:entrance:user_topics' request.school.short_name user.id %}">{{ user.get_full_name }}</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-    </div>
+    {% endif %}
 {% endblock %}
