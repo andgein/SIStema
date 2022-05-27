@@ -7,7 +7,6 @@ from django.contrib import admin
 import wiki.urls
 import django_nyt.urls
 
-
 urlpatterns = [
     url(r'', include('home.urls')),
     url(r'^admin/', admin.site.urls),
@@ -25,6 +24,8 @@ urlpatterns = [
 
     url(r'', include('users.urls')),
     url(r'', include('schools.urls', namespace='school')),
+
+    url(r'^__debug__/', include('debug_toolbar.urls')),
 ]
 
 

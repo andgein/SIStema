@@ -1,8 +1,8 @@
-import datetime
-
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+
+from sistema.cache import cache
 
 
 class KeyDate(models.Model):
@@ -49,16 +49,25 @@ class KeyDate(models.Model):
     def __str__(self):
         return '{}: {}'.format(self.datetime, self.name)
 
+    @property
+    @cache(60)
+    def _group_exceptions(self):
+        return list(self.group_exceptions.all())
+
+    @cache(60)
+    def _user_exceptions(self, user):
+        return self.user_exceptions.filter(user=user).first()
+
     def datetime_for_user(self, user):
         """
         Datetime for the specific user, considering exceptions.
         """
-        user_exception = self.user_exceptions.filter(user=user).first()
+        user_exception = self._user_exceptions(user)
         if user_exception is not None:
             return user_exception.datetime
 
         latest_datetime = None
-        for group_exception in self.group_exceptions.all():
+        for group_exception in self._group_exceptions:
             if group_exception.group.is_user_in_group(user):
                 if (latest_datetime is None or
                         latest_datetime < group_exception.datetime):

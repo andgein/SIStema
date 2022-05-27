@@ -27,7 +27,9 @@ class School(models.Model):
     short_name = models.CharField(
         max_length=20,
         help_text='Используется в урлах. Например, 2048',
-        unique=True)
+        unique=True,
+        db_index=True,
+    )
 
     is_public = models.BooleanField(
         default=False,

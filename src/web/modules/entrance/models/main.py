@@ -4,6 +4,7 @@ import django.utils.timezone
 import djchoices
 import polymorphic.models
 import sizefield.models
+from cached_property import cached_property
 from django.conf import settings
 from django.db import models, transaction, IntegrityError
 from django.urls import reverse
@@ -133,15 +134,23 @@ class EntranceExamTaskCategory(models.Model):
     def __str__(self):
         return 'Категория задач «{}» для «{}»'.format(self.title, self.exam)
 
+    @cached_property
+    def _available_from_time(self):
+        return self.available_from_time
+
+    @cached_property
+    def _available_to_time(self):
+        return self.available_to_time
+
     def is_started_for_user(self, user):
-        if self.available_from_time is None:
+        if self._available_from_time is None:
             return True
-        return self.available_from_time.passed_for_user(user)
+        return self._available_from_time.passed_for_user(user)
 
     def is_finished_for_user(self, user):
-        if self.available_to_time is None:
+        if self._available_to_time is None:
             return False
-        return self.available_to_time.passed_for_user(user)
+        return self._available_to_time.passed_for_user(user)
 
 
 class EntranceExamTask(polymorphic.models.PolymorphicModel):

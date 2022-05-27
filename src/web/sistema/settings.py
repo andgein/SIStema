@@ -62,10 +62,11 @@ INSTALLED_APPS = (
     'constance.backends.database',
     'django_tables2',
     'django_nyt',
+    'debug_toolbar',
     'mptt',
     'sekizai',
     'sorl.thumbnail',
-    'multiselectfield',
+    'multiselectfield',\
     'wiki',
     'wiki.plugins.attachments',
     'wiki.plugins.globalhistory',
@@ -118,6 +119,7 @@ MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -187,12 +189,12 @@ DATABASES = {
 
 # Cache
 
-if DEBUG:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-        }
-    }
+# if DEBUG:
+#     CACHES = {
+#         'default': {
+#             'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+#         }
+#     }
 
 
 # Internationalization
@@ -356,6 +358,8 @@ SETTINGS_EXPORT = [
 
 # Django >=3.2 requires default type for models.AutoField
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+INTERNAL_IPS = ["127.0.0.1"]
 
 # Override settings defined above with the settings from local_settings.py
 try:

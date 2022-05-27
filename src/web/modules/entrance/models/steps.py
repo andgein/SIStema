@@ -2,6 +2,7 @@ import enum
 import operator
 from typing import Optional
 
+from cached_property import cached_property
 from django.core.exceptions import ValidationError
 from django.db import models, transaction, IntegrityError
 from django.conf import settings
@@ -132,6 +133,14 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
     """ Override to True in your subclass to keep your step always open """
     always_expanded = False
 
+    @cached_property
+    def _available_from_time(self):
+        return self.available_from_time
+
+    @cached_property
+    def _available_to_time(self):
+        return self.available_to_time
+
     def is_passed(self, user):
         """
          Returns True if step is fully passed by user.
@@ -215,14 +224,14 @@ class AbstractEntranceStep(polymorphic_models.PolymorphicModel):
         super().save(*args, **kwargs)
 
     def is_opened(self, user):
-        if self.available_from_time is None:
+        if self._available_from_time is None:
             return True
-        return self.available_from_time.passed_for_user(user)
+        return self._available_from_time.passed_for_user(user)
 
     def is_closed(self, user):
-        if self.available_to_time is None:
+        if self._available_to_time is None:
             return False
-        return self.available_to_time.passed_for_user(user)
+        return self._available_to_time.passed_for_user(user)
 
     @property
     def next(self) -> Optional["AbstractEntranceStep"]:

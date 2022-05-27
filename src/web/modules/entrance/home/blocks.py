@@ -49,7 +49,9 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
         # It's here to avoid cyclic imports
         import modules.entrance.models as entrance_models
 
-        steps = self.school.entrance_steps.all()
+        steps = self.school.entrance_steps.select_related(
+            'available_from_time', 'available_to_time',
+        ).all()
 
         enrolled_to_session_ids = []
         enrolled_to_parallel_ids = []

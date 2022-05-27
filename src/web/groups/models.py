@@ -2,9 +2,10 @@ import collections
 
 import djchoices
 import polymorphic.models
-from django.db import models, IntegrityError
+from django.db import models
 from django.utils.functional import cached_property
 
+from sistema.cache import cache
 import schools.models
 import users.models
 
@@ -141,7 +142,8 @@ class ManuallyFilledGroup(AbstractGroup):
     # If there will be problems with performance of this method,
     # it can be useful to cache full list of group's members and
     # rebuild it after adding or removing a new member
-    @cached_property
+    @property
+    @cache(60)
     def user_ids(self):
         visited_groups_ids = {self.id}
         not_manually_filled_groups_members_ids = set()

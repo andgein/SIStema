@@ -9,10 +9,10 @@ def is_user_in_group(user, group_name, school=None):
     """
     # Importing here because this API is pulled into __init__.py. Django is unable to load models there.
     from groups import models
-    
+
     group = models.AbstractGroup.objects.filter(
         school=school, short_name=group_name
-    ).first()
+    ).select_related('school').first()
     if group is None:
         raise ValueError('Unknown group name %s for school %s' % (
             group_name,
