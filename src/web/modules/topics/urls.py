@@ -1,5 +1,7 @@
 from django import conf
 from django.conf.urls import url
+from django.urls import include
+
 from . import views
 
 app_name = 'topics'
@@ -13,6 +15,7 @@ urlpatterns = [
     url(r'^checking/finish/$', views.finish_smartq, name='finish_smartq'),
     url(r'^finish/$', views.finish, name='finish'),
     url(r'^correcting/(?P<topic_name>[^/]+)/$', views.correcting_topic_marks, name='correcting_topic'),
+    url(r'', include('modules.topics.staff.urls')),
 ]
 
 if conf.settings.DEBUG:

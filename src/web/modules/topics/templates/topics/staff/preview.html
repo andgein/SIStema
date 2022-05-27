@@ -1,0 +1,54 @@
+{% extends 'staff_layout.html' %}
+
+{% block title %}Тематическая анкета{% endblock %}
+
+{% block topbar_left %}
+    <ol class="breadcrumb">
+        <li class="crumb-active">
+            {{ request.school.name }}
+        </li>
+        <li class="crumb-trail">
+            <a href="{% url 'school:topics:info' request.school.short_name %}">Тематическая анкета</a>
+        </li>
+        <li class="crumb-trail">
+            Предпросмотр выданных уровней
+        </li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+    <div class="alert-info alert">
+        <p><b>Внимание!</b></p>
+
+        <p>Ниже указаны уровни вступительной работы, посчитанные только по тематической анкете.</p>
+        <p>Эти уровни посчитаны в режиме реального времени, без учёта кешей. </p>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-4 col-lg-3">
+            <h3>По фамилии</h3>
+            {% for user, level in levels %}
+                <div>
+                    {{ forloop.counter }}.
+                    <a href="{% url 'school:entrance:user_topics' request.school.short_name user.id %}">{{ user.get_full_name }}</a>
+                    — «{{ level.name }}»
+                </div>
+            {% endfor %}
+        </div>
+        <div class="col-xs-12 col-md-8 col-lg-9">
+            <h3>По уровню</h3>
+            {% for level, users in users_by_level %}
+                <div class="mr10" style="float: left; display: inline-block">
+                    <div>
+                        <b>{{ level.name }}</b>
+                    </div>
+                    {% for user in users %}
+                        <div>
+                            {{ forloop.counter }}.
+                            <a href="{% url 'school:entrance:user_topics' request.school.short_name user.id %}">{{ user.get_full_name }}</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

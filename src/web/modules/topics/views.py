@@ -238,7 +238,7 @@ def _show_or_process_topic_form(request, topic_issue):
 def index(request):
     user_status = _get_questionnaire_status(request.user, request.questionnaire)
 
-    # Disable access for users which already filled an questionnaire
+    # Disable access for users who already filled a questionnaire
     if user_status.status == models.UserQuestionnaireStatus.Status.FINISHED:
         return show_final_answers(request, request.user)
 

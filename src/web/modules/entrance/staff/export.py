@@ -174,9 +174,15 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=self.get_poldnev_history_for_users(enrollees),
         ))
 
-        previous_school = schools.models.School.objects.get(short_name='2020.winter')
+        previous_school = schools.models.School.objects.get(short_name='2021')
         columns.append(PlainExcelColumn(
-            name='Параллель в ЛКШ 2020.Зима',
+            name='Параллель в ЛКШ 2021',
+            data=self.get_real_parallel_for_users(enrollees, previous_school),
+        ))
+
+        previous_school = schools.models.School.objects.get(short_name='2021.winter')
+        columns.append(PlainExcelColumn(
+            name='Параллель в ЛКШ 2021.Зима',
             data=self.get_real_parallel_for_users(enrollees, previous_school),
         ))
 
@@ -446,14 +452,14 @@ class ExportCompleteEnrollingTable(django.views.View):
             name='',
             subcolumns=[
                 PlainExcelColumn(
-                    name='Оценки 2020.Зима',
+                    name='Оценки 2021.Зима',
                     cell_width=7,
-                    data=self.get_marks_for_users('2020.winter', enrollees),
+                    data=self.get_marks_for_users('2021.winter', enrollees),
                 ),
                 PlainExcelColumn(
-                    name='Оценки 2019.Зима',
+                    name='Оценки 2021',
                     cell_width=7,
-                    data=self.get_marks_for_users('2019.winter', enrollees),
+                    data=self.get_marks_for_users('2021', enrollees),
                 ),
             ],
         ))
@@ -464,9 +470,14 @@ class ExportCompleteEnrollingTable(django.views.View):
         ))
 
         columns.append(PlainExcelColumn(
-            name='Комментарии 2020.Зима',
+            name='Комментарии 2021',
             cell_width=30,
-            data=self.get_study_comments_for_users('2020.winter', enrollees),
+            data=self.get_study_comments_for_users('2021', enrollees),
+        ))
+        columns.append(PlainExcelColumn(
+            name='Комментарии 2021.Зима',
+            cell_width=30,
+            data=self.get_study_comments_for_users('2021.winter', enrollees),
         ))
 
         if (self.question_exists(request.school, 'informatics_olympiads') and
