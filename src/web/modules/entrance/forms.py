@@ -143,7 +143,8 @@ class SelectEntranceLevelForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         self.fields['level'] = forms.TypedChoiceField(
-            choices=[('', 'Не выбрано')] + [(level.id, level.name) for level in levels],
+            choices=([('', 'Не выбрано')] if recommended_level is None else []) +
+                    [(level.id, level.name) for level in levels],
             required=True,
             label='',
             widget=frontend.forms.SelectWithDisabledOptions(
