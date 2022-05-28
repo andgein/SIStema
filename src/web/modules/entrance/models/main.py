@@ -16,6 +16,7 @@ import dates.models
 import groups.models
 import modules.ejudge.models
 from modules.entrance import forms
+from sistema.cache import cache
 
 
 class EntranceExam(models.Model):
@@ -343,7 +344,7 @@ class EjudgeEntranceExamTask(EntranceExamTask):
     def is_accepted_for_user(self, user):
         return self.is_solved_by_user(user)
 
-    @functools.lru_cache(maxsize=None)
+    @cache(1)
     def is_solved_by_user(self, user):
         user_solutions = self.solution_class.objects.filter(
             user=user,
