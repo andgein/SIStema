@@ -1,0 +1,2 @@
+-r requirements.txt
+python-memcached==1.59

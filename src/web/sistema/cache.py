@@ -20,14 +20,20 @@ def cache(seconds=900):
     """
     def doCache(f):
         def x(*args, **kwargs):
-                key = sha1((str(f.__module__) + str(f.__name__) + str(args) + str(kwargs)).encode('utf-8')).hexdigest()
-                cache_value = _djcache.get(key)
-                if cache_value is None:
-                    result = f(*args, **kwargs)
-                    _djcache.set(key, (True, result), seconds)
-                else:
-                    _, result = cache_value
-                return result
+            arg_names = [str(arg.id) if hasattr(arg, 'id') else str(arg) for arg in args]
+            kwarg_names = [
+                f"{name}={value.id if hasattr(value, 'id') else str(value)}"
+                for name, value in kwargs.items()
+            ]
+            key_name = f"{f.__module__}.{f.__name__}({';!;'.join(arg_names)};!!;{';!;'.join(kwarg_names)})"
+            key = sha1(key_name.encode('utf-8')).hexdigest()
+            cache_value = _djcache.get(key)
+            if cache_value is None:
+                result = f(*args, **kwargs)
+                _djcache.set(key, (True, result), seconds)
+            else:
+                _, result = cache_value
+            return result
         return x
     return doCache
 # TODO: to here
