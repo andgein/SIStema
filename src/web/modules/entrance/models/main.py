@@ -317,7 +317,7 @@ class FileEntranceExamTask(EntranceExamTask):
                   'Поддерживается Markdown',
     )
 
-    @functools.lru_cache
+    @functools.lru_cache(maxsize=None)
     def is_accepted_for_user(self, user):
         return self.solutions.filter(user=user).exists()
 
@@ -343,7 +343,7 @@ class EjudgeEntranceExamTask(EntranceExamTask):
     def is_accepted_for_user(self, user):
         return self.is_solved_by_user(user)
 
-    @functools.lru_cache
+    @functools.lru_cache(maxsize=None)
     def is_solved_by_user(self, user):
         user_solutions = self.solution_class.objects.filter(
             user=user,
