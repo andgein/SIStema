@@ -1,6 +1,5 @@
 # Quick fix to possibly survive high QPS
 # TODO: refactor from here
-from hashlib import sha1
 from django.core.cache import cache as _djcache
 
 
@@ -25,8 +24,7 @@ def cache(seconds=900):
                 f"{name}={value.id if hasattr(value, 'id') else str(value)}"
                 for name, value in kwargs.items()
             ]
-            key_name = f"{f.__module__}.{f.__name__}({';!;'.join(arg_names)};!!;{';!;'.join(kwarg_names)})"
-            key = sha1(key_name.encode('utf-8')).hexdigest()
+            key = f"{f.__module__}.{f.__name__}({';!;'.join(arg_names)};!!;{';!;'.join(kwarg_names)})"
             cache_value = _djcache.get(key)
             if cache_value is None:
                 result = f(*args, **kwargs)

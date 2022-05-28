@@ -8,7 +8,7 @@ from . import models
 #     without waiting forever. There shouldn't be any harm in doing that,
 #     because entrance levels do not change after exam is over.
 # TODO(andgein): In 2018 I've reverted timeout back to 30 seconds
-@cache(30)
+@cache(60)
 def get_base_entrance_level(school, user):
     override = (models.EntranceLevelOverride.objects
                 .filter(school=school, user=user).first())
@@ -18,7 +18,7 @@ def get_base_entrance_level(school, user):
     return _get_entrance_level_by_limiters(school, user, allow_recommendation_only_limiters=False)
 
 
-@cache(30)
+@cache(60)
 def get_recommended_entrance_level(school, user):
     return _get_entrance_level_by_limiters(school, user, allow_recommendation_only_limiters=True)
 

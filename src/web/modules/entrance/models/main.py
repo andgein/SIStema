@@ -1,3 +1,4 @@
+import functools
 import re
 
 import django.utils.timezone
@@ -316,6 +317,7 @@ class FileEntranceExamTask(EntranceExamTask):
                   'Поддерживается Markdown',
     )
 
+    @functools.lru_cache
     def is_accepted_for_user(self, user):
         return self.solutions.filter(user=user).exists()
 
@@ -341,6 +343,7 @@ class EjudgeEntranceExamTask(EntranceExamTask):
     def is_accepted_for_user(self, user):
         return self.is_solved_by_user(user)
 
+    @functools.lru_cache
     def is_solved_by_user(self, user):
         user_solutions = self.solution_class.objects.filter(
             user=user,

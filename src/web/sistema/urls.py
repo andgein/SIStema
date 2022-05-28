@@ -21,12 +21,15 @@ urlpatterns = [
     url(r'^hijack/', include('hijack.urls')),
     url(r'^notifications/', django_nyt.urls.get_pattern()),
     url(r'^wiki/', wiki.urls.get_pattern()),
+    url(r'^__debug__/', include('debug_toolbar.urls')),
 
     url(r'', include('users.urls')),
     url(r'', include('schools.urls', namespace='school')),
 
-    url(r'^__debug__/', include('debug_toolbar.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns.insert(1, url(r'^silk/', include('silk.urls', namespace='silk')))
 
 
 # Needed for django-wiki in the DEBUG mode as said at

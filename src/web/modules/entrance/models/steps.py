@@ -402,7 +402,7 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
             for category in categories
         ]
 
-        entrance_exam = main_models.EntranceExam.objects.get(school=self.school)
+        entrance_exam = self.exam
         block.can_select_entrance_level = (
             not entrance_exam.is_closed(user) and
             entrance_exam.can_participant_select_entrance_level

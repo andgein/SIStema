@@ -6,6 +6,7 @@ from django.db import models, IntegrityError
 import polymorphic.models
 
 import schools.models
+from sistema.cache import cache
 
 
 class EntranceLevel(models.Model):
@@ -217,6 +218,13 @@ class AlreadyWasEntranceLevelLimiter(EntranceLevelLimiter):
     def __str__(self):
         return 'Лимитер по прошлым посещениям школы'
 
+    @cache(60)
+    def _cached_limits_for_parallels(self):
+        return list(self.limits_for_parallels.all())
+
+    def _limits_for_parallels_filter(self, key: str, value_list: list):
+        return [item for item in self._cached_limits_for_parallels() if getattr(item, key) in value_list]
+
     def get_limit(self, user):
         current_limit = EntranceLevelLimit(self._find_minimal_level())
 
@@ -224,19 +232,19 @@ class AlreadyWasEntranceLevelLimiter(EntranceLevelLimiter):
         user_parallel_ids = list(
             user.school_participations.values_list('parallel_id', flat=True)
         )
-        for limit_by_parallel in self.limits_for_parallels.filter(
-            previous_parallel_id__in=user_parallel_ids
+        for limit_by_parallel in self._limits_for_parallels_filter(
+            'previous_parallel_id', user_parallel_ids
         ):
             current_limit.update_with_other(
                 EntranceLevelLimit(limit_by_parallel.level)
             )
 
-        # Second, find limits for parallel by it's short name
+        # Second, find limits for parallel by its short name
         user_parallel_short_names = list(
             user.school_participations.values_list('parallel__short_name', flat=True)
         )
-        for limit_by_parallel_short_name in self.limits_for_parallels.filter(
-            previous_parallel_short_name__in=user_parallel_short_names
+        for limit_by_parallel_short_name in self._limits_for_parallels_filter(
+            'previous_parallel_short_name', user_parallel_short_names
         ):
             current_limit.update_with_other(
                 EntranceLevelLimit(limit_by_parallel_short_name.level)

@@ -33,7 +33,7 @@ TEMPLATE_DEBUG = DEBUG
 
 # Application definition
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     # https://github.com/yourlabs/django-autocomplete-light/blob/master/docs/install.rst
     # It should be before django.contrib.admin and grappelli (if present)
     'dal',
@@ -110,9 +110,15 @@ INSTALLED_APPS = (
     'modules.smartq',
     'modules.study_results.apps.StudyResultsConfig',
     'modules.topics',
-)
+]
+if DEBUG:
+    INSTALLED_APPS.append('silk')
+    ### Enable and mark method with `@silk_profile(name=...)` if you want to profile some code
+    ### You can also use context: `with silk_profile(name=...):`
+    # SILKY_PYTHON_PROFILER = True
+    # SILKY_PYTHON_PROFILER_BINARY = True
 
-MIDDLEWARE = (
+MIDDLEWARE = [
     'htmlmin.middleware.HtmlMinifyMiddleware',
     'htmlmin.middleware.MarkRequestMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -127,7 +133,9 @@ MIDDLEWARE = (
     'schools.middleware.SchoolMiddleware',
     'sistema.middleware.WikiWorkaroundMiddleware',
     'users.middleware.UserProfileMiddleware',
-)
+]
+if DEBUG:
+    MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
 
 ROOT_URLCONF = 'sistema.urls'
 

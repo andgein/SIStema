@@ -22,6 +22,21 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
         steps = self._get_entrance_steps_for_user(request.user)
 
         blocks = []
+
+        # Optimization Hack
+        status = entrance_models.EntranceStatus.objects.filter(school=request.school, user=request.user).first()
+        if status:
+            new_steps = []
+            for step in steps:
+                if isinstance(step, entrance_models.SolveExamEntranceStep) and step.is_opened(request.user):
+                    new_steps = []
+                    blocks = [
+                        "<div class='pb10'>Во время вступительной работы редактирование анкет недоступно.</div>"
+                    ]
+                new_steps.append(step)
+            steps = new_steps
+        # End of Optimization Hack
+
         for step in steps:
             block = step.build(request.user, request)
 
@@ -50,7 +65,7 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
         import modules.entrance.models as entrance_models
 
         steps = self.school.entrance_steps.select_related(
-            'available_from_time', 'available_to_time',
+            'available_from_time', 'available_to_time', 'school'
         ).all()
 
         enrolled_to_session_ids = []
