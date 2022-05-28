@@ -111,12 +111,6 @@ INSTALLED_APPS = [
     'modules.study_results.apps.StudyResultsConfig',
     'modules.topics',
 ]
-if DEBUG:
-    INSTALLED_APPS.append('silk')
-    ### Enable and mark method with `@silk_profile(name=...)` if you want to profile some code
-    ### You can also use context: `with silk_profile(name=...):`
-    # SILKY_PYTHON_PROFILER = True
-    # SILKY_PYTHON_PROFILER_BINARY = True
 
 MIDDLEWARE = [
     'htmlmin.middleware.HtmlMinifyMiddleware',
@@ -134,8 +128,6 @@ MIDDLEWARE = [
     'sistema.middleware.WikiWorkaroundMiddleware',
     'users.middleware.UserProfileMiddleware',
 ]
-if DEBUG:
-    MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
 
 ROOT_URLCONF = 'sistema.urls'
 
@@ -377,3 +369,12 @@ except ImportError as e:
     logging.getLogger(__name__).warning(
         'WARNING: No local sistema settings (local_settings.py) found. Using '
         'default values from settings.py.')
+
+if DEBUG:
+    INSTALLED_APPS.append('silk')
+    ### Enable and mark method with `@silk_profile(name=...)` if you want to profile some code
+    ### You can also use context: `with silk_profile(name=...):`
+    # SILKY_PYTHON_PROFILER = True
+    # SILKY_PYTHON_PROFILER_BINARY = True
+
+    MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
