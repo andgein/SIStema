@@ -16,6 +16,8 @@ class TopicsStaffInterface(sistema.staff.StaffInterface):
                     status=topics_models.UserQuestionnaireStatus.Status.FINISHED
                 ).count()
             )
+        else:
+            self._questionnaire = None
 
         self.is_entrance_admin = groups.is_user_in_group(
             request.user,
