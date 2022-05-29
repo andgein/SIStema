@@ -1,6 +1,8 @@
 import collections
+import datetime
 import enum
 import itertools
+from typing import Union
 
 import xlsxwriter
 
@@ -229,10 +231,20 @@ class ExportCompleteEnrollingTable(django.views.View):
                 data=self.get_ok_languages_for_users(request.school, enrollees),
             ))
 
+            columns.append(PlainExcelColumn(
+                name='Первый ОК',
+                data=self.get_ok_time_for_users(request.school, enrollees, min),
+            ))
+
+            columns.append(PlainExcelColumn(
+                name='Последний ОК',
+                data=self.get_ok_time_for_users(request.school, enrollees, max),
+            ))
+
             columns.append(LinkExcelColumn(
                 name='ТА',
                 data=[
-                    upgrades.get_base_entrance_level(request.school, user).name
+                    upgrades.get_topics_entrance_level(request.school, user).name
                     for user in enrollees
                 ],
                 data_urls=[
@@ -250,6 +262,12 @@ class ExportCompleteEnrollingTable(django.views.View):
                 columns.append(PlainExcelColumn(
                     name='Минимальный уровень',
                     data=self.get_base_entrance_level_for_users(
+                        request.school, enrollees
+                    ),
+                ))
+                columns.append(PlainExcelColumn(
+                    name='Рекомендованный уровень',
+                    data=self.get_recommended_entrance_level_for_users(
                         request.school, enrollees
                     ),
                 ))
@@ -608,8 +626,10 @@ class ExportCompleteEnrollingTable(django.views.View):
         return real_parallels
 
     def get_base_entrance_level_for_users(self, school, enrollees):
-        return [upgrades.get_base_entrance_level(school, user).name
-                for user in enrollees]
+        return [upgrades.get_base_entrance_level(school, user).name for user in enrollees]
+
+    def get_recommended_entrance_level_for_users(self, school, enrollees):
+        return [upgrades.get_recommended_entrance_level(school, user).name for user in enrollees]
 
     def get_entrance_level_selected_by_users(self, school, enrollees):
         for user in enrollees:
@@ -707,6 +727,26 @@ class ExportCompleteEnrollingTable(django.views.View):
             languages_by_user_id[solution.user_id].add(solution.language.name)
         return ['\n'.join(sorted(languages_by_user_id[user.id]))
                 for user in enrollees]
+
+    def format_datetime(self, timestamp: Union[datetime.datetime, str]) -> str:
+        if not timestamp:
+            return timestamp
+        if isinstance(timestamp, str):
+            return timestamp
+        return timestamp.strftime("%d.%m.%Y %H:%M:%S")
+
+    def get_ok_time_for_users(self, school, enrollees, aggregation_function=min):
+        OK = ejudge_models.CheckingResult.Result.OK
+        ok_solutions = (
+            models.ProgramEntranceExamTaskSolution.objects
+                .filter(task__exam__school=school,
+                        user__in=enrollees,
+                        ejudge_queue_element__submission__result__result=OK)
+        )
+        times_by_user_id = collections.defaultdict(set)
+        for solution in ok_solutions:
+            times_by_user_id[solution.user_id].add(solution.created_at)
+        return [self.format_datetime(aggregation_function(times_by_user_id[user.id], default="")) for user in enrollees]
 
     def get_file_task_score_for_users(self, task, enrollees):
         checked_solutions = (
