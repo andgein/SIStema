@@ -421,7 +421,7 @@ class SolveExamEntranceStep(AbstractEntranceStep, EntranceStepTextsMixIn):
             block.recommended_entrance_level = None
             if block.selected_entrance_level is None:
                 block.recommended_entrance_level = entrance_upgrades.get_recommended_entrance_level(self.school, user)
-                if block.recommended_entrance_level < base_level:
+                if block.recommended_entrance_level < base_level or block.recommended_entrance_level.is_maximal():
                     block.recommended_entrance_level = None
 
                 block.select_entrance_level_form = forms.SelectEntranceLevelForm(

@@ -57,6 +57,8 @@ class EntranceLevel(models.Model):
     class Meta:
         ordering = ('school_id', 'order')
 
+    MAX_LEVEL_ORDER = 100000000
+
     @classmethod
     def get_max_entrance_level(cls, school):
         """
@@ -67,8 +69,11 @@ class EntranceLevel(models.Model):
             school=school,
             short_name='max',
             name='Максимальный',
-            order=100000000
+            order=cls.MAX_LEVEL_ORDER
         )
+
+    def is_maximal(self) -> bool:
+        return self.order == self.MAX_LEVEL_ORDER
 
 
 class EntranceLevelOverride(models.Model):
