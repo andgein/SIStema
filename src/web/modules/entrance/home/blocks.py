@@ -28,7 +28,10 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
         if status:
             new_steps = []
             for step in steps:
-                if isinstance(step, entrance_models.SolveExamEntranceStep) and step.is_opened(request.user):
+                state = step.get_state(request.user)
+                states = (entrance_models.EntranceStepState.WAITING_FOR_OTHER_STEP,
+                          entrance_models.EntranceStepState.NOT_OPENED)
+                if isinstance(step, entrance_models.SolveExamEntranceStep) and state not in states:
                     new_steps = []
                     blocks = [
                         "<div class='pb10'>Во время вступительной работы редактирование анкет недоступно.</div>"
