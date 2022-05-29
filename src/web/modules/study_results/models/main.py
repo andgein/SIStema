@@ -20,6 +20,7 @@ class StudyResult(models.Model):
         FIVE_MINUS = djchoices.ChoiceItem('5-', '5-')
         FIVE = djchoices.ChoiceItem('5', '5')
         FIVE_PLUS = djchoices.ChoiceItem('5+', '5+')
+        FIVE_PLUS_PLUS = djchoices.ChoiceItem('5++', '5++')
 
     school_participant = models.OneToOneField(
         schools.models.SchoolParticipant,
