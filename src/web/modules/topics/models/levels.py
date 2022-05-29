@@ -7,12 +7,13 @@ class TopicsEntranceLevelLimiter(levels.EntranceLevelLimiter):
         return "Лимитер по тематической анкете"
 
     def get_limit(self, user):
-        questionnaire = self.school.topicquestionnaire
-        if questionnaire is None:
+        if not hasattr(self.school, 'topicquestionnaire'):
             raise Exception(
                 '{}.{}:cannot use TopicsEntranceLevelLimiter without topics '
                 'questionnaire for this school'
                     .format(self.__module__, self.__class__.__name__))
+
+        questionnaire = self.school.topicquestionnaire
 
         return models.TopicsEntranceLevelLimit.get_limit(
             user=user, questionnaire=questionnaire)

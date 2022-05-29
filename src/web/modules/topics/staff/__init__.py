@@ -9,8 +9,8 @@ import modules.topics.models as topics_models
 class TopicsStaffInterface(sistema.staff.StaffInterface):
     def __init__(self, request):
         super().__init__(request)
-        self._questionnaire = request.school.topicquestionnaire
-        if self._questionnaire:
+        if hasattr(request.school, 'topicquestionnaire'):
+            self._questionnaire = request.school.topicquestionnaire
             self._filled_questionnaire_count = (
                 self._questionnaire.statuses.filter(
                     status=topics_models.UserQuestionnaireStatus.Status.FINISHED
