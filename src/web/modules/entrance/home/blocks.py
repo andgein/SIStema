@@ -23,22 +23,23 @@ class EntranceStepsHomePageBlock(home.models.AbstractHomePageBlock):
 
         blocks = []
 
-        # Optimization Hack
-        status = entrance_models.EntranceStatus.objects.filter(school=request.school, user=request.user).first()
-        if status:
-            new_steps = []
-            for step in steps:
-                state = step.get_state(request.user)
-                states = (entrance_models.EntranceStepState.WAITING_FOR_OTHER_STEP,
-                          entrance_models.EntranceStepState.NOT_OPENED)
-                if isinstance(step, entrance_models.SolveExamEntranceStep) and state not in states:
-                    new_steps = []
-                    blocks = [
-                        "<div class='pb10'>Во время вступительной работы редактирование анкет недоступно.</div>"
-                    ]
-                new_steps.append(step)
-            steps = new_steps
-        # End of Optimization Hack
+        ### Optimization Hack
+        # TODO (andgein): make it configurable and show only during the context
+        # status = entrance_models.EntranceStatus.objects.filter(school=request.school, user=request.user).first()
+        # if status:
+        #     new_steps = []
+        #     for step in steps:
+        #         state = step.get_state(request.user)
+        #         states = (entrance_models.EntranceStepState.WAITING_FOR_OTHER_STEP,
+        #                   entrance_models.EntranceStepState.NOT_OPENED)
+        #         if isinstance(step, entrance_models.SolveExamEntranceStep) and state not in states:
+        #             new_steps = []
+        #             blocks = [
+        #                 "<div class='pb10'>Во время вступительной работы редактирование анкет недоступно.</div>"
+        #             ]
+        #         new_steps.append(step)
+        #     steps = new_steps
+        ### End of Optimization Hack
 
         for step in steps:
             block = step.build(request.user, request)
