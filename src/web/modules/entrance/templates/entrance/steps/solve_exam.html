@@ -18,17 +18,21 @@
                             выбрать любой другой доступный вам уровень.
                         </p>
                     {% endif %}
-                    <p>
-                        Выберите уровень вступительной работы:
-                    </p>
-                    <form method="POST" action="{% url 'school:entrance:steps:select_entrance_level' request.school.short_name entrance_block.step.id %}" class="col-sm-6 mln10">
-                        {% csrf_token %}
-                        {{ entrance_block.select_entrance_level_form }}
-                        {% if entrance_block.select_entrance_level_form.has_disabled_levels %}
-                            <p class="help-block">Некоторые уровни недоступны из-за ограничений по возрасту или поступления без вступительной работы</p>
-                        {% endif %}
-                        <button type="submit" class="btn btn-primary mt20">Выбрать</button>
-                    </form>
+                    {% if entrance_block.select_entrance_level_form.has_enabled_levels %}
+                        <p>
+                            Выберите уровень вступительной работы:
+                        </p>
+                        <form method="POST" action="{% url 'school:entrance:steps:select_entrance_level' request.school.short_name entrance_block.step.id %}" class="col-sm-6 mln10">
+                            {% csrf_token %}
+                            {{ entrance_block.select_entrance_level_form }}
+                            {% if entrance_block.select_entrance_level_form.has_disabled_levels %}
+                                <p class="help-block">Некоторые уровни недоступны из-за ограничений по возрасту или поступления без вступительной работы</p>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary mt20">Выбрать</button>
+                        </form>
+                    {% else %}
+                        Выбор уровня и решение вступительной работы для вас недоступно.
+                    {% endif %}
                 {% endif %}
             {% else %}
                 <p>

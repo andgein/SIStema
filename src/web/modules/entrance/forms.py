@@ -155,3 +155,4 @@ class SelectEntranceLevelForm(forms.Form):
         )
 
         self.has_disabled_levels = any(level < base_level for level in levels)
+        self.has_enabled_levels = any(level >= base_level for level in levels)
