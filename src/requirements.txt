@@ -25,7 +25,7 @@ django-classy-tags==2.0.0
 django-compat==1.0.15
 django-constance==2.9.0
 django-debug-toolbar==3.4.0
-django-hijack==2.3.0
+django-hijack==3.2.1
 django-hijack-admin==2.1.10
 django-htmlmin==0.11.0
 django-ipware==4.0.2
