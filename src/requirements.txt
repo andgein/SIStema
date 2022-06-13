@@ -29,7 +29,7 @@ django-hijack==2.3.0
 django-hijack-admin==2.1.10
 django-htmlmin==0.11.0
 django-ipware==4.0.2
-django-jinja==2.10.0
+django-jinja==2.10.2
 django-js-asset==1.2.2
 django-markdown-deux==1.0.5
 django-multiselectfield==0.1.12
