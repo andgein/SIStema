@@ -29,7 +29,7 @@ django-hijack==2.3.0
 django-hijack-admin==2.1.10
 django-htmlmin==0.11.0
 django-ipware==4.0.2
-django-jinja==2.10.0
+django-jinja==2.10.2
 django-js-asset==1.2.2
 django-markdown-deux==1.0.5
 django-multiselectfield==0.1.12
@@ -40,7 +40,7 @@ django-picklefield==3.0.1
 django-polymorphic==3.1.0
 django-relativefilepathfield==1.0.3
 django-reversion==4.0.1
-django-sekizai==2.0.0
+django-sekizai==3.0.1
 django-ses==2.3.1
 django-settings-export==1.2.1
 django-silk==4.3.0
