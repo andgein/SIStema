@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.vk',
     'allauth.socialaccount.providers.twitter',
+    'allauth.socialaccount.providers.google',
 
     # Sistema modules (all should be modules.*)
     'modules.ejudge',

@@ -1,11 +1,11 @@
 <div class="panel-heading heading-border bg-white pt25">
     <div class="section row mn">
 
-        {% with provider_id="vk" provider_name="ВКонтакте" %}
+        {% with provider_id="vk" provider_name="Войти через ВК" provider_style_class="vk" %}
             {% include "socialaccount/_social_provider.html" %}
         {% endwith %}
 
-        {% with provider_id="twitter" provider_name="Твиттер" %}
+        {% with provider_id="google" provider_name="Войти через гугл" provider_style_class="googleplus" %}
             {% include "socialaccount/_social_provider.html" %}
         {% endwith %}
 
