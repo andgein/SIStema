@@ -88,6 +88,6 @@ toml==0.10.2
 trans==2.1.0
 urllib3==1.26.9
 webencodings==0.5.1
-wiki==0.7.9
+wiki==0.8.2
 XlsxWriter==3.0.2
 zipstream==1.1.4
