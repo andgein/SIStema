@@ -51,7 +51,7 @@ future==0.18.2
 html5lib==1.1
 idna==3.3
 Jinja2==3.0.3
-jmespath==0.10.0
+jmespath==1.0.1
 Markdown==3.2.2
 markdown2==2.4.2
 MarkupSafe==2.0.1
@@ -88,6 +88,6 @@ toml==0.10.2
 trans==2.1.0
 urllib3==1.26.9
 webencodings==0.5.1
-wiki==0.7.9
+wiki==0.8.2
 XlsxWriter==3.0.2
 zipstream==1.1.4
