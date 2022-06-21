@@ -12,7 +12,7 @@ certifi==2021.10.8
 cffi==1.15.0
 chardet==4.0.0
 charset-normalizer==2.1.0
-colorama==0.4.4
+colorama==0.4.5
 coverage==6.2
 cryptography==36.0.1
 defusedxml==0.7.1
@@ -80,7 +80,7 @@ six==1.16.0
 social-auth-app-django==5.0.0
 social-auth-core==4.1.0
 sorl-thumbnail==12.8.0
-soupsieve==2.3.1
+soupsieve==2.3.2.post1
 sqlparse==0.4.2
 termstyle==0.1.11
 toml==0.10.2
