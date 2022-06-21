@@ -41,7 +41,7 @@ django-polymorphic==3.1.0
 django-relativefilepathfield==1.0.3
 django-reversion==4.0.1
 django-sekizai==3.0.1
-django-ses==2.3.1
+django-ses==3.1.0
 django-settings-export==1.2.1
 django-silk==4.3.0
 django-sizefield==2.0.0
@@ -80,7 +80,7 @@ six==1.16.0
 social-auth-app-django==5.0.0
 social-auth-core==4.1.0
 sorl-thumbnail==12.8.0
-soupsieve==2.3.1
+soupsieve==2.3.2.post1
 sqlparse==0.4.2
 termstyle==0.1.11
 toml==0.10.2
