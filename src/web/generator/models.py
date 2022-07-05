@@ -1,20 +1,20 @@
 import functools
+from typing import Optional
 
+import django.db.migrations.writer
 import djchoices
 import polymorphic.models
 import relativefilepathfield.fields
-from django.db import models, transaction
-import django.db.migrations.writer
-from relativefilepathfield.fields import RelativeFilePathField
-from django.conf import settings
-
+import reportlab.lib.colors
 import reportlab.lib.enums
 import reportlab.lib.pagesizes
 import reportlab.lib.styles
-import reportlab.lib.colors
 import reportlab.pdfbase.pdfmetrics
 import reportlab.pdfbase.ttfonts
 import reportlab.platypus.tables
+from django.conf import settings
+from django.db import models, transaction
+from relativefilepathfield.fields import RelativeFilePathField
 
 
 class Alignment(djchoices.DjangoChoices):
@@ -297,15 +297,12 @@ class AbstractDocumentBlock(polymorphic.models.PolymorphicModel,
         raise NotImplementedError(
             'Child should implement its own get_reportlab_block()')
 
-    def clone(self) -> "AbstractDocumentBlock":
-        this = self.__class__.objects.get(id=self.id)
-        this.id = None
-        this.save()
-        return this
-
-    def copy_to_document(self, document: Document):
-        new_block = self.clone()
-        new_block.document_id = document.id
+    def copy_to_document(self, document: Optional[Document]):
+        new_block = self.__class__.objects.get(id=self.id)
+        new_block.id = None
+        new_block.abstractdocumentblock_ptr_id = None
+        new_block.document_id = document.id if document else None
+        new_block.save()
         return new_block
 
 
@@ -399,11 +396,16 @@ class Table(AbstractDocumentBlock):
             order=self.order,
         )
         self._copy_rows_to_table(new_table)
+        self._copy_style_commands(new_table)
         return new_table
 
-    def _copy_row_to_table(self, table: "Table"):
+    def _copy_rows_to_table(self, table: "Table"):
         for row in self.rows.all():
             row.copy_to_table(table)
+
+    def _copy_style_commands(self, table: "Table"):
+        for command in self.style_commands.all():
+            command.copy_to_table(table)
 
 
 class TableRow(models.Model, ProcessedByVisitor):
@@ -471,7 +473,7 @@ class TableCell(models.Model, ProcessedByVisitor):
     def copy_to_row(self, row: TableRow):
         return self.__class__.objects.create(
             row=row,
-            block=self.block.clone(),
+            block=self.block.copy_to_document(document=None),
             order=self.order,
         )
 
@@ -549,6 +551,14 @@ class AbstractTableStyleCommand(polymorphic.models.PolymorphicModel):
 
     def get_reportlab_style_command(self):
         return (self.command_name, self.start, self.stop) + tuple(self.params)
+
+    def copy_to_table(self, table: "Table"):
+        copy = self.__class__.objects.get(id=self.id)
+        copy.pk = None
+        copy.abstracttablestylecommand_ptr_id = None
+        copy.table = table
+        copy.save()
+        return copy
 
 
 class CellFormattingTableStyleCommand(AbstractTableStyleCommand):
