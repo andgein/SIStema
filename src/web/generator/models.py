@@ -3,7 +3,7 @@ import functools
 import djchoices
 import polymorphic.models
 import relativefilepathfield.fields
-from django.db import models
+from django.db import models, transaction
 import django.db.migrations.writer
 from relativefilepathfield.fields import RelativeFilePathField
 from django.conf import settings
@@ -252,6 +252,26 @@ class Document(models.Model):
     def __str__(self):
         return self.name
 
+    @transaction.atomic
+    def clone(self):
+        new_document = Document.objects.create(
+            name=self.name,
+            page_size=self.page_size,
+            left_margin=self.left_margin,
+            right_margin=self.right_margin,
+            top_margin=self.top_margin,
+            bottom_margin=self.bottom_margin,
+        )
+        new_document.save()
+
+        self._copy_blocks(new_document)
+
+        return new_document
+
+    def _copy_blocks(self, new_document: "Document"):
+        for block in self.blocks.all():
+            block.copy_to_document(new_document)
+
 
 class AbstractDocumentBlock(polymorphic.models.PolymorphicModel,
                             ProcessedByVisitor):
@@ -276,6 +296,17 @@ class AbstractDocumentBlock(polymorphic.models.PolymorphicModel,
     def get_reportlab_block(self, visitor=None):
         raise NotImplementedError(
             'Child should implement its own get_reportlab_block()')
+
+    def clone(self) -> "AbstractDocumentBlock":
+        this = self.__class__.objects.get(id=self.id)
+        this.id = None
+        this.save()
+        return this
+
+    def copy_to_document(self, document: Document):
+        new_block = self.clone()
+        new_block.document_id = document.id
+        return new_block
 
 
 class Paragraph(AbstractDocumentBlock):
@@ -362,6 +393,18 @@ class Table(AbstractDocumentBlock):
     def __str__(self):
         return 'Table [%s] #%d ' % (self.document, self.order)
 
+    def copy_to_document(self, document: Document):
+        new_table = self.__class__.objects.create(
+            document=document,
+            order=self.order,
+        )
+        self._copy_rows_to_table(new_table)
+        return new_table
+
+    def _copy_row_to_table(self, table: "Table"):
+        for row in self.rows.all():
+            row.copy_to_table(table)
+
 
 class TableRow(models.Model, ProcessedByVisitor):
     table = models.ForeignKey(
@@ -384,6 +427,18 @@ class TableRow(models.Model, ProcessedByVisitor):
         self._process_by_visitor(visitor)
         return [c.get_reportlab_block(visitor)
                 for c in self.cells.order_by('order')]
+
+    def copy_to_table(self, table: Table):
+        new_row = self.__class__.objects.create(
+            table=table,
+            order=self.order,
+        )
+        self._copy_cells_to_row(new_row)
+        return new_row
+
+    def _copy_cells_to_row(self, row: "TableRow"):
+        for cell in self.cells.all():
+            cell.copy_to_row(row)
 
 
 class TableCell(models.Model, ProcessedByVisitor):
@@ -412,6 +467,13 @@ class TableCell(models.Model, ProcessedByVisitor):
     def get_reportlab_block(self, visitor):
         self._process_by_visitor(visitor)
         return self.block.get_reportlab_block(visitor)
+
+    def copy_to_row(self, row: TableRow):
+        return self.__class__.objects.create(
+            row=row,
+            block=self.block.clone(),
+            order=self.order,
+        )
 
 
 # See page 79 of documentation
