@@ -39,7 +39,7 @@ django-polymorphic==3.1.0
 django-relativefilepathfield==1.0.3
 django-reversion==4.0.1
 django-sekizai==3.0.1
-django-ses==2.3.1
+django-ses==3.2.0
 django-settings-export==1.2.1
 django-silk==4.3.0
 django-sizefield==2.0.0
