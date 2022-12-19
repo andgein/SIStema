@@ -17,7 +17,7 @@ cryptography==36.0.1
 defusedxml==0.7.1
 Django==3.2.15
 django-allauth==0.47.0
-django-anymail==8.4
+django-anymail==9.0
 django-autocomplete-light==3.9.4
 django-choices==1.7.2
 django-classy-tags==2.0.0
