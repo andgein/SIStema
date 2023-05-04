@@ -23,7 +23,7 @@ $(document).ready(function(){
     var task_url = $current_link.attr('href');
     current_task_id = task_id;
     history.replaceState({'task_id': task_id}, '', task_url);
-    
+
     var markTaskAsSolved = function (task_id) {
         var $task_link = $('.entrance-exam .nav li a[data-task-id="' + task_id + '"]');
         $task_link.addClass('solved').removeClass('not-solved');
@@ -38,7 +38,7 @@ $(document).ready(function(){
     };
 
     var updateProgramSolutions = function(task_id, $block, counter) {
-        if (counter > 500) {
+        if (counter > 100) {
             alert('Произошла ошибка при обновлении статуса. Обновите страницу');
             return;
         }
@@ -53,9 +53,10 @@ $(document).ready(function(){
 
                 var is_checking = $submits.find('[name="is_checking"]').val();
                 if (is_checking == 'true') {
+                    var delay = 1000 + 500 * Math.pow(1.5, Math.min(10, counter)) // exponential backoff
                     setTimeout(function () {
                         updateProgramSolutions(task_id, $block, counter + 1);
-                    }, 1000);
+                    }, delay);
                 }
                 var is_passed = $submits.find('[name="is_passed"]').val();
                 if (is_passed == 'true') {
