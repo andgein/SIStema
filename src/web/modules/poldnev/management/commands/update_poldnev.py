@@ -200,9 +200,9 @@ class PoldnevUpdate:
             person_ids_to_delete.remove(person_id)
 
             old_str = str(person)
-            person.first_name = first_names[person_id]
-            person.middle_name = middle_names[person_id]
-            person.last_name = last_names[person_id]
+            person.first_name = first_names[person_id] if person_id < len(first_name) else ''
+            person.middle_name = middle_names[person_id] if person_id < len(middle_names) else ''
+            person.last_name = last_names[person_id] if person_id < len(last_names) else ''
             update.objects_to_save.append(person)
             update.add_change(person.__class__,
                               Action.UPDATE,

@@ -25,7 +25,7 @@ class Command(management.base.BaseCommand):
         relations = self.get_model_relations(model)
         # TODO (andgein): Find relations with on_delete=models.PROTECT
         # and do something with it?
-        relations = [f for f in relations if f.on_delete is models.CASCADE]
+        relations = [f for f in relations if f.on_delete is (models.CASCADE, models.SET_NULL)]
         return [field.related_model for field in relations]
 
     def get_models_references_to_model(self, model):

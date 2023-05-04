@@ -1,4 +1,4 @@
-﻿### This file contains requiremenets for Sistema. Install them with `pip install -r requirements.txt`
+﻿### This file contains requirements for Sistema. Install them with `pip install -r requirements.txt`
 
 appdirs==1.4.4
 asgiref==3.4.1
@@ -15,7 +15,7 @@ colorama==0.4.5
 coverage==6.2
 cryptography==36.0.1
 defusedxml==0.7.1
-Django==3.2.15
+Django==3.2.18
 django-allauth==0.47.0
 django-anymail==8.4
 django-autocomplete-light==3.9.4
