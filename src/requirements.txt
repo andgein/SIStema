@@ -20,7 +20,7 @@ django-allauth==0.47.0
 django-anymail==8.4
 django-autocomplete-light==3.9.4
 django-choices==1.7.2
-django-classy-tags==2.0.0
+django-classy-tags==3.0.1
 django-compat==1.0.15
 django-constance==2.9.0
 django-debug-toolbar==3.4.0
