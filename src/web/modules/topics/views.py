@@ -254,7 +254,7 @@ def index(request):
             else:
                 return check_topics(request)
 
-        # Show correcting form if need
+        # Show correcting form if needed
         if (user_status.status ==
                 models.UserQuestionnaireStatus.Status.CORRECTING):
             return correcting(request)

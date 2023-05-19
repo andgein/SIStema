@@ -466,7 +466,9 @@ class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
         'enrollment_type',
     )
     list_display_links = ('id', 'user')
-    list_filter = ('enrollment_type__step__school', 'is_moderated', 'is_approved')
+    list_filter = ('enrollment_type__step__school', 'is_moderated', 'is_approved',
+                   ('reviewed_by', admin.RelatedOnlyFieldListFilter),
+                   'enrollment_type__needs_moderation')
     autocomplete_fields = (
         'user',
         'step',
