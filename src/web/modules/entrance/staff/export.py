@@ -176,15 +176,15 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=self.get_poldnev_history_for_users(enrollees),
         ))
 
-        previous_school = schools.models.School.objects.get(short_name='2021')
+        previous_school = schools.models.School.objects.get(short_name='2022')
         columns.append(PlainExcelColumn(
-            name='Параллель в ЛКШ 2021',
+            name='Параллель в ЛКШ 2022',
             data=self.get_real_parallel_for_users(enrollees, previous_school),
         ))
 
-        previous_school = schools.models.School.objects.get(short_name='2021.winter')
+        previous_school = schools.models.School.objects.get(short_name='2022.winter')
         columns.append(PlainExcelColumn(
-            name='Параллель в ЛКШ 2021.Зима',
+            name='Параллель в ЛКШ 2022.Зима',
             data=self.get_real_parallel_for_users(enrollees, previous_school),
         ))
 
@@ -470,14 +470,14 @@ class ExportCompleteEnrollingTable(django.views.View):
             name='',
             subcolumns=[
                 PlainExcelColumn(
-                    name='Оценки 2021.Зима',
+                    name='Оценки 2022.Зима',
                     cell_width=7,
-                    data=self.get_marks_for_users('2021.winter', enrollees),
+                    data=self.get_marks_for_users('2022.winter', enrollees),
                 ),
                 PlainExcelColumn(
-                    name='Оценки 2021',
+                    name='Оценки 2022',
                     cell_width=7,
-                    data=self.get_marks_for_users('2021', enrollees),
+                    data=self.get_marks_for_users('2022', enrollees),
                 ),
             ],
         ))
@@ -488,14 +488,14 @@ class ExportCompleteEnrollingTable(django.views.View):
         ))
 
         columns.append(PlainExcelColumn(
-            name='Комментарии 2021',
+            name='Комментарии 2022',
             cell_width=30,
-            data=self.get_study_comments_for_users('2021', enrollees),
+            data=self.get_study_comments_for_users('2022', enrollees),
         ))
         columns.append(PlainExcelColumn(
-            name='Комментарии 2021.Зима',
+            name='Комментарии 2022.Зима',
             cell_width=30,
-            data=self.get_study_comments_for_users('2021.winter', enrollees),
+            data=self.get_study_comments_for_users('2022.winter', enrollees),
         ))
 
         if (self.question_exists(request.school, 'informatics_olympiads') and
