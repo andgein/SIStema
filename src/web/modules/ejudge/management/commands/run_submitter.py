@@ -12,7 +12,8 @@ from constance import config
 from modules.ejudge import models
 
 
-EJUDGE_SUBMISSIONS_LIMIT = 13
+# Assume that ejudge's contest has option `prev_runs_to_show = 50` in serve.cfg for all problems
+EJUDGE_SUBMISSIONS_LIMIT = 40
 
 
 class EjudgeException(Exception):
