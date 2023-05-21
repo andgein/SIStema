@@ -149,9 +149,23 @@ class Command(BaseCommand):
 
         return None, None, None
 
-    def _get_ejudge_run_status(self, contest_id, submit_id):
+    def _get_ejudge_run_status(self, contest_id, submit_id, problem_id):
+        view_submissions = 140
+        problem_page = 139
+
         ejudge_sid = self._login(contest_id)
-        runs_url = self._build_client_url(ejudge_sid, 140)
+
+        # Look at problem's page first
+        problem_page_url = self._build_client_url(ejudge_sid, problem_page, f'prob_id={problem_id}')
+        result, failed_test, score = self._get_ejudge_run_status_from_url(
+            problem_page_url,
+            submit_id
+        )
+        if result is not None:
+            return result, failed_test, score
+
+        # Look at total submissions page
+        runs_url = self._build_client_url(ejudge_sid, view_submissions)
         result, failed_test, score = self._get_ejudge_run_status_from_url(
             runs_url,
             submit_id
@@ -159,7 +173,8 @@ class Command(BaseCommand):
         if result is not None:
             return result, failed_test, score
 
-        runs_url = self._build_client_url(ejudge_sid, 140, 'all_runs=1')
+        # Look at "all_runs" submissions page (can be very slow)
+        runs_url = self._build_client_url(ejudge_sid, view_submissions, 'all_runs=1')
         return self._get_ejudge_run_status_from_url(
             runs_url,
             submit_id
@@ -269,7 +284,7 @@ class Command(BaseCommand):
                 )
 
                 ejudge_result, failed_test, score = self._get_ejudge_run_status(
-                    contest_id, submit_id
+                    contest_id, submit_id, queue_element.ejudge_problem_id,
                 )
                 if ejudge_result is None:
                     self.stdout.write(
