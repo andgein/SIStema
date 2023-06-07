@@ -80,6 +80,7 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
             questionnaire=to_questionnaire,
             short_name=self.short_name,
             order=self.order,
+            is_top_level=self.is_top_level,
             **field_kwargs,
         )
 

@@ -422,11 +422,11 @@ class FillQuestionnaireEntranceStepChildAdmin(EntranceStepChildAdmin):
 
 @admin.register(models.EnrollmentType)
 class EnrollmentTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'text', 'step', 'needs_moderation')
+    list_display = ('id', 'text', 'step', 'needs_moderation', 'is_disabled')
     list_display_links = ('id', 'text')
-    list_filter = ('step__school', 'needs_moderation')
+    list_filter = ('step__school', 'needs_moderation', 'is_disabled')
     search_fields = ('=id', 'text')
-    ordering = ('step__school', 'step', 'text')
+    ordering = ('step__school', 'step', 'id')
 
 
 class EnrollmentTypeInline(admin.TabularInline):

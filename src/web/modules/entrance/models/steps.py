@@ -805,7 +805,7 @@ class SelectEnrollmentTypeEntranceStep(AbstractEntranceStep, EntranceStepTextsMi
         block.selected = selected
 
         initial = {}
-        form_enrollment_types = self.enrollment_types.all()
+        form_enrollment_types = self.enrollment_types.order_by('id')
         if selected is not None:
             initial = {'enrollment_type': selected.enrollment_type_id}
             form_enrollment_types = [selected.enrollment_type]
@@ -844,6 +844,11 @@ class EnrollmentType(models.Model):
 
     needs_moderation = models.BooleanField(
         help_text='Нужна ли модерация, если пользователь выбрал этот тип поступления',
+    )
+
+    is_disabled = models.BooleanField(
+        default=False,
+        help_text='Выключена ли возможность выбрать этот тип поступления'
     )
 
     def __str__(self):

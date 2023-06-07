@@ -359,7 +359,7 @@ class ExportCompleteEnrollingTable(django.views.View):
                 self.get_auto_parallel_for_user(request.school, user)
                 for user in enrollees]
             columns.append(LinkExcelColumn(
-                name='Авто',
+                name='Авто-зачисление',
                 cell_width=5,
                 data=auto_parallels,
                 data_urls=[
@@ -551,7 +551,7 @@ class ExportCompleteEnrollingTable(django.views.View):
             return enrollment.parallel.name
         if enrollment.entrance_level is not None:
             return enrollment.entrance_level.name
-        return ''
+        return '✓'
 
     def get_enrollment_type_for_user(self, step, user):
         enrollment = (

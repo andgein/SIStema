@@ -101,7 +101,9 @@ class SelectEnrollmentTypeForm(forms.Form):
 
         choices = []
         for enrollment_type in enrollment_types:
-            choices.append((enrollment_type.pk, enrollment_type.text))
+            choices.append((enrollment_type.pk,
+                            {'label': enrollment_type.text, 'disabled': enrollment_type.is_disabled and not disabled}
+                            ))
 
         self.fields['enrollment_type'] = forms.TypedChoiceField(
             choices=choices,
