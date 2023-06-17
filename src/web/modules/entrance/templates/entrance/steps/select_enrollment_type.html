@@ -76,13 +76,13 @@
                         Вы зачислены в&nbsp;параллель <strong>{{ entrance_block.selected.parallel.name }}</strong>.
                     {% elif not entrance_block.selected.allow_pass_entrance_exam %}
                         Вы зачислены в&nbsp;{{ entrance_block.step.school.name }} <b>без вступительной работы</b>.
-                        Конкретная параллель, в которой вы будете учиться, пока неизвестна.
+                        Конкретная параллель, в которой вы будете учиться, будет известна позже.
                     {% elif entrance_block.selected.accepted_entrance_level %}
-                        Конкретная параллель, в которой вы будете учиться, пока неизвестна.
+                        Конкретная параллель, в которой вы будете учиться, будет известна позже.
                         Вам зачтена вступительная работа <b>уровня «{{ entrance_block.selected.accepted_entrance_level.name }}»</b>.
                         Если хотите, вы можете решать вступительную работу более высоких уровней.
                     {% elif entrance_block.selected.entrance_level %}
-                        Конкретная параллель, в которой вы будете учиться, пока неизвестна.
+                        Конкретная параллель, в которой вы будете учиться, будет известна позже.
                         Если хотите, вы можете решить вступительную работу
                         <b>уровня «{{ entrance_block.selected.entrance_level.name }}»</b> или выше.
                     {%  endif %}

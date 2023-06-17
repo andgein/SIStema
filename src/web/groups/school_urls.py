@@ -11,4 +11,5 @@ urlpatterns = [
 
     path('<str:group_name>/', staff_views.group_info, name='group'),
     path('<str:group_name>/members/data/', staff_views.members_data, name='members_data'),
+    path('<str:group_name>/export/', staff_views.ExportGroup.as_view(), name='export_group'),
 ]

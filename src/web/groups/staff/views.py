@@ -1,12 +1,19 @@
-from django.http import HttpResponseNotFound
+from typing import Iterable
+
+import xlsxwriter
+from django.http import HttpResponseNotFound, HttpResponse
 from django.shortcuts import render, get_object_or_404
 import django.urls
+import django.views
+from django.utils.decorators import method_decorator
 
 from frontend.table import A
 from groups import models
 import sistema.staff
 import frontend.table
 import frontend.icons
+import users.models
+from sistema.export import ExcelColumn, ExcelMultiColumn, PlainExcelColumn, LinkExcelColumn
 
 
 class GroupMembersTable(frontend.table.Table):
@@ -85,7 +92,7 @@ class GroupsListTable(frontend.table.Table):
 
     name = frontend.table.TemplateColumn(
         template_name='groups/staff/_groups_list_group_name.html',
-        # TODO (andgein): it's hack to get current object as accessor.
+        # TODO (andgein): it's a hack to retrieve current object as an accessor.
         # Null and empty accessor don't work, but I don't know why
         accessor='abstractgroup_ptr.get_real_instance',
         verbose_name='Имя',
@@ -102,7 +109,7 @@ class GroupsListTable(frontend.table.Table):
     )
 
     members_count = frontend.table.Column(
-        # TODO (andgein): it's hack to get current object as accessor.
+        # TODO (andgein): it's a hack to retrieve current object as an accessor.
         # Null and empty accessor don't work, but I don't know why
         accessor='abstractgroup_ptr.get_real_instance',
         verbose_name='Участников',
@@ -158,3 +165,123 @@ def groups_list(request):
 def groups_list_data(request):
     table = GroupsListTable(request.school, request.user)
     return frontend.table.TableDataSource(table).get_response(request)
+
+
+class ExportGroup(django.views.View):
+    @method_decorator(sistema.staff.only_staff)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def get(self, request, group_name: str):
+        group = get_object_or_404(
+            models.AbstractGroup,
+            school=request.school,
+            short_name=group_name
+        )
+
+        if not group.can_user_list_members(request.user):
+            return HttpResponseNotFound()
+
+        members = list(group.users.order_by(
+            'profile__last_name',
+            'profile__first_name',
+        ).select_related('profile'))
+
+        columns = self._get_columns(request, members)
+
+        ct = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        response = HttpResponse(content_type=ct)
+        response['Content-Disposition'] = f"attachment; filename={group.short_name}.xlsx"
+
+        book = xlsxwriter.Workbook(response, {'in_memory': True})
+        # 31 is max length of Excel worksheet's name.
+        # Also some characters are forbidden in worksheet names, but let's ignore it for now.
+        sheet = book.add_worksheet(f'{group.school.name}. {group.name}'[:31])
+
+        # TODO (andgein): It's a copy-paste from ExportCompleteEnrollingTable, clean it up?
+        header_fmt = book.add_format({
+            'bold': True,
+            'text_wrap': True,
+            'align': 'center',
+        })
+        cell_fmt = book.add_format({
+            'text_wrap': True,
+        })
+        plain_header = (request.GET.get('plain_header') != 'false')
+        for column in columns:
+            column.header_format = header_fmt
+            column.cell_format = cell_fmt
+            column.plain_header = plain_header
+
+        # Write header
+        header_height = max(column.header_height for column in columns)
+        irow, icol = 0, 0
+        for column in columns:
+            column.write(sheet, irow, icol, header_height=header_height)
+            icol += column.width
+
+        sheet.freeze_panes(1 if plain_header else header_height, 3)
+        book.close()
+
+        return response
+
+    def _get_columns(self, request, members: Iterable[users.models.User]) -> Iterable[ExcelColumn]:
+        columns = []
+
+        columns.append(LinkExcelColumn(
+            name='id',
+            cell_width=5,
+            data=[user.id for user in members],
+            data_urls=[
+                request.build_absolute_uri(django.urls.reverse(
+                    'school:entrance:enrolling_user',
+                    args=(request.school.short_name, user.id)))
+                for user in members
+            ],
+        ))
+
+        columns.append(LinkExcelColumn(
+            name='Фамилия',
+            data=[user.profile.last_name for user in members],
+            data_urls=[getattr(user.profile.poldnev_person, 'url', '')
+                       for user in members],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Имя',
+            data=[user.profile.first_name for user in members],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Отчество',
+            data=[user.profile.middle_name for user in members],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Пол',
+            data=['жм'[user.profile.sex == users.models.UserProfile.Sex.MALE]
+                  for user in members],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Город',
+            data=[user.profile.city for user in members],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Класс',
+            cell_width=7,
+            data=[user.profile.get_class() for user in members],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Школа',
+            data=[user.profile.school_name for user in members],
+        ))
+
+        columns.append(PlainExcelColumn(
+            name='Емэйл',
+            data=[user.email for user in members]
+        ))
+
+        return columns
