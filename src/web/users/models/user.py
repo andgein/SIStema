@@ -69,6 +69,16 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
             full_name = '%s %s' % (self.first_name, self.last_name)
         return full_name.strip()
 
+    def get_full_name_starting_with_last_name(self):
+        """Returns the last_name plus the first_name, with a space in between.
+        """
+        if hasattr(self, 'profile'):
+            full_name = '%s %s' % (self.profile.last_name,
+                                   self.profile.first_name)
+        else:
+            full_name = '%s %s' % (self.last_name, self.first_name)
+        return full_name.strip()
+
     def get_short_name(self):
         """Returns the short name for the user."""
         if hasattr(self, 'profile'):

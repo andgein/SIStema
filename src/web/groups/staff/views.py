@@ -20,8 +20,15 @@ from sistema.export import ExcelColumn, PlainExcelColumn, LinkExcelColumn
 class GroupMembersTable(frontend.table.Table):
     index = frontend.table.IndexColumn(verbose_name='')
 
+    user_id = frontend.table.Column(
+        accessor='id',
+        verbose_name='ID',
+        order_by=('id', ),
+        search_in=('id', ),
+    )
+
     name = frontend.table.Column(
-        accessor='get_full_name',
+        accessor='get_full_name_starting_with_last_name',
         verbose_name='Имя',
         order_by=('profile.last_name', 'profile.first_name'),
         search_in=('profile.first_name', 'profile.last_name')
@@ -32,6 +39,11 @@ class GroupMembersTable(frontend.table.Table):
         orderable=True,
         searchable=True,
         verbose_name='Город'
+    )
+
+    klass = frontend.table.Column(
+        accessor='profile.get_class',
+        verbose_name='Класс',
     )
 
     def __init__(self, group, *args, **kwargs):
@@ -193,10 +205,7 @@ class ExportGroup(django.views.View):
         if not group.can_user_list_members(request.user):
             return HttpResponseNotFound()
 
-        members = list(group.users.order_by(
-            'profile__last_name',
-            'profile__first_name',
-        ).select_related('profile'))
+        members = list(group.users.order_by('id').select_related('profile'))
 
         columns = self._get_columns(request, members)
 
