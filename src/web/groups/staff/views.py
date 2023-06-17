@@ -1,19 +1,20 @@
 from typing import Iterable
 
+import django.urls
+import django.views
 import xlsxwriter
 from django.http import HttpResponseNotFound, HttpResponse
 from django.shortcuts import render, get_object_or_404
-import django.urls
-import django.views
 from django.utils.decorators import method_decorator
+from django.utils.safestring import mark_safe
 
+import frontend.icons
+import frontend.table
+import sistema.staff
+import users.models
 from frontend.table import A
 from groups import models
-import sistema.staff
-import frontend.table
-import frontend.icons
-import users.models
-from sistema.export import ExcelColumn, ExcelMultiColumn, PlainExcelColumn, LinkExcelColumn
+from sistema.export import ExcelColumn, PlainExcelColumn, LinkExcelColumn
 
 
 class GroupMembersTable(frontend.table.Table):
@@ -115,6 +116,13 @@ class GroupsListTable(frontend.table.Table):
         verbose_name='Участников',
     )
 
+    export_link = frontend.table.LinkColumn(
+        accessor='abstractgroup_ptr.get_real_instance',
+        verbose_name='Скачать XLSX',
+        viewname='school:groups:export_group',
+        args=[A('school__short_name'), A('short_name')],
+    )
+
     def __init__(self, school, user, *args, **kwargs):
         visible_group_ids = []
         school_groups = models.AbstractGroup.objects.filter(school=school)
@@ -148,6 +156,9 @@ class GroupsListTable(frontend.table.Table):
 
     def render_members_count(self, value):
         return str(len(value.user_ids))
+
+    def render_export_link(self, value):
+        return mark_safe('<span class="fa fa-download"></span>')
 
 
 @sistema.staff.only_staff
@@ -242,41 +253,41 @@ class ExportGroup(django.views.View):
 
         columns.append(LinkExcelColumn(
             name='Фамилия',
-            data=[user.profile.last_name for user in members],
-            data_urls=[getattr(user.profile.poldnev_person, 'url', '')
+            data=[user.profile.last_name if hasattr(user, 'profile') else '' for user in members],
+            data_urls=[getattr(user.profile.poldnev_person, 'url', '') if hasattr(user, 'profile') else ''
                        for user in members],
         ))
 
         columns.append(PlainExcelColumn(
             name='Имя',
-            data=[user.profile.first_name for user in members],
+            data=[user.profile.first_name if hasattr(user, 'profile') else '' for user in members],
         ))
 
         columns.append(PlainExcelColumn(
             name='Отчество',
-            data=[user.profile.middle_name for user in members],
+            data=[user.profile.middle_name if hasattr(user, 'profile') else '' for user in members],
         ))
 
         columns.append(PlainExcelColumn(
             name='Пол',
-            data=['жм'[user.profile.sex == users.models.UserProfile.Sex.MALE]
+            data=['жм'[user.profile.sex == users.models.UserProfile.Sex.MALE] if hasattr(user, 'profile') else ''
                   for user in members],
         ))
 
         columns.append(PlainExcelColumn(
             name='Город',
-            data=[user.profile.city for user in members],
+            data=[user.profile.city if hasattr(user, 'profile') else '' for user in members],
         ))
 
         columns.append(PlainExcelColumn(
             name='Класс',
             cell_width=7,
-            data=[user.profile.get_class() for user in members],
+            data=[user.profile.get_class() if hasattr(user, 'profile') else '' for user in members],
         ))
 
         columns.append(PlainExcelColumn(
             name='Школа',
-            data=[user.profile.school_name for user in members],
+            data=[user.profile.school_name if hasattr(user, 'profile') else '' for user in members],
         ))
 
         columns.append(PlainExcelColumn(
