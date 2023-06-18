@@ -478,6 +478,13 @@ class SelectedEnrollmentTypeAdmin(admin.ModelAdmin):
         'entrance_level',
         'reviewed_by',
     )
+    search_fields = (
+        '=user__id',
+        '=user__email',
+        'user__profile__first_name',
+        'user__profile__middle_name',
+        'user__profile__last_name',
+    )
 
     def get_review_page_link(self, obj):
         return mark_safe(
