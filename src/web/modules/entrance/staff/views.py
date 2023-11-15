@@ -19,6 +19,7 @@ import frontend.table
 import groups.decorators
 import modules.entrance.groups as entrance_groups
 import modules.topics.views as topics_views
+import modules.topics.models as topics_models
 import questionnaire.models
 import questionnaire.views
 import sistema.staff
@@ -224,8 +225,24 @@ def check_user(request, user, group=None):
 
     add_checking_comment_form = forms.AddCheckingCommentForm()
 
+    school_questionnaires = questionnaire.models.Questionnaire.objects.filter(school=request.school)
+    # TODO (andgein): fix hardcoded names
+    interesting_questionnaire = {
+        'enrollee': 'Анкета поступающего',
+        'application': 'Анкета поступающего'
+    }
+    questionnaires = {
+        interesting_questionnaire[q.short_name]: q
+        for q in school_questionnaires if q.short_name in interesting_questionnaire
+    }
+
+    topic_questionnaire = topics_models.TopicQuestionnaire.objects.filter(school=request.school).first()
+    if topic_questionnaire:
+        topics_entrance_level = upgrades.get_topics_entrance_level(request.school, user)
+    else:
+        topics_entrance_level = None
+
     base_entrance_level = None
-    topics_entrance_level = None
     level_limiters = []
     level_upgrades = []
     test_tasks = []
@@ -239,7 +256,6 @@ def check_user(request, user, group=None):
             upgraded_to__school=request.school,
             user=user
         )
-        topics_entrance_level = upgrades.get_topics_entrance_level(request.school, user)
         tasks_solutions = group_by(
             user.entrance_exam_solutions.filter(task__exam=entrance_exam).order_by('-created_at'),
             operator.attrgetter('task_id')
@@ -289,6 +305,8 @@ def check_user(request, user, group=None):
         'user_for_checking': user,
         'base_entrance_level': base_entrance_level,
         'level_upgrades': level_upgrades,
+        'questionnaires': questionnaires,
+        'topic_questionnaire': topic_questionnaire,
         'topics_entrance_level': topics_entrance_level,
         'level_limiters': [(str(limiter), limiter.get_limit(user)) for limiter in level_limiters],
 

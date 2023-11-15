@@ -41,6 +41,129 @@
     {% endif %}
 
     <div class="row">
+        <div class="col-xs-12">
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="panel-title">Общая информация</span>
+                    <div class="mr10 pull-right fs12">
+                        {% for questionnaire_name, questionnaire in questionnaires.items %}
+                            <a href="{% url 'school:entrance:user_questionnaire' request.school.short_name user_for_checking.id questionnaire.short_name %}"
+                               target="_blank" class="ml10" title="Откроется в новой вкладке">
+                                {{ questionnaire_name }}</a>
+                        {% endfor %}
+                        {% if topic_questionnaire %}
+                            <a href="{% url 'school:entrance:user_topics' request.school.short_name user_for_checking.id %}"
+                               target="_blank" class="ml10" title="Откроется в новой вкладке">
+                                Тем.&nbsp;анкета</a>
+                                {% if topics_entrance_level %}
+                                     — <span title="Уровень, выданный по итогам тематической анкеты" class="text-dark">«{{ topics_entrance_level.name }}»</span>
+                                {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div>
+                        <b>
+                            {{ user_for_checking.profile.last_name }} {{ user_for_checking.profile.first_name }} {{ user_for_checking.profile.middle_name }}
+                        </b>
+                    </div>
+                    <div>
+                        <span>{{ user_summary.class_number }} класс</span>,
+                        <span>{{ user_summary.school }}</span>,
+                        <span>{{ user_summary.city }}</span>
+                    </div>
+                    <div>
+                        <a href="{% url 'school:entrance:user-profile' request.school.short_name user_for_checking.id %}"
+                           target="_blank" title="Откроется в новой вкладке">
+                            Смотреть профиль
+                        </a>
+                    </div>
+                    {% if user_summary.entrance_reason_text %}
+                        <div>
+                            <b>Основание для поступления:</b> {{ user_summary.entrance_reason_text|lowerfirst }}
+                        </div>
+                    {% endif %}
+                    <div class="mt10">
+                        {% if user_summary.previous_participations %}
+                            <b>Другие участия:</b>
+                            <div class="pl30">
+                                {% for participation in user_summary.previous_participations %}
+                                    <div>
+                                        {% if participation.school.id != request.school.id %}
+                                            <a href="{% url 'school:entrance:enrolling_user' participation.school.short_name user_for_checking.id %}">{{ participation.school.name }}</a>
+                                        {% else %}
+                                            {{ participation.school.name}}
+                                        {% endif %}
+                                        {% if participation.parallel %}
+                                            — параллель <b>{{ participation.parallel.name }}</b>
+                                        {% else %}
+                                            — <span class="text-muted">{{ participation.get_status_description|lower }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <b>Не был в ЛКШ</b>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pt10">
+        <div class="col-md-8 col-sm-6 col-xs-12">
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="panel-title">Теория</span>
+                </div>
+                <div class="panel-body">
+                    {% if not file_tasks %}
+                        Школьнику не&nbsp;выданы теоретические задачи.
+                    {% endif %}
+                    {% for file_task in file_tasks %}
+                        <div class="fs14">
+                            {{ forloop.counter }}.
+                            <span class="fw600">
+                                {% if file_task.last_solution %}
+                                    <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=user_for_checking.id task_id=file_task.id %}" title="Проверить и оценить решение">{{ file_task.title }}</a>
+                                    {% if file_task.from_another_level %}
+                                        <span class="label label-sm label-dark">с другого уровня</span>
+                                    {% endif %}
+                                {% else %}
+                                    {{ file_task.title }}
+                                {% endif %}
+                            </span>
+                            {% if file_task.last_solution %}
+                                <div class="fs12 text-muted" title="{{ file_task.last_solution.created_at }}">
+                                    Загружено {{ file_task.last_solution.created_at|without_year }}:
+                                    <a href="{% url 'school:entrance:user_solution' request.school.short_name file_task.last_solution.id %}" title="Скачать решение школьника по задаче">{{ file_task.last_solution.original_filename }}</a>
+                                    {% if file_task.user_solutions|length > 1 %}
+                                        ({{ file_task.user_solutions|length }} попыт{{ file_task.user_solutions|length|russian_pluralize:"ка,ки,ок" }})
+                                    {% endif %}
+                                    {% if file_task.checks %}
+                                        <div>Проверено:</div>
+                                    {% endif %}
+                                </div>
+                                <div class="fs12 mb10 ml20">
+                                    {% for check in file_task.checks %}
+                                        <div class="mb5">
+                                            <b>{{ check.checked_by.get_full_name }}:</b>
+                                            {{ check.score }} балл{{ check.score|russian_pluralize:',а,ов' }}{% if check.comment %}, <i>«{{ check.comment }}»</i>{% endif %}
+                                            <span class="fs11 text-muted pull-right" title="{{ check.created_at }}">{{ check.created_at|without_year }}</span>
+                                        </div>
+                                    {% endfor %}
+                                    {% if file_task.checks %}
+                                        <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=user_for_checking.id task_id=file_task.id %}" title="Проверить и оценить решение">Перейти к&nbsp;проверке</a>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <span class="fs12 fw400">(не сдана)</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
         <div class="col-md-4 col-sm-6 col-xs-12">
             {% if test_tasks %}
                 <div class="panel">
@@ -173,123 +296,9 @@
             </div>
 
         </div>
-
-        <div class="col-md-8 col-sm-6 col-xs-12">
-            <div class="panel">
-                <div class="panel-heading">
-                    <span class="panel-title">Общая информация</span>
-                    <div class="mr10 pull-right fs12">
-                        <a href="{% url 'school:entrance:user_questionnaire' request.school.short_name user_for_checking.id 'enrollee' %}"
-                           target="_blank" class="ml10" title="Откроется в новой вкладке">
-                            Анкета поступающего</a>
-                        <a href="{% url 'school:entrance:user_topics' request.school.short_name user_for_checking.id %}"
-                           target="_blank" class="ml10" title="Откроется в новой вкладке">
-                            Тем.&nbsp;анкета</a>
-                            {% if topics_entrance_level %}
-                                 — <span title="Уровень, выданный по итогам тематической анкеты" class="text-dark">«{{ topics_entrance_level.name }}»</span>
-                            {% endif %}
-                    </div>
-                </div>
-                <div class="panel-body">
-                    <div>
-                        <b>
-                            {{ user_for_checking.profile.last_name }} {{ user_for_checking.profile.first_name }} {{ user_for_checking.profile.middle_name }}
-                        </b>
-                    </div>
-                    <div>
-                        <span>{{ user_summary.class_number }} класс</span>,
-                        <span>{{ user_summary.school }}</span>,
-                        <span>{{ user_summary.city }}</span>
-                    </div>
-                    <div>
-                        <a href="{% url 'school:entrance:user-profile' request.school.short_name user_for_checking.id %}"
-                           target="_blank" title="Откроется в новой вкладке">
-                            Смотреть профиль
-                        </a>
-                    </div>
-                    {% if user_summary.entrance_reason_text %}
-                        <div>
-                            <b>Основание для поступления:</b> {{ user_summary.entrance_reason_text|lowerfirst }}
-                        </div>
-                    {% endif %}
-                    <div class="mt10">
-                        {% if user_summary.previous_participations %}
-                            <b>Другие участия:</b>
-                            <div class="pl30">
-                                {% for participation in user_summary.previous_participations %}
-                                    <div>
-                                        {% if participation.school.id != request.school.id %}
-                                            <a href="{% url 'school:entrance:enrolling_user' participation.school.short_name user_for_checking.id %}">{{ participation.school.name }}</a>
-                                        {% else %}
-                                            {{ participation.school.name}}
-                                        {% endif %}
-                                        {% if participation.parallel %}
-                                            — параллель <b>{{ participation.parallel.name }}</b>
-                                        {% else %}
-                                            — <span class="text-muted">{{ participation.get_status_description|lower }}</span>
-                                        {% endif %}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <b>Не был в ЛКШ</b>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-heading">
-                    <span class="panel-title">Теория</span>
-                </div>
-                <div class="panel-body">
-                    {% if not file_tasks %}
-                        Школьнику не&nbsp;выданы теоретические задачи.
-                    {% endif %}
-                    {% for file_task in file_tasks %}
-                        <div class="fs14">
-                            {{ forloop.counter }}.
-                            <span class="fw600">
-                                {% if file_task.last_solution %}
-                                    <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=user_for_checking.id task_id=file_task.id %}" title="Проверить и оценить решение">{{ file_task.title }}</a>
-                                    {% if file_task.from_another_level %}
-                                        <span class="label label-sm label-dark">с другого уровня</span>
-                                    {% endif %}
-                                {% else %}
-                                    {{ file_task.title }}
-                                {% endif %}
-                            </span>
-                            {% if file_task.last_solution %}
-                                <div class="fs12 text-muted" title="{{ file_task.last_solution.created_at }}">
-                                    Загружено {{ file_task.last_solution.created_at|without_year }}:
-                                    <a href="{% url 'school:entrance:user_solution' request.school.short_name file_task.last_solution.id %}" title="Скачать решение школьника по задаче">{{ file_task.last_solution.original_filename }}</a>
-                                    {% if file_task.user_solutions|length > 1 %}
-                                        ({{ file_task.user_solutions|length }} попыт{{ file_task.user_solutions|length|russian_pluralize:"ка,ки,ок" }})
-                                    {% endif %}
-                                    {% if file_task.checks %}
-                                        <div>Проверено:</div>
-                                    {% endif %}
-                                </div>
-                                <div class="fs12 mb10 ml20">
-                                    {% for check in file_task.checks %}
-                                        <div class="mb5">
-                                            <b>{{ check.checked_by.get_full_name }}:</b>
-                                            {{ check.score }} балл{{ check.score|russian_pluralize:',а,ов' }}{% if check.comment %}, <i>«{{ check.comment }}»</i>{% endif %}
-                                            <span class="fs11 text-muted pull-right" title="{{ check.created_at }}">{{ check.created_at|without_year }}</span>
-                                        </div>
-                                    {% endfor %}
-                                    {% if file_task.checks %}
-                                        <a href="{% url 'school:entrance:check_users_task' school_name=request.school.short_name user_id=user_for_checking.id task_id=file_task.id %}" title="Проверить и оценить решение">Перейти к&nbsp;проверке</a>
-                                    {% endif %}
-                                </div>
-                            {% else %}
-                                <span class="fs12 fw400">(не сдана)</span>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-
+    </div>
+    <div class="row pt10">
+        <div class="col-xs-12">
             <div class="panel">
                 <div class="panel-heading">
                     <span class="panel-title">Комментарии</span>
@@ -298,8 +307,6 @@
                     {% include 'entrance/staff/_checking_comments.html' with user=user_for_checking %}
                 </div>
             </div>
-
         </div>
-
     </div>
 {% endblock %}
