@@ -5,7 +5,7 @@ from typing import Union
 
 import django.views
 import xlsxwriter
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http.response import HttpResponse
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -169,17 +169,15 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=self.get_poldnev_history_for_users(enrollees),
         ))
 
-        previous_school = schools.models.School.objects.get(short_name='2022')
-        columns.append(PlainExcelColumn(
-            name='Параллель в ЛКШ 2022',
-            data=self.get_real_parallel_for_users(enrollees, previous_school),
-        ))
+        previous_schools = schools.models.School.objects.filter(
+            (Q(year=request.school.year) | Q(year=str(int(request.school.year) - 1))) & ~Q(id=request.school.id)
+        ).order_by('year', 'name')
 
-        previous_school = schools.models.School.objects.get(short_name='2022.winter')
-        columns.append(PlainExcelColumn(
-            name='Параллель в ЛКШ 2022.Зима',
-            data=self.get_real_parallel_for_users(enrollees, previous_school),
-        ))
+        for previous_school in previous_schools:
+            columns.append(PlainExcelColumn(
+                name=f'Параллель в {previous_school.name}',
+                data=self.get_real_parallel_for_users(enrollees, previous_school),
+            ))
 
         if self.question_exists(request.school, 'main_language'):
             columns.append(PlainExcelColumn(
@@ -457,21 +455,15 @@ class ExportCompleteEnrollingTable(django.views.View):
             ],
         ))
 
-        # TODO(artemtab): we need some way to define for each school the
-        #     previous ones in the database.
         columns.append(ExcelMultiColumn(
             name='',
             subcolumns=[
                 PlainExcelColumn(
-                    name='Оценки 2022.Зима',
+                    name=f'Оценки {previous_school.name}',
                     cell_width=7,
-                    data=self.get_marks_for_users('2022.winter', enrollees),
-                ),
-                PlainExcelColumn(
-                    name='Оценки 2022',
-                    cell_width=7,
-                    data=self.get_marks_for_users('2022', enrollees),
-                ),
+                    data=self.get_marks_for_users(previous_school.short_name, enrollees)
+                )
+                for previous_school in previous_schools
             ],
         ))
 
@@ -480,16 +472,12 @@ class ExportCompleteEnrollingTable(django.views.View):
             data=self.get_checking_comments_for_users(request.school, enrollees)
         ))
 
-        columns.append(PlainExcelColumn(
-            name='Комментарии 2022',
-            cell_width=30,
-            data=self.get_study_comments_for_users('2022', enrollees),
-        ))
-        columns.append(PlainExcelColumn(
-            name='Комментарии 2022.Зима',
-            cell_width=30,
-            data=self.get_study_comments_for_users('2022.winter', enrollees),
-        ))
+        for previous_school in previous_schools:
+            columns.append(PlainExcelColumn(
+                name=f'Комментарии {previous_school.name}',
+                cell_width=30,
+                data=self.get_study_comments_for_users(previous_school.short_name, enrollees),
+            ))
 
         if (self.question_exists(request.school, 'informatics_olympiads') and
                 self.question_exists(request.school, 'math_olympiads') and
