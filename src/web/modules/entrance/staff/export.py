@@ -590,9 +590,9 @@ class ExportCompleteEnrollingTable(django.views.View):
                 continue
             history_by_user[user] = ', '.join(
                 entry.study_group.parallel.name
-                for entry in user.profile.poldnev_person.history_entries.all()
+                for entry in user.profile.poldnev_person.history_entries.all().order_by('session__name')
                 if entry.study_group
-                if not entry.role # Student
+                if not entry.role  # Student
             )
         return [history_by_user.get(user, '') for user in enrollees]
 
