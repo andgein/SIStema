@@ -1,9 +1,9 @@
-from django.conf.urls import url
+from django.urls import path
 from . import views
 
 app_name = 'enrolled_scans'
 
 urlpatterns = [
-    url(r'^$', views.scans, name='scans'),
-    url(r'^(?P<requirement_name>.+)/$', views.scan, name='scan')
+    path('', views.scans, name='scans'),
+    path('<requirement_name>/', views.scan, name='scan')
 ]

@@ -11,7 +11,7 @@ from django.http.response import HttpResponseNotFound, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 import frontend.icons
@@ -915,7 +915,7 @@ def solution(request, solution_id):
 @require_POST
 def add_comment(request, user_id):
     redirect_url = request.POST.get('next', '')
-    if not is_safe_url(redirect_url, request.get_host()):
+    if not url_has_allowed_host_and_scheme(redirect_url, request.get_host()):
         redirect_url = reverse('school:entrance:enrolling_user', kwargs={
             'school_name': request.school.short_name,
             'user_id': user_id,

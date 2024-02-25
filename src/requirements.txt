@@ -11,15 +11,14 @@ colorama==0.4.6
 coverage==7.4.3
 cryptography==42.0.5
 defusedxml==0.7.1
-Django==3.2.20
-# Django==4.0
+Django==4.0
 django-allauth==0.47.0
 django-anymail==8.4
 django-autocomplete-light==3.9.4
 django-choices==2.0.0 # " We strongly recommend migrating to the native functionality and not use django-choices for new projects." © https://django-choices.readthedocs.io/en/latest/
 django-constance==3.1.0
 django-debug-toolbar==3.4.0
-django-hijack==2.3.0 # Be careful! Django hijack 3.0 has been fully rewritten: https://github.com/django-hijack/django-hijack/releases/tag/3.0rc1
+django-hijack==3.4.5
 django-hijack-admin==2.1.10
 django-htmlmin==0.11.0
 django-ipware==5.0.0
@@ -37,7 +36,7 @@ django-sekizai==4.1.0
 django-ses==2.3.1
 django-settings-export==1.2.1
 django-silk==5.1.0
-django-sizefield==2.0.0
+django-sizefield==2.1.0
 django-tables2==2.5.3
 future==1.0.0
 html5lib==1.1

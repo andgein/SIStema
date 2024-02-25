@@ -1,6 +1,5 @@
 from django import conf
-from django.conf.urls import url
-from django.urls import include
+from django.urls import path, include
 
 from . import views
 
@@ -8,17 +7,17 @@ app_name = 'topics'
 
 
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
-    url(r'^checking/$', views.check_topics, name='check_topics'),
-    url(r'^checking/start/$', views.start_checking, name='start_checking'),
-    url(r'^checking/return/$', views.return_to_correcting, name='return_to_correcting'),
-    url(r'^checking/finish/$', views.finish_smartq, name='finish_smartq'),
-    url(r'^finish/$', views.finish, name='finish'),
-    url(r'^correcting/(?P<topic_name>[^/]+)/$', views.correcting_topic_marks, name='correcting_topic'),
-    url(r'', include('modules.topics.staff.urls')),
+    path('', views.index, name='index'),
+    path('checking/', views.check_topics, name='check_topics'),
+    path('checking/start/', views.start_checking, name='start_checking'),
+    path('checking/return/', views.return_to_correcting, name='return_to_correcting'),
+    path('checking/finish/', views.finish_smartq, name='finish_smartq'),
+    path('finish/', views.finish, name='finish'),
+    path('correcting/<slug:topic_name>/', views.correcting_topic_marks, name='correcting_topic'),
+    path('', include('modules.topics.staff.urls')),
 ]
 
 if conf.settings.DEBUG:
     urlpatterns += [
-        url(r'^reset/$', views.reset, name='reset'),
+        path('reset/', views.reset, name='reset'),
     ]

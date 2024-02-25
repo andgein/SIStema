@@ -1,9 +1,9 @@
-from django.conf.urls import url
+from django.urls import path
 
 from . import views
 
 app_name = 'frontend'
 
 urlpatterns = [
-    url(r'^table/(?P<table_name>[^/]+)/data/$', views.table_data, name='table_data'),
+    path('table/<table_name>/data/', views.table_data, name='table_data'),
 ]

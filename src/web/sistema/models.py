@@ -2,7 +2,7 @@ import zlib
 
 from django.conf import settings
 from django.db import models
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes, force_str
 from django.utils.translation import gettext_lazy as _
 
 
@@ -42,10 +42,10 @@ class CompressedTextField(models.BinaryField):
 
     def from_db_value(self, value, expression, connection):
         if isinstance(value, bytes):
-            return force_text(zlib.decompress(value))
+            return force_str(zlib.decompress(value))
         return value
 
     def to_python(self, value):
         if isinstance(value, bytes):
-            return force_text(zlib.decompress(value))
+            return force_str(zlib.decompress(value))
         return value

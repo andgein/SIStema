@@ -3,7 +3,7 @@ from django.template.loader import render_to_string
 
 from modules.polygon import models
 
-CONTEST_TAG_RE = r'(?i)\[polygon_contest\s+id:(?P<contest_id>\d+)\]'
+CONTEST_TAG_RE = r'\[polygon_contest\s+id:(?P<contest_id>\d+)\]'
 
 
 class ContestExtension(markdown.Extension):

@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import path
 
 from modules.poldnev import views
 
@@ -6,9 +6,5 @@ app_name = 'poldnev'
 
 
 urlpatterns = [
-    url(
-        'person-autocomplete/$',
-        views.PersonAutocomplete.as_view(),
-        name='person-autocomplete',
-    ),
+    path('person-autocomplete/', views.PersonAutocomplete.as_view(), name='person-autocomplete'),
 ]

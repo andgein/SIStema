@@ -10,7 +10,7 @@ from django.utils.deprecation import MiddlewareMixin
 class WikiWorkaroundMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         # Replace regex for finding attachment tags with the custom one to
-        # prevent `array[size]` from being detecated as an attachment tag
+        # prevent `array[size]` from being detected as an attachment tag
         wiki.plugins.attachments.markdown_extensions.ATTACHMENT_RE = re.compile(
             r'(?P<before>.*)\[ *(attachment\:(?P<id>[0-9]+))( *((title\:\"(?P<title>[^\"]+)\")|(?P<size>size)))*\](?P<after>.*)',
             re.IGNORECASE)

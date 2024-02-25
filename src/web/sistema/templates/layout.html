@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 {% load static %}
-{% load hijack_tags %}
+{#{% load hijack_tags %}#}
 
 <html>
 <head>
@@ -23,7 +23,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/magnific/magnific-popup.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/bootstrap-fileinput/css/fileinput.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/plugins/datatables/media/css/dataTables.bootstrap.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'hijack/hijack-styles.css' %}">
+{#    <link rel="stylesheet" type="text/css" href="{% static 'hijack/hijack-styles.css' %}">#}
     <link rel="stylesheet" type="text/css" href="{% static 'css/common.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/common-only-xs.css' %}">
     {% block css %}
@@ -40,7 +40,7 @@
 </head>
 
 <body class="{% block body_classes %}{% endblock %}">
-    {% hijack_notification %}
+{#    {% hijack_notification %}#}
 
     {% block content_wrapper %}
         {% block content %}

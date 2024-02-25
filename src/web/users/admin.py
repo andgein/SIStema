@@ -1,12 +1,13 @@
 from django.contrib import admin
-from hijack_admin.admin import HijackUserAdminMixin
+from hijack.contrib.admin import HijackUserAdminMixin
 from reversion.admin import VersionAdmin
+from django.utils import translation
 
 from . import models
 
 
 @admin.register(models.User)
-class UserAdmin(VersionAdmin, HijackUserAdminMixin):
+class UserAdmin(HijackUserAdminMixin, VersionAdmin):
     list_display = (
         'id',
         'username',
@@ -16,7 +17,7 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
         'is_active',
         'is_superuser',
         'is_staff',
-        'hijack_field',
+        # 'hijack_field',
     )
 
     list_filter = (
@@ -35,6 +36,19 @@ class UserAdmin(VersionAdmin, HijackUserAdminMixin):
         'profile__last_name',
         'email',
     )
+
+    def hijack_button(self, request, obj):
+        """
+        Russian version of the hijack button is awful ("захватить"),
+        so we override the language during the rendering
+        """
+        cur_language = translation.get_language()
+        try:
+            translation.activate("en-US")
+            return super().hijack_button(request, obj)
+        finally:
+            translation.activate(cur_language)
+
 
 
 @admin.register(models.UserProfile)

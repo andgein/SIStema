@@ -23,14 +23,6 @@ SECRET_KEY = 'dummy secret key for the dev environment'
 #                   in local_settings.py.
 DEBUG = True
 
-# TODO: remove after sorl-thumbnail>12.4a1 is released on pip.
-# This setting is removed from django but still referenced by sorl-thumbnail
-# which is the dependency of wiki.plugins.images. The issue is already fixed,
-# but not released on pip. See
-# https://github.com/jazzband/sorl-thumbnail/issues/476 for more details.
-TEMPLATE_DEBUG = DEBUG
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -54,8 +46,7 @@ INSTALLED_APPS = [
     # 'social_django',
     'markdown_deux',
     'hijack',
-    'hijack_admin',
-    'compat',
+    'hijack.contrib.admin',
     'ipware',
     'polymorphic',
     'constance',
@@ -65,7 +56,7 @@ INSTALLED_APPS = [
     'mptt',
     'sekizai',
     'sorl.thumbnail',
-    'multiselectfield',\
+    'multiselectfield',
     'wiki',
     'wiki.plugins.attachments',
     'wiki.plugins.globalhistory',
@@ -123,6 +114,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'hijack.middleware.HijackUserMiddleware',
 
     'schools.middleware.SchoolMiddleware',
     'sistema.middleware.WikiWorkaroundMiddleware',

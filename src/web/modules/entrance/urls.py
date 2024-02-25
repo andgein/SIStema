@@ -1,35 +1,35 @@
-from django.conf.urls import url, include
+from django.urls import path, include
 
 from . import views
 
 app_name = 'entrance'
 
 urlpatterns = [
-    url(r'^exam/$', views.exam, name='exam'),
-    url(r'^exam/solution/(?P<solution_id>\d+)/$', views.solution, name='solution'),
-    url(r'^exam/task/(?P<task_id>\d+)/$', views.task, name='task'),
-    url(r'^exam/task/(?P<task_id>\d+)/submit/$', views.submit, name='submit'),
-    url(r'^exam/task/(?P<task_id>\d+)/submits/$', views.task_solutions, name='task_solutions'),
-    url(r'^exam/upgrade_panel/$', views.upgrade_panel, name='upgrade_panel'),
-    url(r'^exam/upgrade/$', views.upgrade, name='upgrade'),
+    path('exam/', views.exam, name='exam'),
+    path('exam/solution/<int:solution_id>/', views.solution, name='solution'),
+    path('exam/task/<int:task_id>/', views.task, name='task'),
+    path('exam/task/<int:task_id>/submit/', views.submit, name='submit'),
+    path('exam/task/<int:task_id>/submits/', views.task_solutions, name='task_solutions'),
+    path('exam/upgrade_panel/', views.upgrade_panel, name='upgrade_panel'),
+    path('exam/upgrade/', views.upgrade, name='upgrade'),
 
-    url(r'^results/$', views.results, name='results'),
-    url(r'^results/data/$', views.results_data, name='results_data'),
+    path('results/', views.results, name='results'),
+    path('results/data/', views.results_data, name='results_data'),
 
-    url(r'^steps/(?P<step_id>\d+)/', include(([
-        url(r'^set_enrollment_type/$', views.set_enrollment_type, name='set_enrollment_type'),
-        url(r'^reset_enrollment_type/$', views.reset_enrollment_type, name='reset_enrollment_type'),
+    path('steps/<int:step_id>/', include(([
+        path('set_enrollment_type/', views.set_enrollment_type, name='set_enrollment_type'),
+        path('reset_enrollment_type/', views.reset_enrollment_type, name='reset_enrollment_type'),
 
-        url(r'^select_entrance_level/$', views.select_entrance_level, name='select_entrance_level'),
+        path('select_entrance_level/', views.select_entrance_level, name='select_entrance_level'),
 
-        url(r'^select_session_and_parallel/$', views.select_session_and_parallel, name='select_session_and_parallel'),
-        url(r'^reset_session_and_parallel/$', views.reset_session_and_parallel, name='reset_session_and_parallel'),
-        url(r'^approve_enrollment/$', views.approve_enrollment, name='approve_enrollment'),
-        url(r'^reject_participation/$', views.reject_participation, name='reject_participation'),
+        path('select_session_and_parallel/', views.select_session_and_parallel, name='select_session_and_parallel'),
+        path('reset_session_and_parallel/', views.reset_session_and_parallel, name='reset_session_and_parallel'),
+        path('approve_enrollment/', views.approve_enrollment, name='approve_enrollment'),
+        path('reject_participation/', views.reject_participation, name='reject_participation'),
     ], 'steps'), namespace='steps')),
 
     # Submodules
-    url(r'^scans/', include('modules.enrolled_scans.urls', namespace='enrolled_scans')),
+    path('scans/', include('modules.enrolled_scans.urls', namespace='enrolled_scans')),
 
-    url(r'', include('modules.entrance.staff.urls')),
+    path('', include('modules.entrance.staff.urls')),
 ]

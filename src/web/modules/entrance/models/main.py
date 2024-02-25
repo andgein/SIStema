@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db import models, transaction, IntegrityError
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 import dates.models
 import groups.models

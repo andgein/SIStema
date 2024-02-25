@@ -6,7 +6,7 @@ from allauth.socialaccount import forms as social_account_forms
 
 from django.core import exceptions as django_exceptions
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from frontend.forms import TextInputWithFaIcon, PasswordInputWithFaIcon, \
     SistemaRadioSelect, SistemaCheckboxSelect
 

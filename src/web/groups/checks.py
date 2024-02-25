@@ -13,16 +13,16 @@ def check_groups_in_app_configs(app_configs, **kwargs):
             continue
 
         groups = app_config.sistema_groups
-        if type(groups) is not dict:
+        if not isinstance(groups, dict):
             errors.append(Error(
-                'AppConfig.sistema_groups should be dict',
+                'AppConfig.sistema_groups should be a dict',
                 obj=app_config,
                 id='groups.E001',
             ))
             break
 
         for group_name, group in groups.items():
-            if type(group_name) is not str:
+            if not isinstance(group_name, str):
                 errors.append(Error(
                     'Group\'s short_name should be str, not %s' % (
                         type(group_name),
@@ -39,10 +39,10 @@ def check_groups_in_app_configs(app_configs, **kwargs):
                 ))
                 break
 
-            if type(group) is not dict:
+            if not isinstance(group, dict):
                 errors.append(Error(
-                    'AppConfig.sistema_groups should be dict, '
-                    'which values are dicts, but sistema_groups["%s"] is %s' % (
+                    'AppConfig.sistema_groups should be a dict, '
+                    'which values are dicts as well, but sistema_groups["%s"] is %s' % (
                         group_name, type(group)
                     ),
                     obj=app_config,
@@ -51,7 +51,7 @@ def check_groups_in_app_configs(app_configs, **kwargs):
                 break
 
             label = group.pop('label', '')
-            if type(label) is not str:
+            if not isinstance(label, str):
                 errors.append(Error(
                     'Group\'s label should be str, not %s' % (type(label), ),
                     obj=app_config,
@@ -68,7 +68,7 @@ def check_groups_in_app_configs(app_configs, **kwargs):
                 break
 
             description = group.pop('description', '')
-            if type(description) is not str:
+            if not isinstance(description, str):
                 errors.append(Error(
                     'Group\'s description should be str, not %s' % (
                         type(description),
@@ -79,7 +79,7 @@ def check_groups_in_app_configs(app_configs, **kwargs):
                 break
 
             auto_members = group.pop('auto_members', [])
-            if type(auto_members) not in (list, tuple):
+            if not isinstance(auto_members, (list, tuple)):
                 errors.append(Error(
                     'Group\'s auto_members should be tuple or list, not %s' % (
                         type(auto_members),
@@ -90,7 +90,7 @@ def check_groups_in_app_configs(app_configs, **kwargs):
                 break
 
             auto_access = group.pop('auto_access', {})
-            if type(auto_access) is not dict:
+            if not isinstance(auto_access, dict):
                 errors.append(Error(
                     'Group\'s auto_access should be dict, not %s' % (
                         type(auto_access),
@@ -101,7 +101,7 @@ def check_groups_in_app_configs(app_configs, **kwargs):
                 break
 
             system_wide = group.pop('system_wide', False)
-            if type(system_wide) is not bool:
+            if not isinstance(system_wide, bool):
                 errors.append(Error(
                     'Group\'s system_wide should be bool, not %s' % (
                         type(system_wide),

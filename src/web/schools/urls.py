@@ -1,26 +1,26 @@
-from django.conf.urls import url, include
+from django.urls import path, include
 
 from schools import views
 
 app_name = 'schools'
 
 urlpatterns = [
-    url(r'^(?P<school_name>[^/]+)/', include([
-        url(r'^$', views.index, name='index'),
-        url(r'^user/$', views.user, name='user'),
-        url(r'^staff/$', views.staff, name='staff'),
-        url(r'^questionnaire/(?P<questionnaire_name>[^/]+)/$',
-            views.questionnaire,
-            name='questionnaire'),
-        url(r'^groups/', include('groups.school_urls', namespace='groups')),
+    path('<slug:school_name>/', include([
+        path('', views.index, name='index'),
+        path('user/', views.user, name='user'),
+        path('staff/', views.staff, name='staff'),
+        path('questionnaire/<slug:questionnaire_name>/',
+             views.questionnaire,
+             name='questionnaire'),
+        path('groups/', include('groups.school_urls', namespace='groups')),
 
         # Modules
-        url(r'^entrance/', include('modules.entrance.urls', namespace='entrance')),
-        url(r'^topics/', include('modules.topics.urls', namespace='topics')),
-        url(r'^finance/', include('modules.finance.urls', namespace='finance')),
-        url(r'^study-results/', include('modules.study_results.school_urls',
-                                        namespace='study_results')),
-        url(r'^ejudge/', include('modules.ejudge.school_urls',
-                                 namespace='ejudge')),
+        path('entrance/', include('modules.entrance.urls', namespace='entrance')),
+        path('topics/', include('modules.topics.urls', namespace='topics')),
+        path('finance/', include('modules.finance.urls', namespace='finance')),
+        path('study-results/', include('modules.study_results.school_urls',
+                                       namespace='study_results')),
+        path('ejudge/', include('modules.ejudge.school_urls',
+                                namespace='ejudge')),
     ])),
 ]
