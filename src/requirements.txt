@@ -1,36 +1,34 @@
 ﻿### This file contains requirements for Sistema. Install them with `pip install -r requirements.txt`
 
-beautifulsoup4==4.11.1
-bleach==5.0.1
+beautifulsoup4==4.12.3
 boto==2.49.0
-boto3==1.24.12
-botocore==1.27.12
+boto3==1.34.49
 cached-property==1.5.2
-certifi==2022.6.15
-cffi==1.15.0
-chardet==4.0.0
-colorama==0.4.5
-coverage==6.2
-cryptography==36.0.1
+certifi==2024.2.2
+cffi==1.16.0
+chardet==5.2.0
+colorama==0.4.6
+coverage==7.4.3
+cryptography==42.0.5
 defusedxml==0.7.1
 Django==3.2.20
+# Django==4.0
 django-allauth==0.47.0
 django-anymail==8.4
 django-autocomplete-light==3.9.4
-django-choices==1.7.2
-django-compat==1.0.15
-django-constance==2.9.0
+django-choices==2.0.0 # " We strongly recommend migrating to the native functionality and not use django-choices for new projects." © https://django-choices.readthedocs.io/en/latest/
+django-constance==3.1.0
 django-debug-toolbar==3.4.0
-django-hijack==2.3.0
+django-hijack==2.3.0 # Be careful! Django hijack 3.0 has been fully rewritten: https://github.com/django-hijack/django-hijack/releases/tag/3.0rc1
 django-hijack-admin==2.1.10
 django-htmlmin==0.11.0
 django-ipware==5.0.0
-django-jinja==2.10.2
+django-jinja==2.11.0
 django-js-asset==1.2.2
-django-markdown-deux==1.0.5
+django-markdown-deux==1.0.6
 django-multiselectfield==0.1.12
 django-nose==1.4.7
-django-nyt==1.2.2 # wiki is incompatible with django-nyt 1.3 (https://github.com/django-wiki/django-wiki/blob/releases/0.9/setup.py)
+django-nyt==1.4
 django-picklefield==3.1.0
 django-polymorphic==3.1.0
 django-relativefilepathfield==1.0.3
@@ -38,21 +36,21 @@ django-reversion==4.0.1
 django-sekizai==4.1.0
 django-ses==2.3.1
 django-settings-export==1.2.1
-django-silk==5.0.3
+django-silk==5.1.0
 django-sizefield==2.0.0
 django-tables2==2.5.3
-future==0.18.3
+future==1.0.0
 html5lib==1.1
-Jinja2==3.1.2
+Jinja2==3.1.3
 jmespath==1.0.1
 Markdown==3.3.7
-markdown2==2.4.3
-MarkupSafe==2.1.1
+markdown2==2.4.12
+MarkupSafe==2.1.5
 nose==1.3.7
 oauthlib==3.1.1
 polygon-api==1.0a7
 pycparser==2.21
-PyJWT==2.4.0
+PyJWT==2.8.0
 pyparsing==3.0.6
 python-dateutil==2.8.2
 python-postmark==0.5.8
@@ -61,7 +59,7 @@ python3-openid==3.2.0
 pyyaml==5.4
 rednose==1.3.0
 reportlab==3.6.10
-requests==2.28.0
+requests==2.31.0
 requests-oauthlib==1.3.0
 six==1.16.0
 social-auth-app-django==5.0.0
@@ -72,7 +70,6 @@ sqlparse==0.4.2
 termstyle==0.1.11
 toml==0.10.2
 trans==2.1.0
-urllib3==1.26.9
-wiki==0.9.0
+wiki==0.10
 XlsxWriter==3.1.0
 zipstream==1.1.4

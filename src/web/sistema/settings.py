@@ -59,7 +59,6 @@ INSTALLED_APPS = [
     'ipware',
     'polymorphic',
     'constance',
-    'constance.backends.database',
     'django_tables2',
     'django_nyt',
     'debug_toolbar',
