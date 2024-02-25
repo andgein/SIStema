@@ -87,7 +87,27 @@ class AlreadyWasEntranceLevelLimiterTestCase(TransactionTestCase):
             order=60,
         )
 
-        self.limiter = levels.AlreadyWasEntranceLevelLimiter(self.school)
+        self.limiter = levels.AlreadyWasEntranceLevelLimiter.objects.create(school=self.school)
+        levels.AlreadyWasEntranceLevelLimiterForParallel.objects.create(
+            limiter=self.limiter,
+            previous_parallel_short_name='c_prime',
+            level=self.c
+        )
+        levels.AlreadyWasEntranceLevelLimiterForParallel.objects.create(
+            limiter=self.limiter,
+            previous_parallel=self.s2_c_py,
+            level=self.b_prime
+        )
+        levels.AlreadyWasEntranceLevelLimiterForParallel.objects.create(
+            limiter=self.limiter,
+            previous_parallel_short_name='b_prime',
+            level=self.b
+        )
+        levels.AlreadyWasEntranceLevelLimiterForParallel.objects.create(
+            limiter=self.limiter,
+            previous_parallel_short_name='b',
+            level=self.a_prime
+        )
 
     def test_no_participations(self):
         """

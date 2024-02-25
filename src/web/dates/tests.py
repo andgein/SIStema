@@ -3,7 +3,7 @@
 """Tests for the dates app"""
 
 import datetime
-import unittest
+import unittest.mock
 
 import django.test
 from django.db import IntegrityError
@@ -13,7 +13,7 @@ import users.models
 from dates import models
 from schools.models import School
 
-TIMEZONE = datetime.timezone(datetime.timedelta())
+TIMEZONE = datetime.timezone.utc
 
 
 class KeyDateTestCase(django.test.TestCase):
@@ -41,6 +41,10 @@ class KeyDateTestCase(django.test.TestCase):
 
         self.user_with_exception = users.models.User.objects.create_user(
             'test2', 'test2@test.com', 'password')
+
+        self.user_with_group_exception = users.models.User.objects.create_user(
+            'test3', 'test3@test.com', 'password')
+
         models.UserKeyDateException.objects.create(
             key_date=self.key_date,
             user=self.user_with_exception,
@@ -71,6 +75,9 @@ class KeyDateTestCase(django.test.TestCase):
             datetime=datetime.datetime(2018, 1, 4, 0, 0, tzinfo=TIMEZONE)
         )
 
+        self.group_with_early_exception.add_user(self.user_with_group_exception)
+        self.group_with_late_exception.add_user(self.user_with_group_exception)
+
     @unittest.mock.patch(
         'django.utils.timezone.now',
         new=lambda: datetime.datetime(2017, 12, 31, 23, 59, tzinfo=TIMEZONE)
@@ -88,7 +95,6 @@ class KeyDateTestCase(django.test.TestCase):
     )
     def test_key_date_passed(self):
         """The case when key date is passed is handled correctly"""
-
         self.assertTrue(
             self.key_date.passed_for_user(self.user_without_exception)
         )
@@ -123,11 +129,8 @@ class KeyDateTestCase(django.test.TestCase):
     )
     def test_group_key_date_exception_latest_is_used(self):
         """Latest group exception is used if there are several"""
-        self.group_with_early_exception.add_user(self.user_without_exception)
-        self.group_with_late_exception.add_user(self.user_without_exception)
-
         self.assertFalse(
-            self.key_date.passed_for_user(self.user_without_exception)
+            self.key_date.passed_for_user(self.user_with_group_exception)
         )
 
     # Cloning
@@ -148,7 +151,7 @@ class KeyDateTestCase(django.test.TestCase):
 
     def test_clone_with_custom_field_values(self):
         """Clone with specified field values correctly sets the fields"""
-        apocalypse_datetime = datetime.datetime(9999, 3, 20)
+        apocalypse_datetime = datetime.datetime(9999, 3, 20, tzinfo=TIMEZONE)
         new_date = self.key_date.clone(
             school=None,
             name='Apocalypse',

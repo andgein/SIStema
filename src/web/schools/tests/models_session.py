@@ -3,7 +3,6 @@
 """Tests for school.models.Session."""
 
 import datetime
-import unittest
 
 import django.test
 

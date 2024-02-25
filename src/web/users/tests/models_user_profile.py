@@ -6,7 +6,7 @@ import unittest
 import unittest.mock
 
 from django.test import TestCase
-from users.models import UserProfile
+from users.models import UserProfile, User
 
 import datetime
 
@@ -33,7 +33,8 @@ class UserProfileTestCase(TestCase):
             self.assertEqual(start_class + i // 365, user_profile.get_class(date))
 
     def test_save_load_class(self):
-        user_profile = UserProfile()
+        user = User()
+        user_profile = UserProfile(user=user)
         start_date = datetime.date(year=2016, month=9, day=1)
         start_class = 8
         user_profile.set_class(start_class, start_date)

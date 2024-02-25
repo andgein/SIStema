@@ -198,7 +198,8 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
+# Will be removed in Django 5.0: https://docs.djangoproject.com/en/dev/releases/5.0/
+# USE_L10N = True
 
 USE_TZ = True
 
@@ -235,14 +236,6 @@ DATE_INPUT_FORMATS = (
 )
 
 DATE_FORMAT = 'd.m.Y'
-
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-NOSE_ARGS = [
-    '--rednose',
-    '--with-coverage',
-    '--cover-package=sistema,dates,frontend,generator,groups,home,modules,'
-    + 'questionnaire,schools,users',
-]
 
 SISTEMA_QUESTIONNAIRE_STORING_DATE_FORMAT = '%d.%m.%Y'
 

@@ -74,7 +74,6 @@ class KeyDate(models.Model):
                     latest_datetime = group_exception.datetime
         if latest_datetime is not None:
             return latest_datetime
-
         return self.datetime
 
     def passed_for_user(self, user):

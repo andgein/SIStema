@@ -1,4 +1,5 @@
 import datetime
+from typing import Optional
 
 from django.db import models
 from djchoices import choices
@@ -199,7 +200,7 @@ class UserProfile(models.Model):
             result -= 1
         return result
 
-    def set_class(self, value, date=None):
+    def set_class(self, value, date: Optional[datetime.date] = None):
         if value is None:
             self._zero_class_year = None
             return

@@ -30,7 +30,7 @@ class StudyResultsTable(frontend.table.Table):
                    'school_participant.user.profile.middle_name',
                    'school_participant.user.profile.last_name'),
         viewname='study_results:study_result_user',
-        kwargs={'user_id': A('school_participant.user.id')})
+        kwargs={'user_id': A('school_participant__user__id')})
 
     city = frontend.table.Column(
         accessor='school_participant.user.profile.city',

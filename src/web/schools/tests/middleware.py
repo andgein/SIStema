@@ -11,10 +11,11 @@ from schools import models
 from schools import middleware
 import users.models
 
+
 class SchoolMiddlewareTestCase(django.test.TestCase):
     def setUp(self):
         self.request_factory = django.test.RequestFactory()
-        self.middleware = middleware.SchoolMiddleware()
+        self.middleware = middleware.SchoolMiddleware(lambda request: None)
         self.student = users.models.User.objects.create(
             username='test_student',
             email='student@lksh.ru',

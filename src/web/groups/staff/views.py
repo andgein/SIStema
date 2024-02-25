@@ -42,7 +42,7 @@ class GroupMembersTable(frontend.table.Table):
     )
 
     klass = frontend.table.Column(
-        accessor='profile.get_class',
+        accessor='profile__get_class',
         verbose_name='Класс',
     )
 
@@ -107,7 +107,7 @@ class GroupsListTable(frontend.table.Table):
         template_name='groups/staff/_groups_list_group_name.html',
         # TODO (andgein): it's a hack to retrieve current object as an accessor.
         # Null and empty accessor don't work, but I don't know why
-        accessor='abstractgroup_ptr.get_real_instance',
+        accessor='abstractgroup_ptr__get_real_instance',
         verbose_name='Имя',
         orderable=True,
         order_by='name',
@@ -124,12 +124,12 @@ class GroupsListTable(frontend.table.Table):
     members_count = frontend.table.Column(
         # TODO (andgein): it's a hack to retrieve current object as an accessor.
         # Null and empty accessor don't work, but I don't know why
-        accessor='abstractgroup_ptr.get_real_instance',
+        accessor='abstractgroup_ptr__get_real_instance',
         verbose_name='Участников',
     )
 
     export_link = frontend.table.LinkColumn(
-        accessor='abstractgroup_ptr.get_real_instance',
+        accessor='abstractgroup_ptr__get_real_instance',
         verbose_name='Скачать XLSX',
         viewname='school:groups:export_group',
         args=[A('school__short_name'), A('short_name')],

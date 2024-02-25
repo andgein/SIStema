@@ -39,7 +39,7 @@ class QuestionnaireTestCase(django.test.TestCase):
         )
 
         self.close_date = KeyDate.objects.create(
-            datetime=datetime.datetime(2048, 3, 1),
+            datetime=datetime.datetime(2048, 3, 1, tzinfo=datetime.timezone.utc),
         )
 
         self.src_q = models.Questionnaire.objects.create(
@@ -75,7 +75,7 @@ class QuestionnaireTestCase(django.test.TestCase):
 
         # Copy with changing everything
         dst_close_time = KeyDate.objects.create(
-            datetime=datetime.datetime(2048, 4, 1),
+            datetime=datetime.datetime(2048, 4, 1, tzinfo=datetime.timezone.utc),
         )
         dst_q = self.src_q.clone(
             new_school=self.school_2,

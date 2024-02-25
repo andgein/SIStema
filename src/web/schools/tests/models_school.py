@@ -2,8 +2,6 @@
 
 """Tests for school.models.School."""
 
-import unittest
-
 import django.test
 
 import schools.models as models

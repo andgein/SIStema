@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core import management
 from django.db import transaction
 from django.utils import translation
-from polygon_client import Polygon, PolygonRequestFailedException
+from polygon_api import Polygon, PolygonRequestFailedException
 
 from modules.polygon import models
 
