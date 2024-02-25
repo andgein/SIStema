@@ -121,7 +121,7 @@ class SelectSessionAndParallelForm(forms.Form):
     def __init__(self, sessions_and_parallels, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        choices = []
+        choices: list[tuple[int, str]] = []
         for session_and_parallel in sessions_and_parallels:
             full_parallel_name = '%s. Параллель %s' % (
                 session_and_parallel.session.get_full_name(),
@@ -141,7 +141,7 @@ class SelectSessionAndParallelForm(forms.Form):
 
 
 class SelectEntranceLevelForm(forms.Form):
-    def __init__(self, levels, base_level, recommended_level: Optional["EntranceLevel"] = None, *args, **kwargs):
+    def __init__(self, levels, base_level, recommended_level: Optional["EntranceLevel"] = None, *args, **kwargs):  # noqa: F821
         super().__init__(*args, **kwargs)
 
         self.fields['level'] = forms.TypedChoiceField(

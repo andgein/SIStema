@@ -11,7 +11,6 @@ from polymorphic import models as polymorphic_models
 import groups.models
 import questionnaire.models
 import schools.models
-from . import main as main_models
 from . import levels as levels_models
 from .. import forms
 

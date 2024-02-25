@@ -8,7 +8,7 @@ from django.core import exceptions as django_exceptions
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from frontend.forms import TextInputWithFaIcon, PasswordInputWithFaIcon, \
-    SistemaRadioSelect, SistemaCheckboxSelect
+    SistemaRadioSelect
 
 from users import models
 from modules.poldnev import forms as poldnev_forms

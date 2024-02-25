@@ -418,8 +418,11 @@ class ExportCompleteEnrollingTable(django.views.View):
             models.EntranceStatus.Status.PARTICIPATING: '',
         }
 
-        get_parallels_list = lambda status: ', '.join(sp.parallel.name for sp in status.sessions_and_parallels.all())
-        get_sessions_list = lambda status: ', '.join(sp.session.name for sp in status.sessions_and_parallels.all())
+        def _get_parallels_list(status):
+            return ', '.join(sp.parallel.name for sp in status.sessions_and_parallels.all())
+
+        def _get_sessions_list(status):
+            return ', '.join(sp.session.name for sp in status.sessions_and_parallels.all())
 
         columns.append(ExcelMultiColumn(
             name='Итог',
@@ -427,12 +430,12 @@ class ExportCompleteEnrollingTable(django.views.View):
                 PlainExcelColumn(
                     name='Параллель',
                     cell_width=8,
-                    data=[get_parallels_list(entrance_status_by_user_id[user.id]) if user.id in entrance_status_by_user_id else "" for user in enrollees],
+                    data=[_get_parallels_list(entrance_status_by_user_id[user.id]) if user.id in entrance_status_by_user_id else "" for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Смена',
                     cell_width=7,
-                    data=[get_sessions_list(entrance_status_by_user_id[user.id]) if user.id in entrance_status_by_user_id else "" for user in enrollees],
+                    data=[_get_sessions_list(entrance_status_by_user_id[user.id]) if user.id in entrance_status_by_user_id else "" for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Статус',

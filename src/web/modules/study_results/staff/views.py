@@ -21,7 +21,7 @@ from . import forms
 
 class StudyResultsTable(frontend.table.Table):
     name = frontend.table.LinkColumn(
-        accessor='school_participant.user.get_full_name',
+        accessor='school_participant__user__get_full_name',
         verbose_name='Имя',
         order_by=('school_participant.user.profile.last_name',
                   'school_participant.user.profile.first_name',
@@ -33,19 +33,19 @@ class StudyResultsTable(frontend.table.Table):
         kwargs={'user_id': A('school_participant__user__id')})
 
     city = frontend.table.Column(
-        accessor='school_participant.user.profile.city',
+        accessor='school_participant__user__profile__city',
         verbose_name='Город',
         orderable=True,
         searchable=True)
 
     school_and_class = frontend.table.Column(
-        accessor='school_participant.user.profile',
+        accessor='school_participant__user__profile',
         verbose_name='Школа, класс',
         search_in='school_participant.user.profile.school_name')
 
     # TODO: filterable
     parallel = frontend.table.Column(
-        accessor='school_participant.parallel.name',
+        accessor='school_participant__parallel__name',
         verbose_name='Параллель',
         orderable=True)
 

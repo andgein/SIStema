@@ -33,7 +33,7 @@ class DocumentGenerator:
         # Some question may have several answers (i.e. multiple ChoiceQuestionnaireQuestion).
         # Join them by ', '.
         for question_short_name, answer in user_payment_questionnaire.items():
-            if type(answer) is list:
+            if isinstance(answer, list):
                 user_payment_questionnaire[question_short_name] = ', '.join(map(str, answer))
 
         entrance_status = EntranceStatus.get_visible_status(self.school, user)

@@ -56,7 +56,7 @@ class EnrollingUsersTable(frontend.table.Table):
         verbose_name='Почта')
 
     city = frontend.table.Column(
-        accessor='profile.city',
+        accessor='profile__city',
         orderable=True,
         searchable=True,
         verbose_name='Город')

@@ -2,7 +2,6 @@ import enum
 
 from django import forms
 
-from users import models
 
 
 class AccountBaseForm(forms.Form):

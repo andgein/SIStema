@@ -8,7 +8,6 @@ from django.utils.functional import cached_property
 import polymorphic.models
 
 import modules.ejudge.models
-import users.models as users_models
 
 from . import checking as checking_models
 from . import main as main_models

@@ -1,5 +1,5 @@
 from constance import config
-from django.db import models, transaction, IntegrityError
+from django.db import models, IntegrityError
 from django.utils import timezone
 
 import schools.models

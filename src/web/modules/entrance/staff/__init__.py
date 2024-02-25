@@ -1,6 +1,5 @@
 import frontend.icons
 import sistema.staff
-from . import views
 from .. import groups as entrance_groups
 from .. import utils
 import groups

@@ -304,7 +304,7 @@ class Scale(models.Model):
                 '"%s" (%d) must be equal to count_values defined in scale (%d)'
                 % (group_name, labels.count(), self.count_values))
 
-        return [l.label_text for l in labels]
+        return [label.label_text for label in labels]
 
     def __str__(self):
         return '%s. Шкала %s' % (self.questionnaire, self.title)

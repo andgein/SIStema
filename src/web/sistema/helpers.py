@@ -1,4 +1,3 @@
-import enum
 import mimetypes
 import operator
 import os

@@ -7,7 +7,7 @@ import questionnaire.models
 
 import polymorphic.models
 
-from modules.enrolled_scans.entrance.steps import *
+from modules.enrolled_scans.entrance.steps import *  # noqa: F403
 
 
 class EnrolledScanRequirement(models.Model):

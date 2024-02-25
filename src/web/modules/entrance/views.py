@@ -2,7 +2,6 @@ import operator
 
 import django.urls
 import ipware.ip
-import ipware.ip
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Prefetch, Min

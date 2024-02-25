@@ -49,8 +49,6 @@ polygon-api==1.0a7
 pycparser==2.21
 PyJWT==2.8.0
 pyparsing==3.0.6
-pytest==8.0.2
-pytest-django==4.8.0
 python-dateutil==2.8.2
 python-postmark==0.5.8
 python-social-auth==0.3.6

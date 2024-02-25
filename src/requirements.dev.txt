@@ -1,0 +1,7 @@
+### This file contains DEVELOPERS requirements for Sistema. Install them with `pip install -r requirements.dev.txt`
+
+-i requirements.txt
+
+pytest==8.0.2
+pytest-django==4.8.0
+ruff==0.2.2

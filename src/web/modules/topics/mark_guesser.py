@@ -99,10 +99,6 @@ class MarkGuesser:
         # Consider previous questionnaire, if it exists
         previous_questionnaire = self.questionnaire.previous
         if previous_questionnaire is not None:
-            previous_scale_in_topics = models.ScaleInTopic.objects.filter(
-                topic__questionnaire=previous_questionnaire
-            ).select_related('scale_label_group__scale')
-
             previous_marks = models.UserMark.objects.filter(
                 user=self.user,
                 scale_in_topic__topic__questionnaire=previous_questionnaire)

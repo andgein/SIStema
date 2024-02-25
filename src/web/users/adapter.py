@@ -1,4 +1,5 @@
-import sys, traceback
+import sys
+import traceback
 from allauth.account import adapter
 
 

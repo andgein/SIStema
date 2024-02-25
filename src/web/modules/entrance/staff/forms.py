@@ -1,7 +1,6 @@
 from django import forms
 
 import frontend.forms
-from .. import models
 
 
 class FileEntranceExamTasksMarkForm(forms.Form):

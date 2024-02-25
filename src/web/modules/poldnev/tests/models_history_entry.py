@@ -2,7 +2,6 @@
 
 """Tests for poldnev.models.HistoryEntry."""
 
-import unittest
 
 import django.test
 

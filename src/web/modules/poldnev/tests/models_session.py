@@ -2,7 +2,6 @@
 
 """Tests for poldnev.models.Session."""
 
-import unittest
 
 import django.test
 

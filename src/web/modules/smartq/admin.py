@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-import users.admin
 from modules.smartq import models
 
 

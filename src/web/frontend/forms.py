@@ -121,33 +121,6 @@ class TextareaWithFaIcon(forms.Textarea):
                (base_rendered, self.fa_type_safe)
 
 
-# TODO: it's not working and not used now
-class ButtonGroup(forms.NumberInput):
-    def render(self, name, value, attrs=None, renderer=None):
-        """
-            <div class="btn-toolbar inline">
-                <div class="btn-group inline" data-toggle="buttons-radio">
-                    <a class="btn inline active" onClick="$('#theory_2').val('0')">0</a>
-                    <a class="btn inline" onClick="$('#theory_2').val('1')">1</a>
-                    <a class="btn inline" onClick="$('#theory_2').val('2')">2</a>
-                    <a class="btn inline" onClick="$('#theory_2').val('3')">3</a>
-                    <a class="btn inline" onClick="$('#theory_2').val('4')">4</a>
-                    <a class="btn inline" onClick="$('#theory_2').val('5')">5</a>
-                </div>
-            </div>
-        """
-        hidden_input = forms.HiddenInput().render(name, value, attrs, renderer=renderer)
-
-        return format('''
-        <div class="btn-toolbar inline">
-            <div class="btn-group inline" data-toggle="buttons-radio">
-                <a class="btn inline" onClick="$('#theory_2').val('4')">4</a>
-                <a class="btn inline" onClick="$('#theory_2').val('5')">5</a>
-            </div>
-        </div>
-        ''')
-
-
 class SistemaRadioSelect(forms.RadioSelect):
     template_name = 'frontend/forms/widgets/radio.html'
     option_template_name = 'frontend/forms/widgets/radio_option.html'

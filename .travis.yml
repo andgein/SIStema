@@ -33,7 +33,7 @@ install:
 script:
   - python src/web/manage.py makemigrations --check
   - python src/web/manage.py migrate
-  - pytest
+  - pytest src/web
 
 after_success:
   - codecov

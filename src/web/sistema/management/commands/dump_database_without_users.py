@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.core import management
 from django.db import models
 

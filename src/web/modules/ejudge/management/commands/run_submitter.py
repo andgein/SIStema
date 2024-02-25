@@ -109,8 +109,8 @@ class Command(BaseCommand):
         run_id = self._find_between(r.text, run_id_pre, run_id_post)
         try:
             run_id = int(run_id)
-        except:
-            raise EjudgeException('Invalid non-numeric run_id: %s' % run_id)
+        except ValueError as e:
+            raise EjudgeException('Invalid non-numeric run_id: %s' % run_id) from e
 
         return run_id
 

@@ -58,9 +58,9 @@ def _update_questionnaire_status(user, questionnaire, status):
 def _get_questionnaire_status(user, questionnaire):
     # Get user status or initialize it as NOT_STARTED
     user_status, _ = models.UserQuestionnaireStatus.objects.get_or_create(
-            questionnaire=questionnaire,
-            user=user,
-            defaults={'status': models.UserQuestionnaireStatus.Status.NOT_STARTED})
+        questionnaire=questionnaire,
+        user=user,
+        defaults={'status': models.UserQuestionnaireStatus.Status.NOT_STARTED})
 
     return user_status
 
@@ -175,7 +175,7 @@ def _show_or_process_topic_form(request, topic_issue):
         # Check that topic_id from form is equal to last issued topic, else
         # update page for show the new question
         if ('topic_id' in form.cleaned_data and
-           form.cleaned_data['topic_id'] != topic_issue.topic_id):
+            form.cleaned_data['topic_id'] != topic_issue.topic_id):
             return redirect('.')
 
         if form.is_valid():
@@ -256,12 +256,12 @@ def index(request):
 
         # Show correcting form if needed
         if (user_status.status ==
-                models.UserQuestionnaireStatus.Status.CORRECTING):
+            models.UserQuestionnaireStatus.Status.CORRECTING):
             return correcting(request)
 
         # If user has not filled a questionnaire at all
         if (user_status.status ==
-                models.UserQuestionnaireStatus.Status.NOT_STARTED):
+            models.UserQuestionnaireStatus.Status.NOT_STARTED):
             # Update his status, mark it as STARTED
             user_status.status = models.UserQuestionnaireStatus.Status.STARTED
             user_status.save()
@@ -320,7 +320,7 @@ def return_to_correcting(request):
     user_status = _get_questionnaire_status(request.user, request.questionnaire)
     # Both CHECK_TOPICS and PASSED can't happen
     if (user_status.status != models.UserQuestionnaireStatus.Status.CHECK_TOPICS
-                or request.smartq_q is None):
+        or request.smartq_q is None):
         return redirect('school:topics:index',
                         school_name=request.school.short_name)
 
@@ -390,7 +390,7 @@ def finish_smartq(request):
         return redirect('school:topics:index', school_name=request.school.short_name)
     questions = smartq_q.questions.all()
     allowed_errors_map = models.TopicCheckingSettings.objects.get(
-            questionnaire=request.questionnaire).allowed_errors_map
+        questionnaire=request.questionnaire).allowed_errors_map
     allowed_errors = allowed_errors_map.get(len(questions), 0)
 
     for q in questions:
@@ -423,22 +423,21 @@ def finish_smartq(request):
 def _create_topic_checking_questionnaire(request):
     topics_q = request.questionnaire
 
-    if not (models.TopicCheckingSettings.objects.filter(questionnaire=topics_q)
-            .exists()):
+    if not models.TopicCheckingSettings.objects.filter(questionnaire=topics_q).exists():
         return None
 
     new_q = models.TopicCheckingQuestionnaire.objects.create(
-            user=request.user,
-            topic_questionnaire=topics_q,
-            status=models.TopicCheckingQuestionnaire.Status.IN_PROGRESS)
+        user=request.user,
+        topic_questionnaire=topics_q,
+        status=models.TopicCheckingQuestionnaire.Status.IN_PROGRESS)
 
     topics_with_marks = _get_user_marks_by_topics(
-            request.user, request.questionnaire, not_show_auto_marks=False)
+        request.user, request.questionnaire, not_show_auto_marks=False)
     topics_with_marks = sorted(
         topics_with_marks, key=lambda t: t.topic.order, reverse=True)
     # Ask not more than max_questions
     max_questions = models.TopicCheckingSettings.objects.get(
-            questionnaire=topics_q).max_questions
+        questionnaire=topics_q).max_questions
 
     questions_counter = 0
     groups = set()
@@ -446,20 +445,19 @@ def _create_topic_checking_questionnaire(request):
                          for topic_with_mark in topics_with_marks
                          for mark in topic_with_mark.marks
                          for mapping in mark.scale_in_topic.smartq_mapping.all()
-                         if  mark.mark == mapping.mark)
+                         if mark.mark == mapping.mark)
     for mapping in relevant_mappings:
         # Skip questions of the same group
         if mapping.group is not None and mapping.group in groups:
-                 continue
+            continue
         generated_question = mapping.smartq_question.create_instance(
-                user=request.user)
-        new_question = models.TopicCheckingQuestionnaireQuestion.objects.create(
-                generated_question=generated_question, questionnaire=new_q,
-                topic_mapping=mapping)
+            user=request.user)
+        models.TopicCheckingQuestionnaireQuestion.objects.create(
+            generated_question=generated_question, questionnaire=new_q,
+            topic_mapping=mapping)
         groups.add(mapping.group)
         questions_counter += 1
-        if (max_questions is not None
-                and questions_counter == max_questions):
+        if max_questions is not None and questions_counter == max_questions:
             break
     return new_q
 

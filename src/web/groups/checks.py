@@ -3,7 +3,7 @@ from django.apps import apps
 
 
 @register()
-def check_groups_in_app_configs(app_configs, **kwargs):
+def check_groups_in_app_configs(app_configs, **_kwargs):
     if app_configs is None:
         app_configs = apps.get_app_configs()
 

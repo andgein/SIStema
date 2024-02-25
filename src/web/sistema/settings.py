@@ -166,7 +166,7 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_LOGOUT_ON_GET = True
-ACCOUNT_USER_DISPLAY = lambda user: user.get_full_name()
+ACCOUNT_USER_DISPLAY = lambda user: user.get_full_name()  # noqa: E731
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
@@ -348,8 +348,8 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 # Override settings defined above with the settings from local_settings.py
 try:
-    from sistema.local_settings import *
-except ImportError as e:
+    from sistema.local_settings import *  # noqa: F403
+except ImportError:
     import logging
     logging.getLogger(__name__).warning(
         'WARNING: No local sistema settings (local_settings.py) found. Using '

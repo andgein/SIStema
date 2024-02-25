@@ -19,11 +19,20 @@
 
     # Установите зависимости
     # SQLite
-    pip install -Ur src/requirements.txt
+    pip install -Ur src/requirements.dev.txt
     # MySQL
     pip install -Ur src/requirements.mysql.txt
     # PostgreSQL
     pip install -Ur src/requirements.postgres.txt
+    
+    # Запуск тестов
+    pytest src/web
+    
+    # Линтер
+    ruff check
+    
+    # Форматирование
+    ruff format --diff
 ```
 
 ## База данных

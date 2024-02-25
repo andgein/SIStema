@@ -35,7 +35,7 @@ class GroupMembersTable(frontend.table.Table):
     )
 
     city = frontend.table.Column(
-        accessor='profile.city',
+        accessor='profile__city',
         orderable=True,
         searchable=True,
         verbose_name='Город'
