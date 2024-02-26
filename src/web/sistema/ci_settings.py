@@ -1,4 +1,4 @@
-"""Django settings for Travis builds"""
+"""Django settings for CI builds"""
 
 import os
 
@@ -9,7 +9,7 @@ if DB == 'sqlite':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'travis_db.sqlite3',
+            'NAME': 'ci_db.sqlite3',
         }
     }
 
@@ -17,8 +17,8 @@ if DB == 'mysql':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'travis_db',
-            'USER': 'travis',
+            'NAME': 'ci_db',
+            'USER': 'ci',
             'PASSWORD': '',
             'HOST': 'localhost',
             'PORT': '3306',
@@ -41,7 +41,7 @@ if DB == 'postgres':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'travis_db',
+            'NAME': 'ci_db',
             'USER': 'postgres',
             'PASSWORD': '',
             'HOST': 'localhost',
