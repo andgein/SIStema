@@ -1,5 +1,7 @@
 # SIStema
 
+[![CI & Tests](https://github.com/andgein/SIStema/actions/workflows/ci.yaml/badge.svg)](https://github.com/andgein/SIStema/actions/workflows/ci.yaml)
+
 A web service for automating Summer Informatics School organization. This
 includes entrance examination, gathering necessary information from students and
 aims to cover more processes in the future.
