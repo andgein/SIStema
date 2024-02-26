@@ -43,7 +43,6 @@ INSTALLED_APPS = [
 
     # External django modules
     'reversion',
-    # 'social_django',
     'markdown_deux',
     'hijack',
     'hijack.contrib.admin',
