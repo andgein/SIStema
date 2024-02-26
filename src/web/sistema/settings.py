@@ -56,8 +56,8 @@ INSTALLED_APPS = [
     'sekizai',
     'sorl.thumbnail',
     'multiselectfield',
-    'wiki',
-    'wiki.plugins.attachments',
+    'sistema.apps.ModifiedWikiConfig',  # instead of wiki
+    'sistema.apps.ModifiedAttachmentsConfig',  # instead of wiki.plugins.attachments
     'wiki.plugins.globalhistory',
     'wiki.plugins.help',
     'wiki.plugins.images',
