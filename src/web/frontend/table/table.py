@@ -183,7 +183,7 @@ class BaseTable:
         if self.pagination is False:
             return ()
         if self.pagination is True:
-            return (15, 20, 30, 50, 100)
+            return 15, 20, 30, 50, 100
         return self.pagination
 
     @cached_property

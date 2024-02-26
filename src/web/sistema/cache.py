@@ -7,8 +7,10 @@ def cache(seconds=900):
     """
     Cache the result of a function call for the specified number of seconds,
     using Django's caching mechanism.
-    Assumes that the function never returns None (as the cache returns None to indicate a miss), and that the function's result only depends on its parameters.
-    Note that the ordering of parameters is important. e.g. myFunction(x = 1, y = 2), myFunction(y = 2, x = 1), and myFunction(1,2) will each be cached separately.
+    Assumes that the function never returns None (as the cache returns None to indicate a miss), and
+    that the function's result only depends on its parameters.
+    Note that the ordering of parameters is important. e.g. myFunction(x = 1, y = 2), myFunction(y = 2, x = 1),
+    and myFunction(1,2) will each be cached separately.
 
     Usage:
 

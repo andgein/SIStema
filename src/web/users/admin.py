@@ -17,7 +17,6 @@ class UserAdmin(HijackUserAdminMixin, VersionAdmin):
         'is_active',
         'is_superuser',
         'is_staff',
-        # 'hijack_field',
     )
 
     list_filter = (
@@ -48,7 +47,6 @@ class UserAdmin(HijackUserAdminMixin, VersionAdmin):
             return super().hijack_button(request, obj)
         finally:
             translation.activate(cur_language)
-
 
 
 @admin.register(models.UserProfile)

@@ -323,7 +323,6 @@ class GeneratedQuestion(models.Model):
             (name, self.form.cleaned_data[name])
             for name in self.form.field_order)
 
-        result = None
         try:
             checker = Sandbox.instance().run(
                 self.base_question._implementation.Checker,
@@ -334,7 +333,7 @@ class GeneratedQuestion(models.Model):
                 args=[self.data, answer_dict],
                 timeout=config.SMARTQ_CHECKER_TIMEOUT
             )
-        except Exception:  #pylint: disable=broad-except
+        except Exception:  # pylint: disable=broad-except
             result = api.CheckerResult(
                 status=api.Checker.Status.CHECK_FAILED,
                 message="{}: [id={}, question={}] {}".format(

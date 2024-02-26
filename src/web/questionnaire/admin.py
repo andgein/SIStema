@@ -113,7 +113,7 @@ class ChoiceQuestionnaireQuestionQuestionChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.AbstractQuestionnaireBlock
     inlines = AbstractQuestionnaireBlockChildAdmin.inlines + (
         ChoiceQuestionnaireQuestionVariantInline,
-)
+    )
 
 
 @admin.register(models.ChoiceQuestionnaireQuestionVariant)

@@ -5,6 +5,7 @@ from polymorphic.admin import PolymorphicChildModelFilter
 from home import models
 import sistema.polymorphic
 
+
 @admin.register(models.AbstractHomePageBlock)
 class AbstractHomePageBlockAdmin(
         sistema.polymorphic.PolymorphicParentModelAdmin

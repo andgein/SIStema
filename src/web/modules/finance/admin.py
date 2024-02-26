@@ -2,7 +2,7 @@ from django.contrib import admin
 
 import modules.entrance.admin
 import modules.entrance.models
-import questionnaire.models
+import questionnaire.admin
 import users.models
 from modules.finance import models
 

@@ -118,4 +118,4 @@ if __name__ == "__main__":
         '--school', type=str,
         help='short name of school, i.e. 2016 or 2016.winter')
     args = parser.parse_args(sys.argv[1:])
-    populate_study_results(**args)
+    populate_study_results(**vars(args))

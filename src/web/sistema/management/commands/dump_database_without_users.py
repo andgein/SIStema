@@ -16,8 +16,7 @@ class Command(management.base.BaseCommand):
             f for f in model._meta.get_fields(include_hidden=True)
             # Sometimes we may need to include M2M fields in this list.
             # In this case add "or f.many_to_many"
-            if (f.one_to_many or f.one_to_one) and f.auto_created and
-               not f.concrete
+            if (f.one_to_many or f.one_to_one) and f.auto_created and not f.concrete
         ]
 
     def get_related_models(self, model):

@@ -220,7 +220,7 @@ class UserProfileForm(forms.Form):
 
     informatics_username = forms.CharField(
         required=False,
-        label=mark_safe('Имя пользователя на&nbsp;<a href="http://informatics.msk.ru">informatics.msk.ru</a>'),
+        label=mark_safe('Имя пользователя на&nbsp;<a href="https://informatics.msk.ru">informatics.msk.ru</a>'),
         max_length=100,
         widget=TextInputWithFaIcon(attrs={
             'placeholder': '',

@@ -37,18 +37,17 @@ class PersonAdmin(admin.ModelAdmin):
         'show_url',
     )
     autocomplete_fields = ('user',)
-    search_fields = ('first_name', 'last_name')
-
-    def show_url(self, obj):
-        return html.format_html('<a href="{url}">{url}</a>', url=obj.url)
-    show_url.short_description = "URL"
-
     search_fields = (
         '=poldnev_id',
         'first_name',
         'middle_name',
         'last_name',
     )
+
+    def show_url(self, obj):
+        return html.format_html('<a href="{url}">{url}</a>', url=obj.url)
+    show_url.short_description = "URL"
+
 
 
 @admin.register(models.Parallel)
@@ -80,6 +79,7 @@ class StudyGroupAdmin(admin.ModelAdmin):
     ordering = ('parallel', 'name',)
 
 
+@admin.register(models.HistoryEntry)
 class HistoryEntryAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -110,5 +110,3 @@ class HistoryEntryAdmin(admin.ModelAdmin):
         'person',
         'session',
     )
-
-admin.site.register(models.HistoryEntry, HistoryEntryAdmin)

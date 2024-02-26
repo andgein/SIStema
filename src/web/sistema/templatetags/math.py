@@ -1,4 +1,5 @@
 from django import template
+
 register = template.Library()
 
 
@@ -30,7 +31,6 @@ def multiply(value, arg):
         return value * arg
     except (ValueError, TypeError):
         return ''
-    return ''
 
 
 @register.filter

@@ -3,7 +3,6 @@ import enum
 from django import forms
 
 
-
 class AccountBaseForm(forms.Form):
     class Tab(enum.Enum):
         NONE = 0,

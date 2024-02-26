@@ -74,7 +74,9 @@ class AccountInfo(object):
         return self.user.id < other.user.id
 
     def __str__(self):
-        return "%s obj_cnt %d user.id %d %s" % (str(self.status), self.related_objects_count, self.user.id, str(self.user))
+        return "%s obj_cnt %d user.id %d %s" % (
+            str(self.status), self.related_objects_count, self.user.id, str(self.user)
+        )
 
     @classmethod
     def build_for_user(cls, user):

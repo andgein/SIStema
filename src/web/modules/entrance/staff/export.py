@@ -430,29 +430,41 @@ class ExportCompleteEnrollingTable(django.views.View):
                 PlainExcelColumn(
                     name='Параллель',
                     cell_width=8,
-                    data=[_get_parallels_list(entrance_status_by_user_id[user.id]) if user.id in entrance_status_by_user_id else "" for user in enrollees],
+                    data=[_get_parallels_list(entrance_status_by_user_id[user.id])
+                          if user.id in entrance_status_by_user_id
+                          else ""
+                          for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Смена',
                     cell_width=7,
-                    data=[_get_sessions_list(entrance_status_by_user_id[user.id]) if user.id in entrance_status_by_user_id else "" for user in enrollees],
+                    data=[_get_sessions_list(entrance_status_by_user_id[user.id])
+                          if user.id in entrance_status_by_user_id
+                          else ""
+                          for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Статус',
                     cell_width=5,
                     data=[
-                        status_repr.get(entrance_status_by_user_id[user.id].status) if user.id in entrance_status_by_user_id else ""
+                        status_repr.get(entrance_status_by_user_id[user.id].status)
+                        if user.id in entrance_status_by_user_id
+                        else ""
                         for user in enrollees
                     ],
                 ),
                 PlainExcelColumn(
                     name='Комментарий',
-                    data=[entrance_status_by_user_id[user.id].public_comment if user.id in entrance_status_by_user_id else ""
+                    data=[entrance_status_by_user_id[user.id].public_comment
+                          if user.id in entrance_status_by_user_id
+                          else ""
                           for user in enrollees],
                 ),
                 PlainExcelColumn(
                     name='Приватный комментарий',
-                    data=[entrance_status_by_user_id[user.id].private_comment if user.id in entrance_status_by_user_id else ""
+                    data=[entrance_status_by_user_id[user.id].private_comment
+                          if user.id in entrance_status_by_user_id
+                          else ""
                           for user in enrollees],
                 ),
             ],

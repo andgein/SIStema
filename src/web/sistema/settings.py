@@ -219,6 +219,7 @@ MEDIA_URL = '/media/'
 WIKI_ACCOUNT_HANDLING = False
 WIKI_ANONYMOUS = False
 
+
 def WIKI_CAN_READ(article, user):
     return user.is_staff
 
