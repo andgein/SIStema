@@ -4,7 +4,7 @@ from modules.smartq import views
 app_name = 'smartq'
 
 urlpatterns = [
-    path('<slug:question_short_name>/', include([
+    path('<str:question_short_name>/', include([
         path('',
              views.show_admin_question_instance,
              name='show_admin_question_instance'),

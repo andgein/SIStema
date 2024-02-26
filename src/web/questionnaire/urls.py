@@ -7,10 +7,10 @@ app_name = 'questionnaire'
 
 
 urlpatterns = [
-    path('<slug:questionnaire_name>/', views.questionnaire, name='questionnaire'),
+    path('<str:questionnaire_name>/', views.questionnaire, name='questionnaire'),
 ]
 
 if conf.settings.DEBUG:
     urlpatterns += [
-        path('<slug:questionnaire_name>/reset/', views.reset, name='reset'),
+        path('<str:questionnaire_name>/reset/', views.reset, name='reset'),
     ]

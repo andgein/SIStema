@@ -6,6 +6,6 @@ app_name = 'finance'
 
 
 urlpatterns = [
-    path('<slug:document_type>/', views.download, name='download'),
+    path('<str:document_type>/', views.download, name='download'),
     ]
 

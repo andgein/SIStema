@@ -13,7 +13,7 @@ urlpatterns = [
     path('checking/return/', views.return_to_correcting, name='return_to_correcting'),
     path('checking/finish/', views.finish_smartq, name='finish_smartq'),
     path('finish/', views.finish, name='finish'),
-    path('correcting/<slug:topic_name>/', views.correcting_topic_marks, name='correcting_topic'),
+    path('correcting/<str:topic_name>/', views.correcting_topic_marks, name='correcting_topic'),
     path('', include('modules.topics.staff.urls')),
 ]
 
