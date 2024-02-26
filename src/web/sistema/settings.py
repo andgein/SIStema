@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'polymorphic',
     'constance',
     'django_tables2',
-    'django_nyt',
+    'sistema.apps.ModifiedDjangoNytConfig',  # instead of django_nyt
     'debug_toolbar',
     'mptt',
     'sekizai',
