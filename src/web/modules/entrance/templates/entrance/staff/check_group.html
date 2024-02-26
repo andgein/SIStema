@@ -70,11 +70,11 @@
     <div class="row">
         {% for task in tasks %}
             <div class="col-xs-12 col-md-6 col-lg-4">
-                <div class="panel panel-{% ifequal task.checked_solutions_count task.solutions_count %}success{% else %}info{% endifequal %}">
+                <div class="panel panel-{% if task.checked_solutions_count == task.solutions_count %}success{% else %}info{% endif %}">
                     <div class="panel-heading">
                         <span class="panel-title" title="{{ task.title }}">{{ task.title|truncatechars:22 }}</span>
                         <div class="widget-menu pull-right mr10">
-                            <span class="label label-sm bg-white text-{% ifequal task.checked_solutions_count task.solutions_count %}success{% else %}info{% endifequal %}" title="Проверено {{ task.checked_solutions_count }} из {{ task.solutions_count }} решени{{ task.solutions_count|russian_pluralize:'я,й,й' }}">
+                            <span class="label label-sm bg-white text-{% if task.checked_solutions_count == task.solutions_count %}success{% else %}info{% endif %}" title="Проверено {{ task.checked_solutions_count }} из {{ task.solutions_count }} решени{{ task.solutions_count|russian_pluralize:'я,й,й' }}">
                                 {{ task.checked_solutions_count }} из {{ task.solutions_count }}
                             </span>
                         </div>
@@ -86,12 +86,12 @@
                         {{ task.text|markdown|truncatewords_html:20 }}
 
                         <p class="mt15">
-                            {% ifnotequal task.checked_solutions_count task.solutions_count %}
+                            {% if task.checked_solutions_count != task.solutions_count %}
                                 <a href="{% url 'school:entrance:check_task' request.school.short_name group.short_name task.id %}"
                                    class="btn btn-sm btn-info mr10">
                                     Начать проверку
                                 </a>
-                            {% endifnotequal %}
+                            {% endif %}
 
                             {% if task.checked_solutions_count > 0 %}
                                 <nobr class="ib mt10">
@@ -134,9 +134,9 @@
                             <p class="text-muted">
                                 Всего проверено
                                 <a href="{% url 'school:entrance:task_checks' request.school.short_name group.short_name task.id %}" title="Посмотреть все проверенные решения">{{ task.checked_solutions_count }}&nbsp;решени{{ task.checked_solutions_count|russian_pluralize:'е,я,й' }}</a>
-                                {% ifnotequal task.checked_solutions_count task.checks_count %}
+                                {% if task.checked_solutions_count != task.checks_count %}
                                     ({{ task.checks_count }} провер{{ task.checks_count|russian_pluralize:'ка,ки,ок' }})
-                                {% endifnotequal %}
+                                {% endif %}
                             </p>
                             <table class="table table-condensed">
                                 <thead>
@@ -159,7 +159,7 @@
                                             </a>
                                         </td>
                                         <td>{{ check.solution.user.get_full_name }}</td>
-                                        <td class="{% ifequal check.score task.max_score %}text-success{% else %}text-danger{% endifequal %}">
+                                        <td class="{% if check.score == task.max_score %}text-success{% else %}text-danger{% endif %}">
                                             {{ check.score }}
                                         </td>
                                         <td>{{ check.checked_by.get_full_name }}</td>

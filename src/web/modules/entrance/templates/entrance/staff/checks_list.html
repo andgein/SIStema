@@ -81,7 +81,7 @@ teacher - the teacher all the checks are made by. Pass only if showing list of
                                     {% endif %}
                                 </td>
                             {% endif %}
-                            <td class="{% ifequal check.score check.solution.task.max_score %}text-success{% else %}text-danger{% endifequal %}">
+                            <td class="{% if check.score == check.solution.task.max_score %}text-success{% else %}text-danger{% endif %}">
                                 {{ check.score }}
                             </td>
                             {% if not teacher %}

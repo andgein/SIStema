@@ -161,7 +161,7 @@
                         {% for check in checks %}
                             <h4>
                                 <span class="fw400">{{ forloop.revcounter }}.</span> {{ check.checked_by.get_full_name }}
-                                <span class="label label-sm ml5 mr10 label-{% ifequal check.score task.max_score %}success{% else %}{% ifequal check.score 0 %}danger{% else %}warning{% endifequal %}{% endifequal %}">
+                                <span class="label label-sm ml5 mr10 label-{% if check.score == task.max_score %}success{% else %}{% if check.score == 0 %}danger{% else %}warning{% endif %}{% endif %}">
                                     {{ check.score }} балл{{ check.score|russian_pluralize:',а,ов' }}
                                 </span>
                                 <span class="pull-right fs12 fw400 text-muted" title="{{ check.created_at }}">{{ check.created_at|without_year }}</span>
