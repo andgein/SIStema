@@ -114,6 +114,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'hijack.middleware.HijackUserMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 
     'schools.middleware.SchoolMiddleware',
     'sistema.middleware.WikiWorkaroundMiddleware',
