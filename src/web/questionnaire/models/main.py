@@ -710,22 +710,25 @@ class Questionnaire(models.Model):
               new_school=KEEP_VALUE,
               new_short_name=KEEP_VALUE,
               new_session=KEEP_VALUE,
-              new_close_time=KEEP_VALUE):
+              new_close_time=KEEP_VALUE,
+              delete_current_blocks: bool = False):
         """
         Make and return a full copy of the questionnaire. The copy should have
         a unique `(school, short_name)` combination. You can change either of
         them by setting the corresponding method argument.
 
-        :param new_school: The school for the new questionnaire. By default is
+        :param new_school: The school for the new questionnaire. By default, is
             equal to the source questionnaire's school.
         :param new_short_name: The short name for the new questionnaire. By
-            default is equal to the source questionnaire's school.
-        :param new_session: The session for the new questionnaire. By default
+            default, is equal to the source questionnaire's school.
+        :param new_session: The session for the new questionnaire. By default,
             keeps its value if the school is unchanged, or is set to None
             otherwise.
         :param new_close_time: The `dates.KeyDate` object for the closing time.
-            By default keeps its value if the school is unchanged, or is set to
+            By default, keeps its value if the school is unchanged, or is set to
             `None` otherwise.
+        :param delete_current_blocks: If `True`, all blocks currently existing
+        on the questionnaire would be deleted.
         :return: The fresh copy of the questionnaire.
         """
         if self.pk is None:
@@ -759,12 +762,18 @@ class Questionnaire(models.Model):
             new_questionnaire.save()
         elif new_questionnaire.id == self.id:
             raise IntegrityError('Can\'t copy questionnaire to itself')
+        elif delete_current_blocks:
+            new_questionnaire.delete_all_blocks()
 
         self._copy_blocks_to_questionnaire(new_questionnaire)
         self._copy_block_dependencies(new_questionnaire)
         self._copy_block_show_conditions_to_questionnaire(new_questionnaire)
 
         return new_questionnaire
+
+    def delete_all_blocks(self):
+        for block in self.blocks.all():
+            block.delete()
 
     def _copy_blocks_to_questionnaire(self, to_questionnaire):
         for block in self.blocks.all():
