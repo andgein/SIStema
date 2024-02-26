@@ -95,12 +95,15 @@ class TopicQuestionnaire(models.Model):
         if close_time is self.KEEP_VALUE:
             close_time = self.close_time
 
-        new_questionnaire = TopicQuestionnaire.objects.create(
-            school=school,
-            title=title,
-            close_time=close_time,
-            previous=previous,
-        )
+        if TopicQuestionnaire.objects.filter(school=school).exists():
+            new_questionnaire = TopicQuestionnaire.objects.get(school=school)
+        else:
+            new_questionnaire = TopicQuestionnaire.objects.create(
+                school=school,
+                title=title,
+                close_time=close_time,
+                previous=previous,
+            )
 
         self._copy_levels_with_deps_to_questionnaire(new_questionnaire)
         self._copy_tags_to_questionnaire(new_questionnaire)

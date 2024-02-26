@@ -15,6 +15,7 @@ import django.db.transaction
 
 import schools.models
 
+
 @django.db.transaction.atomic
 def copy_models(from_school, to_school, models):
     """
@@ -104,7 +105,12 @@ def copy_object(from_school, to_school, obj):
                 copy_object(from_school, to_school, rel_obj)
             )
 
-    new_obj = cls.objects.create(**kwargs)
+    if ('short_name' in kwargs and 'school' in kwargs and
+       cls.objects.filter(school=to_school, short_name=kwargs['short_name']).exists()):
+        new_obj = cls.objects.get(school=to_school, short_name=kwargs['short_name'])
+    else:
+        new_obj = cls.objects.create(**kwargs)
+
     for key, values in many_to_many_values.items():
         getattr(new_obj, key).add(*values)
 
@@ -113,16 +119,19 @@ def copy_object(from_school, to_school, obj):
     return new_obj
 
 
-def get_school(obj, cache={}):
+def get_school(obj, cache=None):
     """
     Return None if obj is associated (maybe indirectly) with no school or with
     many schools.
 
-    Return schools.models.School object if obj is associated with a signle
+    Return schools.models.School object if obj is associated with a single
     school.
     """
     if obj is None:
         return None
+
+    if cache is None:
+        cache = {}
 
     key = '{}:{}'.format(obj.__class__.__name__, obj.id)
 

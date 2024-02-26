@@ -76,13 +76,20 @@ class AbstractQuestionnaireBlock(polymorphic.models.PolymorphicModel):
             fields_diff,
         ))
         field_kwargs = {f.name: getattr(self, f.name) for f in fields_to_copy}
-        new_instance = self.__class__(
-            questionnaire=to_questionnaire,
-            short_name=self.short_name,
-            order=self.order,
-            is_top_level=self.is_top_level,
-            **field_kwargs,
+
+        already_exists = self.__class__.objects.filter(
+            questionnaire=to_questionnaire, short_name=self.short_name, order=self.order
         )
+        if already_exists.exists():
+            new_instance = already_exists.first()
+        else:
+            new_instance = self.__class__(
+                questionnaire=to_questionnaire,
+                short_name=self.short_name,
+                order=self.order,
+                is_top_level=self.is_top_level,
+                **field_kwargs,
+            )
 
         self._copy_fields_to_instance(new_instance)
         new_instance.save()
@@ -374,7 +381,8 @@ class ChoiceQuestionnaireQuestion(AbstractQuestionnaireQuestion):
         for variant in self.variants.all():
             variant.pk = None
             variant.question = other_block
-            variant.save()
+            if not other_block.variants.filter(order=variant.order).exists():
+                variant.save()
 
     def get_form_field(self, attrs=None):
         if attrs is None:
