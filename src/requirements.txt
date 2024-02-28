@@ -34,7 +34,7 @@ django-sekizai==4.1.0
 django-settings-export==1.2.1
 django-silk==5.1.0
 django-sizefield==2.1.0
-django-tables2==2.5.3 # 2.6 drops Django 4.0 support: https://django-tables2.readthedocs.io/en/latest/pages/CHANGELOG.html
+django-tables2==2.7.0 # 2.6 drops Django 4.0 support: https://django-tables2.readthedocs.io/en/latest/pages/CHANGELOG.html
 future==1.0.0
 html5lib==1.1
 Jinja2==3.1.3
