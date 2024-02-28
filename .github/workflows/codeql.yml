@@ -40,7 +40,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript-typescript', 'python' ]
+        language:
+          # - 'javascript-typescript'  # Doesn't work because analyze@3 is producing sarif-result/javascript.sarif, 
+                                       # but upload-sarif@v3 is expecting sarif-result/javascript-typescript.sarif.
+          - 'python'
         # CodeQL supports [ 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'swift' ]
         # Use only 'java-kotlin' to analyze code written in Java, Kotlin or both
         # Use only 'javascript-typescript' to analyze code written in JavaScript, TypeScript or both
