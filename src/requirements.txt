@@ -11,7 +11,7 @@ colorama==0.4.6
 coverage==7.4.3
 cryptography==42.0.5
 defusedxml==0.7.1
-Django==4.0.10 # 4.1 is incompatible with django-multiselectfield which is not supported anymore: https://github.com/goinnn/django-multiselectfield/issues/141
+Django==5.0.2 # 4.1 is incompatible with django-multiselectfield which is not supported anymore: https://github.com/goinnn/django-multiselectfield/issues/141
 django-allauth==0.61.1
 django-anymail==10.2
 django-autocomplete-light==3.11.0
