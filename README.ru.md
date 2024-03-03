@@ -27,12 +27,14 @@
     
     # Запуск тестов
     pytest src/web
+    # если не делали изменений в миграциях, то можно значительно ускорить запуск тестов:
+    pytest src/web --no-migrations
     
     # Линтер
-    ruff check
+    ruff check src/
     
     # Форматирование
-    ruff format --diff
+    ruff format src/ --diff
 ```
 
 ## База данных

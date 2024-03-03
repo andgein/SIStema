@@ -33,7 +33,7 @@ jobs:
         python src/web/manage.py migrate
     - name: Run Tests
       run: |
-        pytest src/web
+        pytest src/web/
     - name: Run Linter
       run: |
-        ruff check src/web
+        ruff check src/
