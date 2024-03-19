@@ -8,7 +8,7 @@ certifi==2024.2.2
 cffi==1.16.0
 chardet==5.2.0
 colorama==0.4.6
-coverage==7.4.3
+coverage==7.4.4
 cryptography==42.0.5
 defusedxml==0.7.1
 Django==4.0.10 # 4.1 is incompatible with django-multiselectfield which is not supported anymore: https://github.com/goinnn/django-multiselectfield/issues/141
