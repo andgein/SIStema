@@ -59,6 +59,6 @@ social-auth-app-django==5.4.0
 termstyle==0.1.11
 toml==0.10.2
 trans==2.1.0
-wiki==0.10
+wiki==0.11
 XlsxWriter==3.2.0
 zipstream==1.1.4
